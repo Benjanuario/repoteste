@@ -77,7 +77,7 @@
   
   <script>
     // DETECÇÃO DE DISPOSITIVO MÓVEL
-    (function() {
+    (funtion() {
       'use strict';
       function isMobile() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -307,7 +307,7 @@
       </div>
 
       <div style="margin-top:15px;">
-        <button type="button" onclick="exportarPlanoCompleto()" style="padding:10px 20px; 
+        <button type="button" onclick="gerarPDFComGAS()" style="padding:10px 20px; 
            background: linear-gradient(90deg, #0d6efd, #6610f2);
            color:white; 
            border:none; 
@@ -330,8 +330,6 @@
     <button id="loaderVoltarBtn" style="display:none; margin-top:12px; padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#6610f2; cursor:pointer;"
             onclick="cancelarLoader()">❌CANCELAR O PROCESSO EM EXECUÇÃO</button>
   </div>
-
-  <div id="anexoContainerContent" style="display:none; margin-top:15px;"></div>
 
   <script>
     // ============================================
@@ -437,11 +435,12 @@
     }
 
     // ============================================
-    // FUNÇÕES DE OBJETIVOS (IA NO SERVIDOR)
+    // FUNÇÕES DE OBJETIVOS - COMPATÍVEL COM GAS
     // ============================================
     function gerarObjetivosComIA() {
       const tema = document.forms['planoForm'].tema.value.trim();
       const classe = document.forms['planoForm'].classe.value;
+      const disciplina = document.forms['planoForm'].disciplina.value;
       
       if (!tema) {
         alert("Por favor, preencha o tema da aula primeiro.");
@@ -455,16 +454,21 @@
 
       mostrarMensagem('A gerar objectivos inteligentes...', 'aviso');
 
-      // CHAMADA AO SERVIDOR GAS
+      // CHAMADA AO SERVIDOR GAS - FUNÇÃO COMPATÍVEL
       google.script.run
         .withSuccessHandler(function(result) {
           if (result.success) {
             document.getElementById('objetivosCampo').value = result.objetivos;
             mostrarMensagem('✅ Objectivos gerados com IA!', 'sucesso');
           } else {
-            // Fallback para local
-            gerarObjetivosLocal();
-            mostrarMensagem('⚠️ Usando gerador local', 'aviso');
+            // Se houver fallback no servidor
+            if (result.objetivos) {
+              document.getElementById('objetivosCampo').value = result.objetivos;
+              mostrarMensagem('⚠️ Usando gerador local aprimorado', 'aviso');
+            } else {
+              gerarObjetivosLocal();
+              mostrarMensagem('⚠️ Usando gerador local básico', 'aviso');
+            }
           }
         })
         .withFailureHandler(function(error) {
@@ -472,7 +476,7 @@
           gerarObjetivosLocal();
           mostrarMensagem('⚠️ Erro na IA, usando gerador local', 'aviso');
         })
-        .gerarObjetivosIA(tema, classe);
+        .gerarObjetivosIA(tema, classe, disciplina); // CHAMADA COMPATÍVEL
       
       btn.textContent = originalText;
       btn.disabled = false;
@@ -658,119 +662,18 @@
       document.getElementById('planoFinal').style.display = 'none';
       
       mostrarLoader(function() {
-        // Agora o processamento principal é no servidor
-        processarPlanoNoServidor();
+        // Agora vamos usar o método simplificado
+        gerarPlanoSimplificado();
       });
     }
 
     // ============================================
-    // PROCESSAMENTO NO SERVIDOR GAS
+    // GERAÇÃO DE PLANO SIMPLIFICADA
     // ============================================
-    function processarPlanoNoServidor() {
+    function gerarPlanoSimplificado() {
       const form = document.forms['planoForm'];
       
-      const dadosFormulario = {
-        escola: form.escola.value,
-        professor: form.professor.value,
-        disciplina: form.disciplina.value,
-        unidade: form.unidade.value,
-        tema: form.tema.value,
-        tipo: form.tipo.value,
-        classe: form.classe.value,
-        turma: form.turma.value,
-        licao: form.licao.value || '',
-        duracao: form.duracao.value,
-        periodo: form.periodo.value,
-        data: form.data.value,
-        materiais: window.materiais,
-        objetivos: document.getElementById('objetivosCampo').value
-      };
-
-      google.script.run
-        .withSuccessHandler(function(result) {
-          if (result.success) {
-            // Atualizar objetivos se vierem do servidor
-            if (result.objetivos) {
-              document.getElementById('objetivosCampo').value = result.objetivos;
-            }
-            
-            // Gerar visualização local com a estrutura do servidor
-            gerarVisualizacaoPlano(dadosFormulario, result.estrutura);
-            
-            mostrarMensagem('✅ Plano gerado com sucesso!', 'sucesso');
-          } else {
-            throw new Error(result.error || 'Erro no servidor');
-          }
-        })
-        .withFailureHandler(function(error) {
-          console.error('Erro no servidor:', error);
-          // Fallback: gerar plano localmente
-          gerarPlanoLocal();
-          mostrarMensagem('⚠️ Usando gerador local', 'aviso');
-        })
-        .processarPlanoCompleto(dadosFormulario);
-    }
-
-    function gerarVisualizacaoPlano(dadosFormulario, estrutura) {
       // Preencher cabeçalho
-      document.getElementById('dadosEsquerda').innerHTML = `
-        <p><strong>Escola:</strong> ${escapeHtml(dadosFormulario.escola)}</p>
-        <p><strong>Professor:</strong> ${escapeHtml(dadosFormulario.professor)}</p>
-        <p><strong>Disciplina:</strong> ${escapeHtml(dadosFormulario.disciplina)}</p>
-        <p><strong>Unidade Temática:</strong> ${escapeHtml(dadosFormulario.unidade)}</p>
-        <p><strong>Tema:</strong> ${escapeHtml(dadosFormulario.tema)}</p>
-        <p><strong>Tipo de Aula:</strong> ${escapeHtml(dadosFormulario.tipo)}</p>`;
-
-      document.getElementById('dadosDireita').innerHTML = `
-        <p><strong>Classe:</strong> ${escapeHtml(dadosFormulario.classe)}</p>
-        <p><strong>Turma:</strong> ${escapeHtml(dadosFormulario.turma)}</p>
-        <p><strong>Lição nº:</strong> ${escapeHtml(dadosFormulario.licao || "—")}</p>
-        <p><strong>Duração:</strong> ${escapeHtml(dadosFormulario.duracao)} minutos</p>
-        <p><strong>Período:</strong> ${escapeHtml(dadosFormulario.periodo)}</p>
-        <p><strong>Data:</strong> ${dadosFormulario.data}</p>
-        ${dadosFormulario.materiais.length ? 
-          `<p><strong>Materiais:</strong><br>${dadosFormulario.materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</p>` : ''}`;
-
-      // Objetivos
-      const objetivosText = document.getElementById('objetivosCampo').value.trim();
-      document.getElementById('listaObjetivos').innerHTML = objetivosText ? 
-        objetivosText.split('\n').map(l => `<li>${escapeHtml(l)}</li>`).join('') : '';
-
-      // Gerar tabela a partir da estrutura do servidor
-      gerarTabelaPlano(estrutura);
-      
-      // Mostrar preview
-      document.getElementById('planoFinal').style.display = 'block';
-      document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
-      document.getElementById('avisoExportacao').style.display = 'block';
-      setTimeout(() => document.getElementById('avisoExportacao').style.display = 'none', 9000);
-    }
-
-    function gerarTabelaPlano(estrutura) {
-      const tabelaCorpo = document.getElementById('tabelaCorpo');
-      let html = '';
-      
-      estrutura.etapas.forEach(etapa => {
-        html += `
-        <tr data-funcao="${etapa.funcao}">
-          <td>${escapeHtml(etapa.tempo)}</td>
-          <td><strong>${escapeHtml(etapa.funcao)}</strong></td>
-          <td contenteditable="true">${etapa.conteudo}</td>
-          <td contenteditable="true">${etapa.atividadeProfessor}</td>
-          <td contenteditable="true">${etapa.atividadeAlunos}</td>
-          <td>${criarSelectMetodo(etapa.metodoEnsino)}</td>
-          <td contenteditable="true">${etapa.meiosEnsino}</td>
-        </tr>`;
-      });
-      
-      tabelaCorpo.innerHTML = html;
-    }
-
-    // Fallback: geração local
-    function gerarPlanoLocal() {
-      const form = document.forms['planoForm'];
-      
-      // Cabeçalhos
       document.getElementById('dadosEsquerda').innerHTML = `
         <p><strong>Escola:</strong> ${escapeHtml(form.escola.value)}</p>
         <p><strong>Professor:</strong> ${escapeHtml(form.professor.value)}</p>
@@ -794,7 +697,20 @@
       document.getElementById('listaObjetivos').innerHTML = objetivosText ? 
         objetivosText.split('\n').map(l => `<li>${escapeHtml(l)}</li>`).join('') : '';
 
-      // Tabela local
+      // Gerar tabela local (compatível com ambos os sistemas)
+      gerarTabelaLocal();
+      
+      // Mostrar preview
+      document.getElementById('planoFinal').style.display = 'block';
+      document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
+      document.getElementById('avisoExportacao').style.display = 'block';
+      setTimeout(() => document.getElementById('avisoExportacao').style.display = 'none', 9000);
+      
+      mostrarMensagem('✅ Plano gerado com sucesso!', 'sucesso');
+    }
+
+    function gerarTabelaLocal() {
+      const form = document.forms['planoForm'];
       const classeNum = String(form.classe.value || '').replace(/[^\d]/g,'');
       const isClasseInicial = (classeNum === '1' || classeNum === '2');
       const meiosBase = isClasseInicial ? 'Livro do aluno' : 'Quadro, giz, livro do aluno, esferográfica';
@@ -841,13 +757,6 @@
           <td>${criarSelectMetodo("Trabalho Independente")}</td>
           <td contenteditable="true">${isClasseInicial ? meiosBase : 'Quadro, caderno, esferográfica, apagador'}</td>
         </tr>`;
-
-      // Mostrar preview
-      document.getElementById('planoFinal').style.display = 'block';
-      document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
-      document.forms['planoForm'].style.display = 'none';
-      document.getElementById('avisoExportacao').style.display = 'block';
-      setTimeout(() => document.getElementById('avisoExportacao').style.display = 'none', 9000);
     }
 
     // ============================================
@@ -863,19 +772,15 @@
     // ANEXOS
     // ============================================
     function abrirAnexo() {
-      // Carregar o sistema de anexos
-      carregarSistemaAnexos();
-    }
-
-    function carregarSistemaAnexos() {
-      // Redirecionar para a página de anexos
-      window.open(google.script.run.withSuccessHandler(url => url).getScriptUrl() + '?page=anexo', '_blank');
+      // Abrir página de anexos do GAS
+      const url = google.script.run.withSuccessHandler(url => url).getScriptUrl();
+      window.open(url + '?page=anexo', '_blank');
     }
 
     // ============================================
-    // EXPORTAÇÃO PARA PDF
+    // EXPORTAÇÃO PARA PDF - COMPATÍVEL COM GAS
     // ============================================
-    function exportarPlanoCompleto() {
+    function gerarPDFComGAS() {
       // Substituir selects por texto
       const selects = document.querySelectorAll('#tabelaPlano select.metodoSelect');
       selects.forEach(sel => {
@@ -889,7 +794,7 @@
 
       // Mostrar loader
       mostrarLoader(function() {
-        // Enviar para o servidor GAS para gerar PDF
+        // Enviar para o servidor GAS - FUNÇÃO COMPATÍVEL
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
@@ -912,7 +817,7 @@
             // Fallback: Imprimir diretamente
             window.print();
           })
-          .salvarPlanoNoDrive(planoData);
+          .salvarPlanoPDF(planoData); // CHAMADA COMPATÍVEL
       });
     }
 
@@ -944,6 +849,25 @@
     }
 
     // ============================================
+    // FUNÇÕES COMPATIBILIDADE GAS
+    // ============================================
+    function testarConexaoGAS() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            console.log('✅ Conexão GAS estabelecida');
+            console.log('Status:', result);
+          })
+          .withFailureHandler(function(error) {
+            console.warn('⚠️ Conexão GAS com problemas:', error);
+          })
+          .healthCheck();
+      } else {
+        console.warn('⚠️ Google Script não disponível - Modo local');
+      }
+    }
+
+    // ============================================
     // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
@@ -954,35 +878,53 @@
         btnAnexo.onmouseout = () => btnAnexo.style.transform = "scale(1)";
       }
       
+      // Testar conexão com GAS
+      testarConexaoGAS();
+      
       // Verificar se estamos no GAS
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         console.log('✅ Executando no Google Apps Script');
-        
-        // Verificar saúde do servidor
-        google.script.run
-          .withSuccessHandler(result => console.log('Servidor OK:', result))
-          .withFailureHandler(error => console.warn('Aviso servidor:', error))
-          .healthCheck();
+        console.log('🔗 URL do script:', google.script.run.withSuccessHandler(url => url).getScriptUrl());
       } else {
-        console.warn('⚠️ Executando localmente (sem GAS)');
+        console.warn('⚠️ Executando localmente (sem GAS) - Algumas funcionalidades podem não estar disponíveis');
       }
-      
-      // Carregar sistema de anexos em background
-      setTimeout(carregarSistemaAnexosEmBackground, 1000);
     });
 
-    function carregarSistemaAnexosEmBackground() {
-      // Pré-carregar recursos de anexos
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css';
-      document.head.appendChild(link);
-      
-      const faCss = document.createElement('link');
-      faCss.rel = 'stylesheet';
-      faCss.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-      document.head.appendChild(faCss);
+    // ============================================
+    // FALLBACK PARA CASO GAS NÃO RESPONDA
+    // ============================================
+    function verificarStatusGAS() {
+      return new Promise((resolve) => {
+        if (typeof google === 'undefined' || !google.script || !google.script.run) {
+          resolve(false);
+          return;
+        }
+        
+        // Tentar chamar uma função simples
+        google.script.run
+          .withSuccessHandler(() => resolve(true))
+          .withFailureHandler(() => resolve(false))
+          .getConfigInfo();
+      });
     }
+
+    // Fallback automático se GAS não responder
+    setTimeout(() => {
+      verificarStatusGAS().then(conectado => {
+        if (!conectado) {
+          console.warn('⚠️ GAS não disponível, usando modo local completo');
+          // Sobrescrever funções para modo local
+          window.gerarObjetivosComIA = gerarObjetivosLocal;
+          window.gerarPDFComGAS = function() {
+            alert('GAS não disponível. Use Ctrl+P para imprimir o plano.');
+            window.print();
+          };
+          window.abrirAnexo = function() {
+            alert('Sistema de anexos não disponível em modo local.');
+          };
+        }
+      });
+    }, 2000);
   </script>
 </body>
 </html>
