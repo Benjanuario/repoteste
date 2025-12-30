@@ -1,930 +1,1570 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-  <base target="_top">
   <meta charset="UTF-8" />
-  <title>Gerador de Plano de Aula</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  
-  <!-- AdSense Meta Tag -->
-  <meta name="google-adsense-account" content="ca-pub-8468056906401026">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d47a1">
+  <title>CFM Actualizações - Linhas de Comboio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="manifest" href="./manifest.json" />
   <style>
-    /* SEUS ESTILOS ORIGINAIS COMPLETOS AQUI */
-    body { font-family: 'Times New Roman', Times, serif; font-size:12px; line-height:1.5; background:#f6f6f6; }
-    .container { width:100%; max-width:900px; margin:12px auto; background:white; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,.08);}
-    h2,h3 { text-align:center; margin:8px 0; font-size:16px;}
-    label { display:block; margin-top:6px; font-size:12px;}
-    input, select, textarea, button { width:100%; padding:8px; margin-top:2px; border:2px solid black; border-radius:4px; font-size:12px; box-sizing:border-box;}
-    button { background:#007bff; color:#fff; cursor:pointer; font-weight:600;}
-    button.secondary { background:#28a745; }
-    button.warn { background:#ffc107; color:#000;}
-    .row { display:flex; gap:8px; flex-wrap:wrap; }
-    .col { flex:1; min-width:200px; padding:6px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; font-size:12px; background:#fff;}
-    th,td { border:1px solid #000; padding:6px; vertical-align:top; text-align:left; }
-    th { background:#6c757d; color:#000; font-weight:700; text-transform:uppercase; font-size:11px;}
-    td[contenteditable="true"] { outline: none; }
+    /* ============================================
+       ESTILOS DA PÁGINA DE CADASTRO
+       ============================================ */
+    .capa {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease;
+      z-index: 10000;
+    }
     
-    @media print {
-      @page { size: A4 landscape; margin: 10mm; }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .capa.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .capa .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+      backdrop-filter: blur(14px);
+      padding: 30px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.4);
+      animation: surgir 1s ease;
+    }
+    
+    @keyframes surgir {
+      from { opacity:0; transform: translateY(25px); }
+      to { opacity:1; transform: translateY(0); }
+    }
+    
+    .capa h1 {
+      text-align:center;
+      font-size:20px;
+      margin-bottom:8px;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .capa p {
+      text-align:center;
+      font-size:13px;
+      opacity:0.85;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .capa input {
+      width:100%;
+      margin-top:14px;
+      padding:12px;
+      border-radius:10px;
+      border:none;
+      outline:none;
+      background: rgba(255,255,255,0.12);
+      color:#fff;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .capa input::placeholder {
+      color:#ccc;
+    }
+    
+    .capa button {
+      width:100%;
+      margin-top:20px;
+      padding:12px;
+      border-radius:30px;
+      border:none;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color:#fff;
+      font-size:15px;
+      cursor:pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .capa button:hover {
+      transform: scale(1.04);
+      box-shadow:0 12px 30px rgba(0,114,255,0.6);
+    }
+    
+    .loader {
+      display:none;
+      flex-direction: column;
+      align-items:center;
+      margin-top:20px;
+    }
+    
+    .spinner {
+      width:50px;
+      height:50px;
+      border:4px solid rgba(255,255,255,0.2);
+      border-top:4px solid #00c6ff;
+      border-radius:50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* ============================================
+       TELA DE SELEÇÃO DE LINHA
+       ============================================ */
+    .linha-selection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a2980, #26d0ce);
+      color: #fff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    
+    .linha-selection.active {
+      display: flex;
+      animation: surgir 0.5s ease;
+    }
+    
+    .linha-selection h2 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .linha-selection p {
+      margin-bottom: 30px;
+      opacity: 0.9;
+      text-align: center;
+    }
+    
+    .linhas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .linha-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .linha-card:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .linha-card.active {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #00c6ff;
+      box-shadow: 0 5px 20px rgba(0, 198, 255, 0.3);
+    }
+    
+    .linha-emoji {
+      font-size: 2.5rem;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+    }
+    
+    .linha-info {
+      flex: 1;
+    }
+    
+    .linha-info h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.2rem;
+    }
+    
+    .linha-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .linha-stats {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .remember-option {
+      margin-top: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .remember-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .btn-confirm-line {
+      margin-top: 25px;
+      padding: 15px 30px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      max-width: 200px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-confirm-line:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 114, 255, 0.4);
+    }
+    
+    /* ============================================
+       ESTILOS DA PÁGINA PRINCIPAL
+       ============================================ */
+    :root {
+      --cfm-blue: #0d47a1;
+      --cfm-blue-light: #1e88e5;
+      --cfm-green: #2e7d32;
+      --cfm-green-light: #4caf50;
+      --cfm-red: #c62828;
+      --cfm-red-light: #ef5350;
+      --cfm-orange: #f57c00;
+      --cfm-orange-light: #ff9800;
+      --cfm-purple: #6a1b9a;
+      --light-bg: #f8fbff;
+      --card-bg: #ffffff;
+      --border: #e0e0e0;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    body {
+      background: #fff;
+      color: #222;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* ANIMAÇÕES */
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .main-content {
+      display: none;
+    }
+    
+    .main-content.active {
+      display: block;
+    }
+    
+    /* HEADER COM SELEÇÃO DE LINHA */
+    header {
+      background: var(--cfm-blue);
+      color: white;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: slideDown 0.5s ease;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .linha-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .linha-selector:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    
+    .linha-selector .emoji {
+      font-size: 1.2rem;
+    }
+    
+    .linha-selector .nome {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .linha-selector .seta {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .last-update {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .hamburger {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px;
+      transition: transform 0.3s;
+    }
+    
+    .hamburger:hover {
+      transform: scale(1.1);
+    }
+    
+    .refresh-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+    
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: rotate(180deg);
+    }
+    
+    .refresh-btn.spinning {
+      animation: spin 1s linear infinite;
+    }
+    
+    /* DROPDOWN DE LINHAS */
+    .linhas-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      background: white;
+      border-radius: 10px;
+      box-shadow: var(--shadow-hover);
+      width: 250px;
+      z-index: 1001;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    .linhas-dropdown.active {
+      display: block;
+    }
+    
+    .linha-dropdown-item {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .linha-dropdown-item:last-child {
+      border-bottom: none;
+    }
+    
+    .linha-dropdown-item:hover {
+      background: var(--light-bg);
+    }
+    
+    .linha-dropdown-item.active {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    }
+    
+    .linha-dropdown-emoji {
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      border-radius: 50%;
+    }
+    
+    .linha-dropdown-info {
+      flex: 1;
+    }
+    
+    .linha-dropdown-info h4 {
+      margin: 0 0 4px 0;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    
+    .linha-dropdown-info p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    
+    /* CONTEÚDO PRINCIPAL */
+    .main-container {
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+      padding-top: 80px;
+      padding-bottom: 100px;
+    }
+    
+    .updates-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .update-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      animation: slideInUp 0.4s ease;
+      transition: var(--transition);
+    }
+    
+    .update-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .update-card.new {
+      border-left: 4px solid var(--cfm-green-light);
+      background: linear-gradient(to right, rgba(76, 175, 80, 0.05), white);
+    }
+    
+    .original-message {
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    
+    .admin-info {
+      font-size: 0.8rem;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    
+    .admin-name {
+      font-weight: 600;
+      color: var(--cfm-blue);
+    }
+    
+    .update-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .update-action-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 5px;
+      transition: var(--transition);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .update-action-btn:hover {
+      color: var(--cfm-blue);
+      background: var(--light-bg);
+    }
+    
+    .update-action-btn.copy:hover {
+      color: var(--cfm-green);
+    }
+    
+    .update-action-btn.share:hover {
+      color: var(--whatsapp-green);
+    }
+    
+    .waiting {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 40px 20px;
+      animation: pulse 2s infinite;
+    }
+    
+    .loader-container {
+      display: flex;
+      justify-content: center;
+      padding: 30px;
+    }
+    
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--cfm-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    /* BOTÕES FIXOS */
+    .chat-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #25d366;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    
+    .chat-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+    }
+    
+    .scroll-to-bottom {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: var(--cfm-blue);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 890;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    
+    .scroll-to-bottom:hover {
+      transform: translateY(-3px);
+      background: var(--cfm-blue-light);
+    }
+    
+    .scroll-to-bottom.visible {
+      display: flex;
+    }
+    
+    /* MENU LATERAL */
+    .menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 260px;
+      height: 100vh;
+      background: white;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: right 0.3s ease;
+      padding-top: 60px;
+    }
+    
+    .menu.open {
+      right: 0;
+    }
+    
+    .menu-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+      color: var(--cfm-blue);
+    }
+    
+    .menu-item {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .menu-item:hover {
+      background: var(--light-bg);
+      padding-left: 25px;
+    }
+    
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      z-index: 999;
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    
+    .overlay.active {
+      display: block;
+    }
+    
+    /* NOTIFICAÇÕES */
+    #new-update-notification {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--cfm-blue), var(--cfm-blue-light));
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(13, 71, 161, 0.3);
+      z-index: 1001;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .copy-confirmation {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--cfm-green);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      box-shadow: var(--shadow);
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.3s;
+    }
+    
+    /* RESPONSIVIDADE */
+    @media (max-width: 600px) {
+      .main-container {
+        padding: 15px;
+        padding-top: 70px;
+      }
       
-      #tabelaPlano {
-        table-layout: fixed; width: 100%;
+      .linha-selector .nome {
+        display: none;
       }
-      #tabelaPlano th, #tabelaPlano td {
-        word-wrap: break-word; white-space: normal; overflow-wrap: break-word; font-size: 11px;
+      
+      .title {
+        font-size: 1rem;
       }
-      #tabelaPlano th:nth-child(1), #tabelaPlano td:nth-child(1) { width: 6%; min-width: 60px; }
-      #tabelaPlano th:nth-child(2), #tabelaPlano td:nth-child(2) { width: 10%; min-width: 100px; }
-      #tabelaPlano th:nth-child(3), #tabelaPlano td:nth-child(3) { width: 15%; min-width: 120px; }
-      #tabelaPlano th:nth-child(4), #tabelaPlano td:nth-child(4) { width: 23%; min-width: 160px; }
-      #tabelaPlano th:nth-child(5), #tabelaPlano td:nth-child(5) { width: 23%; min-width: 160px; }
-      #tabelaPlano th:nth-child(6), #tabelaPlano td:nth-child(6) { width: 10%; min-width: 100px; }
-      #tabelaPlano th:nth-child(7), #tabelaPlano td:nth-child(7) { width: 13%; min-width: 120px; }
     }
     
-    #mensagem { margin-top:8px; font-size:13px; color:#0b6; }
-    .novoBloco { border:1px dashed #007bff; padding:8px; margin-top:10px; }
-    .small { font-size:11px; color:#555; margin-top:4px;}
-    .metodoSelect { width: 100%; font-size: 11px; padding: 2px; border: 1px solid #ccc; border-radius: 2px; }
-    
-    #planoFinal { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-    #planoFinal input, #planoFinal textarea, #planoFinal select, #planoFinal [contenteditable="true"] {
-      -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important; user-select: text !important;
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 6px;
     }
     
-    .controles-edicao { display: none; margin-top: 10px; padding: 10px; border: 2px dashed #28a745; border-radius: 8px; background: #f8fff9; }
-    .botoes-edicao { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-    .botao-edicao { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
-    .botao-adicionar { background: #28a745; color: white; }
-    .botao-limpar { background: #dc3545; color: white; }
-    .botao-concluir { background: #6c757d; color: white; }
-    .instrucao-edicao { color: #666; font-size: 11px; margin-top: 5px; }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
     
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    ::-webkit-scrollbar-thumb {
+      background: var(--cfm-blue);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cfm-blue-light);
+    }
   </style>
-  
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-02K874D1P0');
-  </script>
-  
-  <script>
-    // DETECÇÃO DE DISPOSITIVO MÓVEL
-    (funtion() {
-      'use strict';
-      function isMobile() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const mobile = /Android.*Mobile|iPhone|IEMobile|WPDesktop|BlackBerry|Opera Mini/i;
-        const tablet = /iPad|Android(?!.*Mobile)|Silk|Kindle|Tablet/i;
-        return mobile.test(ua) && !tablet.test(ua);
-      }
-      
-      if (!isMobile()) {
-        // HTML de bloqueio desktop
-        const bloqueioHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Acesso Restrito</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
-              color: #2c3e50;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              padding: 20px;
-            }
-            .box {
-              max-width: 500px;
-              background: white;
-              border-radius: 16px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-              padding: 40px 30px;
-              text-align: center;
-            }
-            .icon { font-size: 3em; margin-bottom: 24px; }
-            h1 { font-size: 1.8em; margin-bottom: 16px; color: #e74c3c; }
-            p { font-size: 1.1em; line-height: 1.6; color: #555; margin-bottom: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="box">
-            <div class="icon">⚠️📱⚠️</div>
-            <h1>Acesso permitido apenas por smartphone</h1>
-            <p>Este site foi projectado exclusivamente para uso em <strong>celulares</strong>.</p>
-            <p>Por favor, abra esta página no seu telefone para continuar.</p>
-          </div>
-        </body>
-        </html>`;
-        
-        document.open();
-        document.write(bloqueioHTML);
-        document.close();
-        throw new Error('Desktop access blocked');
-      }
-    })();
-  </script>
 </head>
-
 <body>
-  <div class="container">
-    <h2>GERADOR DE PLANO DE AULA</h2>
-
-    <form name="planoForm" onsubmit="event.preventDefault()">
-      <div class="row">
-        <div class="col">
-          <label>Escola:</label><input type="text" name="escola" required />
-          <label>Nome do Professor:</label><input type="text" name="professor" required />
-          <label>Disciplina:</label><input type="text" name="disciplina" required />
-          <label>Unidade Temática:</label><input type="text" name="unidade" required />
-          <label>Tema da Aula:</label><input type="text" name="tema" required maxlength="100" />
-          <label>Tipo de Aula:</label><input type="text" name="tipo" required />
-        </div>
-
-        <div class="col">
-          <label>Classe:</label>
-          <select name="classe" required>
-            <option value="">Selecione a classe</option>
-            <option value="1ª">1ª Classe</option><option value="2ª">2ª Classe</option>
-            <option value="3ª">3ª Classe</option><option value="4ª">4ª Classe</option>
-            <option value="5ª">5ª Classe</option><option value="6ª">6ª Classe</option>
-            <option value="7ª">7ª Classe</option><option value="8ª">8ª Classe</option>
-            <option value="9ª">9ª Classe</option><option value="10ª">10ª Classe</option>
-            <option value="11ª">11ª Classe</option><option value="12ª">12ª Classe</option>
-          </select>
-          <label>Turma:</label><input type="text" name="turma" required />
-          <label>Lição nº:</label><input type="number" name="licao" min="1" step="1" />
-          <label>Duração:</label>
-          <select name="duracao" required><option value="45">45 minutos</option><option value="90">90 minutos</option></select>
-          <label>Período:</label>
-          <select name="periodo" required>
-            <option value="">Selecione o período</option>
-            <option value="Manhã">Manhã</option>
-            <option value="Tarde">Tarde</option>
-            <option value="Noite">Noite</option>
-          </select>
-          <label>Data:</label><input type="date" name="data" required/>
-          <label style="margin-top:8px;"><input type="checkbox" id="usarMateriais" onchange="alternarCampoMaterial()"> Aula exige material didático?</label>
-          <div id="adicionarMaterialDiv" style="display:none;">
-            <label>Adicionar material:</label>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="inputMaterial" placeholder="Ex: cartaz, marcador">
-              <button type="button" onclick="adicionarMaterial()" style="width:120px;">Adicionar</button>
-            </div>
-            <ul id="listaMateriais" style="font-size:12px; margin-top:8px;"></ul>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:8px;">
-        <label>Objectivos Específicos:</label>
-        <textarea id="objetivosCampo" name="objetivos" required style="height:90px;"></textarea>
-        
-        <div style="display:flex; gap:8px; margin-top:6px; flex-wrap: wrap;">
-          <button type="button" class="secondary" onclick="gerarObjetivosComIA()" 
-                  style="padding:10px 20px; 
-                         background: linear-gradient(90deg, #0d6efd, #6610f2);
-                         color:white; 
-                         border:none; 
-                         border-radius:12px; 
-                         cursor:pointer; 
-                         font-weight:bold;
-                         flex: 1;">
-            🧠 GERAR OBJECTIVOS COM IA
-          </button>
-          
-          <button type="button" class="warn" onclick="habilitarEdicaoObjetivos()"
-                  style="padding:10px 20px; 
-                         background: linear-gradient(90deg, #28a745, #20c997);
-                         color:white; 
-                         border:none; 
-                         border-radius:12px; 
-                         cursor:pointer; 
-                         font-weight:bold;
-                         flex: 1;">
-            ✏️ ESCREVER OBJECTIVOS
-          </button>
-        </div>
-
-        <div id="controlesEdicao" class="controles-edicao">
-          <div class="botoes-edicao">
-            <button type="button" onclick="adicionarObjetivo()" class="botao-edicao botao-adicionar">
-              ➕ Adicionar Objectivo
-            </button>
-            <button type="button" onclick="limparObjetivos()" class="botao-edicao botao-limpar">
-              🗑️ Limpar Tudo
-            </button>
-            <button type="button" onclick="desabilitarEdicaoObjetivos()" class="botao-edicao botao-concluir">
-              ✅ Concluir Edição
-            </button>
-          </div>
-          <div class="instrucao-edicao">
-            💡 Escreva seus objectivos abaixo (um por linha) ou use os botões acima para ajudar.
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:10px;">
-        <button type="button" class="secondary" onclick="iniciarGeracaoPlano()" 
-                style="padding:10px 20px; 
-                       background: linear-gradient(90deg, #0d6efd, #6610f2);
-                       color:white; 
-                       border:none; 
-                       border-radius:12px; 
-                       cursor:pointer; 
-                       font-weight:bold;
-                       box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-                       transition: 0.3s;">
-          📝 GERAR PLANO DE AULA
-        </button>
-      </div>
-    </form>
-
-    <div id="avisoExportacao" class="small" style="display:none;color:#c00;">
-      ⚠️ Exporte o plano em modo horizontal para melhor visualização em PDF.
-    </div>
-    <div id="mensagem"></div>
-
-    <button id="btnVoltarFormulario" onclick="voltarAoFormulario()" style="display:none; margin-bottom:10px;">
-      VOLTAR AO FORMULÁRIO 👆
-    </button>
-
-    <div id="planoFinal" style="display:none; margin-top:16px;">
-      <h3>PLANO DE AULA</h3>
-      <div class="row">
-        <div class="col" id="dadosEsquerda"></div>
-        <div class="col" id="dadosDireita"></div>
-      </div>
-
-      <h4>Objetivos Específicos:</h4>
-      <ul id="listaObjetivos"></ul>
-
-      <table id="tabelaPlano" aria-label="Tabela do plano">
-        <thead>
-          <tr>
-            <th>TEMPO</th>
-            <th>FUNÇÕES DIDÁCTICAS</th>
-            <th>CONTEÚDOS</th>
-            <th>ACTIVIDADES DO PROFESSOR</th>
-            <th>ACTIVIDADES DOS ALUNOS</th>
-            <th>MÉTODOS DE ENSINO</th>
-            <th>MEIOS DE ENSINO</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaCorpo"></tbody>
-      </table>
-
-      <button id="btnAdicionarAnexo" type="button" onclick="abrirAnexo()"
-          style="padding:10px 20px; 
-                 background: linear-gradient(90deg, #0d6efd, #6610f2);
-                 color:white; 
-                 border:none; 
-                 border-radius:12px; 
-                 cursor:pointer; 
-                 font-weight:bold;
-                 box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-                 transition: 0.3s; margin-top: 10px;">
-          📋ADICIONAR ANEXO (Opcional)🖇
-      </button>
-
-      <div id="anexoPreview" style="margin-top:12px; border:2px solid #000; border-radius:8px; padding:10px; display:none;">
-        <h4 style="margin-top:0; color:#222; border-bottom:1px solid #000; padding-bottom:4px;">Anexo</h4>
-        <div id="anexoContent">(Nenhum anexo adicionado)</div>
-        <div id="anexoControls"></div>
-      </div>
-
-      <div style="margin-top:15px;">
-        <button type="button" onclick="gerarPDFComGAS()" style="padding:10px 20px; 
-           background: linear-gradient(90deg, #0d6efd, #6610f2);
-           color:white; 
-           border:none; 
-           border-radius:12px; 
-           cursor:pointer; 
-           font-weight:bold;
-           box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-           transition: 0.3s;">
-          📥EXPORTAR PDF (BAIXAR O PLANO)
-        </button>
+  <!-- TELA DE CADASTRO -->
+  <div class="capa" id="capa">
+    <div class="card">
+      <h1>Actualizações de Comboio CFM</h1>
+      <p>Insira os seus dados para continuar</p>
+      <input id="nome" placeholder="Nome completo">
+      <input id="telefone" placeholder="+258 84xxxxxxx">
+      <button id="btnEntrar" onclick="submeterCadastro()">Entrar</button>
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p>A entrar...</p>
       </div>
     </div>
   </div>
 
-  <div id="loaderPlano" style="display:none; flex-direction: column; align-items: center; justify-content: center; margin:20px 0;">
-    <div class="circle" style="width:120px; height:120px; border:10px solid #ddd; border-top:10px solid #4CAF50; border-radius:50%; position:relative; animation: spin 1s linear infinite;">
-      <div class="percentage" id="percentText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:20px; font-weight:bold;">0%</div>
+  <!-- TELA DE SELEÇÃO DE LINHA -->
+  <div class="linha-selection" id="linhaSelection">
+    <h2>Escolha a Linha de Comboio</h2>
+    <p>Selecione qual linha deseja acompanhar hoje</p>
+    
+    <div class="linhas-container" id="linhasContainer">
+      <!-- Linhas serão carregadas dinamicamente -->
     </div>
-    <div class="message" id="loaderMessage" style="margin-top:20px; font-size:16px; font-style:italic;">Iniciando...</div>
-    <button id="loaderVoltarBtn" style="display:none; margin-top:12px; padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#6610f2; cursor:pointer;"
-            onclick="cancelarLoader()">❌CANCELAR O PROCESSO EM EXECUÇÃO</button>
+    
+    <div class="remember-option">
+      <input type="checkbox" id="rememberLine" checked>
+      <label for="rememberLine">Lembrar minha escolha</label>
+    </div>
+    
+    <button class="btn-confirm-line" onclick="confirmarLinha()">Continuar</button>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content" id="mainContent">
+    <!-- NOTIFICAÇÃO DE NOVA ATUALIZAÇÃO -->
+    <div id="new-update-notification">
+      <i class="fas fa-bullhorn"></i>
+      <span>Nova actualização disponível!</span>
+      <button style="background:none;border:none;color:white;margin-left:10px;">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+    
+    <!-- HEADER -->
+    <header>
+      <div class="header-left">
+        <button class="hamburger" id="menuToggle">☰</button>
+        <div class="linha-selector" id="linhaSelector">
+          <span class="emoji" id="currentLineEmoji">🚂</span>
+          <span class="nome" id="currentLineName">Selecionar Linha</span>
+          <span class="seta">▼</span>
+          
+          <!-- DROPDOWN DE LINHAS -->
+          <div class="linhas-dropdown" id="linhasDropdown">
+            <!-- Linhas serão carregadas dinamicamente -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="title">
+        Actualizações do Comboio CFM
+        <div class="last-update" id="lastUpdateTime">
+          <i class="fas fa-clock"></i>
+          <span>Última verificação: --:--</span>
+        </div>
+      </div>
+      
+      <button class="refresh-btn" id="manualRefresh" title="Verificar novas actualizações">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </header>
+    
+    <!-- CONTEÚDO DAS ATUALIZAÇÕES -->
+    <div class="main-container" id="mainContainer">
+      <div class="loader-container" id="updatesLoader">
+        <div class="loader"></div>
+      </div>
+      <div class="updates-container" id="updates-content">
+        <p class="waiting">Selecione uma linha para ver as actualizações</p>
+      </div>
+    </div>
+    
+    <!-- BOTÕES FIXOS -->
+    <button class="scroll-to-bottom" id="scrollToBottom" title="Ir para a última mensagem">
+      <i class="fas fa-arrow-down"></i>
+    </button>
+    
+    <button class="chat-btn" id="openChat">
+      <i class="fas fa-comment"></i>
+    </button>
+    
+    <!-- CONFIRMAÇÃO DE CÓPIA -->
+    <div class="copy-confirmation" id="copyConfirmation">
+      <i class="fas fa-check"></i> Texto copiado!
+    </div>
+    
+    <!-- MENU LATERAL -->
+    <div class="menu" id="menu">
+      <div class="menu-header">🛡️ Powered by Stunner System</div>
+      <div class="menu-item" onclick="window.location.href='estacoes.html'">
+        <i class="fas fa-train"></i> Estações
+      </div>
+      <div class="menu-item" onclick="window.location.href='horarios.html'">
+        <i class="fas fa-times"></i> Horários
+      </div>
+      <div class="menu-item" onclick="window.location.href='sobre.html'">
+        <i class="fas fa-info-circle"></i> Sobre
+      </div>
+      <div class="menu-item" onclick="debugUsuario()">
+        <i class="fas fa-bug"></i> Meus dados
+      </div>
+      <div class="menu-item" onclick="sairDoSistema()">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </div>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
   </div>
 
   <script>
     // ============================================
-    // VARIÁVEIS GLOBAIS (MANTIDAS DO ORIGINAL)
+    // CONFIGURAÇÕES DO SISTEMA
     // ============================================
-    const verbosCognitivos = [
-      "identificar","descrever","classificar","definir","explicar","relacionar",
-      "enumerar","comparar","analisar","sintetizar",
-      "calcular","resolver","avaliar","formular","demonstrar","interpretar",
-      "justificar","estimar"
-    ];
-
-    const verbosPsicomotores = [
-      "desenhar","montar","construir","organizar","manipular","demonstrar",
-      "executar","medir","simular","experimentar",
-      "esquematizar","operar","reproduzir","registrar","representar","diagramar",
-      "preparar","traçar"
-    ];
-
-    const verbosAfetivos = [
-      "valorizar","respeitar","cooperar","participar","aceitar","comprometer-se",
-      "defender","refletir","apreciar","internalizar",
-      "colaborar","compartilhar","questionar","sensibilizar-se","incentivar",
-      "considerar","estimular"
-    ];
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxturjlQ6DBjP5kcT9kDdOiJG8sBRXiAfmDh3Pfc4k32nvXBsO2oxbIhf5PlogeIrcI/exec";
+    const CADASTRO_URL = "https://script.google.com/macros/s/AKfycbxOxp-fnkipLZ8BWAOi44y9fmLsMreBtqSJ7ieBp_ja_DlxFkpqJEkLFrOlezI7gzML/exec";
     
-    const metodosEnsino = [
-      "Elaboração conjunta","Expositivo-Explicativo","Trabalho Independente",
-      "Trabalho em Grupo","Participativo / Interativo","Demonstrativo / Prático",
-      "Resolução de Problemas"
-    ];
-
-    // VARIÁVEIS DE ESTADO
-    window.materiais = [];
-    window.imagemDataURL = null;
-    window.anexoSalvo = null;
-    window._planoLoaderInterval = null;
-    window.modoEdicao = false;
-
-    // ============================================
-    // FUNÇÕES UTILITÁRIAS
-    // ============================================
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'<')
-        .replace(/>/g,'>')
-        .replace(/"/g,'&quot;');
-    }
-
-    function mostrarMensagem(msg, tipo = 'sucesso') {
-      const el = document.getElementById('mensagem');
-      el.textContent = msg;
-      el.style.color = tipo === 'erro' ? '#d00' : tipo === 'aviso' ? '#f90' : '#0b6';
-      setTimeout(() => el.textContent = '', 4000);
-    }
-
-    function criarSelectMetodo(selected) {
-      const id = 'metodo_' + Math.random().toString(36).substr(2, 9);
-      let s = `<select class="metodoSelect" id="${id}" onchange="mostrarMetodoEscolhido(this)">`;
-      s += `<option value="">-- Selecione --</option>`;
-      for (const m of metodosEnsino) {
-        s += `<option value="${m}" ${m === selected ? 'selected' : ''}>${m}</option>`;
+    // CONFIGURAÇÃO DAS LINHAS
+    const LINHAS = {
+      'bm': {
+        id: 'bm',
+        nome: 'Beira - Moatize',
+        descricao: 'Via Dondo, Mutarara, Tete',
+        emoji: '🚂',
+        cor: '#0d47a1'
+      },
+      'bmar': {
+        id: 'bmar',
+        nome: 'Beira - Marromeu',
+        descricao: 'Via Buzi, Inhaminga',
+        emoji: '🚆',
+        cor: '#2e7d32'
+      },
+      'bc': {
+        id: 'bc',
+        nome: 'Beira - Chimoio',
+        descricao: 'Via Nhamatanda, Inchope',
+        emoji: '🚄',
+        cor: '#6a1b9a'
       }
-      s += `</select>`;
-      s += `<div class="metodoEscolhidoTexto" style="font-size:11px;color:#007bff;margin-top:4px;">${selected || ""}</div>`;
-      return s;
-    }
-
-    function mostrarMetodoEscolhido(selectEl) {
-      const container = selectEl.nextElementSibling;
-      container.textContent = selectEl.value || "";
-    }
-
+    };
+    
+    // ESTADO DA APLICAÇÃO
+    let currentUser = null;
+    let currentLine = null;
+    let lastUpdateCount = 0;
+    let isAutoScrolling = true;
+    let cachedUpdates = {};
+    
     // ============================================
-    // FUNÇÕES DE MATERIAIS
-    // ============================================
-    function alternarCampoMaterial() {
-      document.getElementById('adicionarMaterialDiv').style.display = 
-        document.getElementById('usarMateriais').checked ? 'block' : 'none';
-    }
-
-    function adicionarMaterial() {
-      if (window.materiais.length >= 4) {
-        alert('Só é permitido adicionar no máximo 4 materiais didáticos.');
-        return;
-      }
-
-      const input = document.getElementById('inputMaterial');
-      const valor = input.value.trim();
-      if (!valor) { 
-        alert('Escreve o material antes de adicionar.'); 
-        return; 
-      }
-      
-      window.materiais.push(valor);
-      const li = document.createElement('li');
-      li.textContent = valor;
-      document.getElementById('listaMateriais').appendChild(li);
-      input.value = '';
-      mostrarMensagem('Material adicionado.');
-    }
-
-    // ============================================
-    // FUNÇÕES DE OBJETIVOS - COMPATÍVEL COM GAS
-    // ============================================
-    function gerarObjetivosComIA() {
-      const tema = document.forms['planoForm'].tema.value.trim();
-      const classe = document.forms['planoForm'].classe.value;
-      const disciplina = document.forms['planoForm'].disciplina.value;
-      
-      if (!tema) {
-        alert("Por favor, preencha o tema da aula primeiro.");
-        return;
-      }
-
-      const btn = event.target;
-      const originalText = btn.textContent;
-      btn.textContent = '🧠 IA a gerar...';
-      btn.disabled = true;
-
-      mostrarMensagem('A gerar objectivos inteligentes...', 'aviso');
-
-      // CHAMADA AO SERVIDOR GAS - FUNÇÃO COMPATÍVEL
-      google.script.run
-        .withSuccessHandler(function(result) {
-          if (result.success) {
-            document.getElementById('objetivosCampo').value = result.objetivos;
-            mostrarMensagem('✅ Objectivos gerados com IA!', 'sucesso');
-          } else {
-            // Se houver fallback no servidor
-            if (result.objetivos) {
-              document.getElementById('objetivosCampo').value = result.objetivos;
-              mostrarMensagem('⚠️ Usando gerador local aprimorado', 'aviso');
-            } else {
-              gerarObjetivosLocal();
-              mostrarMensagem('⚠️ Usando gerador local básico', 'aviso');
-            }
-          }
-        })
-        .withFailureHandler(function(error) {
-          console.error('Erro IA:', error);
-          gerarObjetivosLocal();
-          mostrarMensagem('⚠️ Erro na IA, usando gerador local', 'aviso');
-        })
-        .gerarObjetivosIA(tema, classe, disciplina); // CHAMADA COMPATÍVEL
-      
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
-
-    function gerarObjetivosLocal() {
-      const tema = document.forms['planoForm'].tema.value.trim();
-      if (!tema) { 
-        alert("Por favor, preencha o tema da aula primeiro."); 
-        return; 
-      }
-      
-      const vC = verbosCognitivos[Math.floor(Math.random() * verbosCognitivos.length)];
-      const vP = verbosPsicomotores[Math.floor(Math.random() * verbosPsicomotores.length)];
-      const vA = verbosAfetivos[Math.floor(Math.random() * verbosAfetivos.length)];
-
-      const objetivos = [
-        `• ${vC.charAt(0).toUpperCase() + vC.slice(1)} os conceitos fundamentais de "${tema}";`,
-        `• ${vP.charAt(0).toUpperCase() + vP.slice(1)} uma actividade prática relacionada a "${tema}";`,
-        `• ${vA.charAt(0).toUpperCase() + vA.slice(1)} a importância de "${tema}".`
-      ];
-
-      document.getElementById('objetivosCampo').value = objetivos.join("\n");
-      mostrarMensagem('Objectivos gerados localmente.');
-    }
-
-    // ============================================
-    // EDIÇÃO DE OBJETIVOS
-    // ============================================
-    function habilitarEdicaoObjetivos() {
-      window.modoEdicao = true;
-      const controles = document.getElementById('controlesEdicao');
-      controles.style.display = 'block';
-      document.getElementById('objetivosCampo').focus();
-      mostrarMensagem('✏️ Modo de edição activo', 'aviso');
-    }
-
-    function desabilitarEdicaoObjetivos() {
-      window.modoEdicao = false;
-      document.getElementById('controlesEdicao').style.display = 'none';
-      formatarObjetivos();
-      mostrarMensagem('✅ Edição concluída');
-    }
-
-    function formatarObjetivos() {
-      const textarea = document.getElementById('objetivosCampo');
-      let texto = textarea.value.trim();
-      
-      if (!texto) return;
-      
-      const linhas = texto.split('\n')
-        .map(linha => linha.trim())
-        .filter(linha => linha !== '');
-      
-      const objetivosFormatados = linhas.map((linha, index) => {
-        let linhaFormatada = linha;
-        if (!linhaFormatada.startsWith('•')) {
-          linhaFormatada = '• ' + linhaFormatada;
-        }
-        linhaFormatada = linhaFormatada.replace(/[;.]$/, '');
-        linhaFormatada += (index === linhas.length - 1) ? '.' : ';';
-        return linhaFormatada;
-      });
-      
-      textarea.value = objetivosFormatados.join('\n');
-    }
-
-    function adicionarObjetivo() {
-      const textarea = document.getElementById('objetivosCampo');
-      const textoAtual = textarea.value.trim();
-      const objetivosExistentes = textoAtual.split('\n').filter(line => line.trim() !== '');
-      
-      if (objetivosExistentes.length >= 3) {
-        alert('Máximo de 3 objectivos permitidos.');
-        return;
-      }
-      
-      let novoObjetivo = '• ';
-      
-      if (textoAtual) {
-        const linhas = textoAtual.split('\n');
-        const ultimaLinha = linhas[linhas.length - 1].trim();
-        
-        if (!ultimaLinha.endsWith(';') && !ultimaLinha.endsWith('.') && linhas.length > 0) {
-          linhas[linhas.length - 1] = ultimaLinha + ';';
-          textarea.value = linhas.join('\n') + '\n' + novoObjetivo;
-        } else {
-          textarea.value = textoAtual + '\n' + novoObjetivo;
-        }
-      } else {
-        textarea.value = novoObjetivo;
-      }
-      
-      textarea.focus();
-    }
-
-    function limparObjetivos() {
-      if (confirm('Tem certeza que deseja limpar todos os objectivos?')) {
-        document.getElementById('objetivosCampo').value = '';
-        document.getElementById('objetivosCampo').focus();
-      }
-    }
-
-    // ============================================
-    // LOADER E CONTROLE DE PROCESSAMENTO
-    // ============================================
-    function mostrarLoader(callback) {
-      const loader = document.getElementById('loaderPlano');
-      const percentText = document.getElementById('percentText');
-      const loaderMessage = document.getElementById('loaderMessage');
-      const loaderVoltar = document.getElementById('loaderVoltarBtn');
-
-      loader.style.display = 'flex';
-      loaderVoltar.style.display = 'inline-block';
-      percentText.textContent = '0%';
-      loaderMessage.textContent = 'Iniciando...';
-
-      let progress = 0;
-      const messages = [
-        { msg: "Coletando Dados...", perc: 25 },
-        { msg: "Processando no Servidor...", perc: 50 },
-        { msg: "Gerando Estrutura...", perc: 75 },
-        { msg: "Finalizando...", perc: 100 }
-      ];
-      let currentMsgIndex = 0;
-
-      const interval = setInterval(() => {
-        progress++;
-        percentText.textContent = progress + '%';
-
-        if (progress >= messages[currentMsgIndex].perc) {
-          loaderMessage.textContent = messages[currentMsgIndex].msg;
-          currentMsgIndex++;
-        }
-
-        if (progress >= 100) {
-          clearInterval(interval);
-          window._planoLoaderInterval = null;
-          setTimeout(() => {
-            loaderVoltar.style.display = 'none';
-            loader.style.display = 'none';
-            if (callback) callback();
-          }, 500);
-        }
-      }, 60);
-
-      window._planoLoaderInterval = interval;
-    }
-
-    function cancelarLoader() {
-      if (window._planoLoaderInterval) {
-        clearInterval(window._planoLoaderInterval);
-        window._planoLoaderInterval = null;
-      }
-
-      const loader = document.getElementById('loaderPlano');
-      if (loader) loader.style.display = 'none';
-
-      const loaderVoltar = document.getElementById('loaderVoltarBtn');
-      if (loaderVoltar) loaderVoltar.style.display = 'none';
-
-      const form = document.forms['planoForm'];
-      if (form) form.style.display = 'block';
-
-      const planoFinal = document.getElementById('planoFinal');
-      if (planoFinal) planoFinal.style.display = 'none';
-    }
-
-    function iniciarGeracaoPlano() {
-      // Validação básica
-      const form = document.forms['planoForm'];
-      const required = ['escola', 'professor', 'disciplina', 'tema', 'classe', 'turma', 'duracao', 'data'];
-      
-      for (const field of required) {
-        if (!form[field].value.trim()) {
-          alert(`O campo "${field}" é obrigatório.`);
-          form[field].focus();
-          return;
-        }
-      }
-
-      document.forms['planoForm'].style.display = 'none';
-      document.getElementById('planoFinal').style.display = 'none';
-      
-      mostrarLoader(function() {
-        // Agora vamos usar o método simplificado
-        gerarPlanoSimplificado();
-      });
-    }
-
-    // ============================================
-    // GERAÇÃO DE PLANO SIMPLIFICADA
-    // ============================================
-    function gerarPlanoSimplificado() {
-      const form = document.forms['planoForm'];
-      
-      // Preencher cabeçalho
-      document.getElementById('dadosEsquerda').innerHTML = `
-        <p><strong>Escola:</strong> ${escapeHtml(form.escola.value)}</p>
-        <p><strong>Professor:</strong> ${escapeHtml(form.professor.value)}</p>
-        <p><strong>Disciplina:</strong> ${escapeHtml(form.disciplina.value)}</p>
-        <p><strong>Unidade Temática:</strong> ${escapeHtml(form.unidade.value)}</p>
-        <p><strong>Tema:</strong> ${escapeHtml(form.tema.value)}</p>
-        <p><strong>Tipo de Aula:</strong> ${escapeHtml(form.tipo.value)}</p>`;
-
-      document.getElementById('dadosDireita').innerHTML = `
-        <p><strong>Classe:</strong> ${escapeHtml(form.classe.value)}</p>
-        <p><strong>Turma:</strong> ${escapeHtml(form.turma.value)}</p>
-        <p><strong>Lição nº:</strong> ${escapeHtml(form.licao.value || "—")}</p>
-        <p><strong>Duração:</strong> ${escapeHtml(form.duracao.value)} minutos</p>
-        <p><strong>Período:</strong> ${escapeHtml(form.periodo.value)}</p>
-        <p><strong>Data:</strong> ${form.data.value}</p>
-        ${window.materiais.length ? 
-          `<p><strong>Materiais:</strong><br>${window.materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</p>` : ''}`;
-
-      // Objetivos
-      const objetivosText = document.getElementById('objetivosCampo').value.trim();
-      document.getElementById('listaObjetivos').innerHTML = objetivosText ? 
-        objetivosText.split('\n').map(l => `<li>${escapeHtml(l)}</li>`).join('') : '';
-
-      // Gerar tabela local (compatível com ambos os sistemas)
-      gerarTabelaLocal();
-      
-      // Mostrar preview
-      document.getElementById('planoFinal').style.display = 'block';
-      document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
-      document.getElementById('avisoExportacao').style.display = 'block';
-      setTimeout(() => document.getElementById('avisoExportacao').style.display = 'none', 9000);
-      
-      mostrarMensagem('✅ Plano gerado com sucesso!', 'sucesso');
-    }
-
-    function gerarTabelaLocal() {
-      const form = document.forms['planoForm'];
-      const classeNum = String(form.classe.value || '').replace(/[^\d]/g,'');
-      const isClasseInicial = (classeNum === '1' || classeNum === '2');
-      const meiosBase = isClasseInicial ? 'Livro do aluno' : 'Quadro, giz, livro do aluno, esferográfica';
-      const duracao = parseInt(form.duracao.value || 45, 10);
-      const fator = duracao === 90 ? 2 : 1;
-      const tempo1 = `${5 * fator} min`, tempo2 = `${20 * fator} min`, 
-            tempo3 = `${10 * fator} min`, tempo4 = `${10 * fator} min`;
-
-      const tabelaCorpo = document.getElementById('tabelaCorpo');
-      tabelaCorpo.innerHTML = `
-        <tr data-funcao="Introdução e Motivação">
-          <td>${escapeHtml(tempo1)}</td>
-          <td><strong>Introdução e Motivação</strong></td>
-          <td contenteditable="true">• Saudação<br>• Marcação de presença<br>• Correção do TPC / Recapitulação da aula anterior<br>• Apresentação do tema ${escapeHtml(form.tema.value)}</td>
-          <td contenteditable="true">• Saúda os alunos<br>• Faz a marcação de presenças<br>• Corrige o TPC / Orienta a recapitulação da aula anterior<br>• Introduz o tema ${escapeHtml(form.tema.value)}</td>
-          <td contenteditable="true">• Saúdam o professor<br>• Confirma a presença<br>• Participam na Correção do TPC/ Recapitulam a aula anterior sob orientação do professor<br>• Anotam o tema</td>
-          <td>${criarSelectMetodo("Elaboração conjunta")}</td>
-          <td contenteditable="true">${meiosBase}</td>
-        </tr>
-        <tr data-funcao="Mediação e Assimilação">
-          <td>${escapeHtml(tempo2)}</td>
-          <td><strong>Mediação e Assimilação</strong></td>
-          <td contenteditable="true">• Exploração dos possíveis pressupostos dos alunos<br>• Explicação do tema "${escapeHtml(form.tema.value)}"<br>• Esclarecimento das possíveis dúvidas</td>
-          <td contenteditable="true">• Explora possíveis ideias dos alunos<br>• Explica o conteúdo<br>• Procura sanar as possíveis dúvidas<br>• Passa o apontamento no quadro</td>
-          <td contenteditable="true">• Expõem as possíveis ideias<br>• Prestam atenção na explicação<br>• Expõem as possíveis dúvidas relacionadas ao tema<br>• Transcrevem o apontamento para os seus cadernos</td>
-          <td>${criarSelectMetodo("Expositivo-Explicativo")}</td>
-          <td contenteditable="true">${isClasseInicial ? meiosBase : 'Quadro, apagador, giz, livro do aluno,'}</td>
-        </tr>
-        <tr data-funcao="Domínio e Consolidação">
-          <td>${escapeHtml(tempo3)}</td>
-          <td><strong>Domínio e Consolidação</strong></td>
-          <td contenteditable="true">•Exercícios de aplicação<br>• Verificação da resolução dos exercícios</td>
-          <td contenteditable="true">• Passa os exercícios no quadro<br>• Orienta a resolução dos exercícios<br>• Passa de carteira em carteira a verificar a resolução</td>
-          <td contenteditable="true">• Transcrevem os exercícios aos cadernos<br>• Resolvem os exercícios no ${isClasseInicial ? 'livro do aluno' : 'caderno'} individualmente</td>
-          <td>${criarSelectMetodo("Trabalho Independente")}</td>
-          <td contenteditable="true">${isClasseInicial ? meiosBase : 'Caderno, esferográfica, livro do aluno'}</td>
-        </tr>
-        <tr data-funcao="Controlo e Avaliação">
-          <td>${escapeHtml(tempo4)}</td>
-          <td><strong>Controlo e Avaliação</strong></td>
-          <td contenteditable="true">• Correção dos exercícios<br>• Breve resumo da aula<br>• Marcação do TPC</td>
-          <td contenteditable="true">• Corrige os exercícios apresentados<br>• Resume os pontos principais<br>• Faz a marcação do TPC</td>
-          <td contenteditable="true">• Apresentam os exercícios corrigidos<br>• Prestam atenção e anotam o resumo<br>• Anotam o TPC no ${isClasseInicial ? 'livro do aluno' : 'caderno'}</td>
-          <td>${criarSelectMetodo("Trabalho Independente")}</td>
-          <td contenteditable="true">${isClasseInicial ? meiosBase : 'Quadro, caderno, esferográfica, apagador'}</td>
-        </tr>`;
-    }
-
-    // ============================================
-    // NAVEGAÇÃO
-    // ============================================
-    function voltarAoFormulario() {
-      document.forms['planoForm'].style.display = 'block';
-      document.getElementById('planoFinal').style.display = 'none';
-      document.getElementById('btnVoltarFormulario').style.display = 'none';
-    }
-
-    // ============================================
-    // ANEXOS
-    // ============================================
-    function abrirAnexo() {
-      // Abrir página de anexos do GAS
-      const url = google.script.run.withSuccessHandler(url => url).getScriptUrl();
-      window.open(url + '?page=anexo', '_blank');
-    }
-
-    // ============================================
-    // EXPORTAÇÃO PARA PDF - COMPATÍVEL COM GAS
-    // ============================================
-    function gerarPDFComGAS() {
-      // Substituir selects por texto
-      const selects = document.querySelectorAll('#tabelaPlano select.metodoSelect');
-      selects.forEach(sel => {
-        const td = sel.parentElement;
-        const texto = sel.value || "—";
-        td.innerHTML = texto;
-      });
-
-      // Coletar dados para exportação
-      const planoData = coletarDadosParaExportacao();
-
-      // Mostrar loader
-      mostrarLoader(function() {
-        // Enviar para o servidor GAS - FUNÇÃO COMPATÍVEL
-        google.script.run
-          .withSuccessHandler(function(result) {
-            if (result.success) {
-              // Abrir PDF em nova aba
-              window.open(result.url, '_blank');
-              mostrarMensagem('✅ PDF gerado com sucesso!', 'sucesso');
-              
-              // Opcional: Redirecionar para página de sucesso
-              setTimeout(() => {
-                window.open(google.script.run.withSuccessHandler(url => url).getScriptUrl() + '?page=gratisunluck', '_self');
-              }, 1500);
-            } else {
-              throw new Error(result.error || 'Erro ao gerar PDF');
-            }
-          })
-          .withFailureHandler(function(error) {
-            console.error('Erro ao gerar PDF:', error);
-            alert('Erro ao gerar PDF. Tente novamente ou use a função de impressão do navegador.');
-            
-            // Fallback: Imprimir diretamente
-            window.print();
-          })
-          .salvarPlanoPDF(planoData); // CHAMADA COMPATÍVEL
-      });
-    }
-
-    function coletarDadosParaExportacao() {
-      const form = document.forms['planoForm'];
-      
-      return {
-        escola: form.escola.value,
-        professor: form.professor.value,
-        disciplina: form.disciplina.value,
-        unidade: form.unidade.value,
-        tema: form.tema.value,
-        tipo: form.tipo.value,
-        classe: form.classe.value,
-        turma: form.turma.value,
-        licao: form.licao.value || '',
-        duracao: form.duracao.value,
-        periodo: form.periodo.value,
-        data: form.data.value,
-        materiais: window.materiais,
-        objetivos: document.getElementById('objetivosCampo').value,
-        tabela: document.getElementById('tabelaPlano').outerHTML,
-        anexoTipo: window.anexoSalvo ? window.anexoSalvo.tipo : null,
-        anexoImagem: (window.anexoSalvo && window.anexoSalvo.tipo === 'imagem') ? window.anexoSalvo.data : null,
-        anexoTexto: (window.anexoSalvo && window.anexoSalvo.tipo === 'texto') ? window.anexoSalvo.data : "",
-        html: document.getElementById('planoFinal').innerHTML,
-        timestamp: new Date().toISOString()
-      };
-    }
-
-    // ============================================
-    // FUNÇÕES COMPATIBILIDADE GAS
-    // ============================================
-    function testarConexaoGAS() {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log('✅ Conexão GAS estabelecida');
-            console.log('Status:', result);
-          })
-          .withFailureHandler(function(error) {
-            console.warn('⚠️ Conexão GAS com problemas:', error);
-          })
-          .healthCheck();
-      } else {
-        console.warn('⚠️ Google Script não disponível - Modo local');
-      }
-    }
-
-    // ============================================
-    // INICIALIZAÇÃO
+    // FUNÇÕES DE INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-      // Configurar botão de anexo
-      const btnAnexo = document.getElementById('btnAdicionarAnexo');
-      if (btnAnexo) {
-        btnAnexo.onmouseover = () => btnAnexo.style.transform = "scale(1.05)";
-        btnAnexo.onmouseout = () => btnAnexo.style.transform = "scale(1)";
-      }
-      
-      // Testar conexão com GAS
-      testarConexaoGAS();
-      
-      // Verificar se estamos no GAS
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        console.log('✅ Executando no Google Apps Script');
-        console.log('🔗 URL do script:', google.script.run.withSuccessHandler(url => url).getScriptUrl());
-      } else {
-        console.warn('⚠️ Executando localmente (sem GAS) - Algumas funcionalidades podem não estar disponíveis');
-      }
+      verificarUsuario();
+      setupMenu();
+      setupEventListeners();
     });
-
-    // ============================================
-    // FALLBACK PARA CASO GAS NÃO RESPONDA
-    // ============================================
-    function verificarStatusGAS() {
-      return new Promise((resolve) => {
-        if (typeof google === 'undefined' || !google.script || !google.script.run) {
-          resolve(false);
-          return;
-        }
+    
+    function verificarUsuario() {
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      
+      if (!usuario || !usuario.nome || !usuario.telefone) {
+        // Mostra tela de cadastro
+        document.getElementById('capa').classList.remove('hidden');
+      } else {
+        // Usuário já cadastrado
+        currentUser = criarIdUsuario(usuario.nome, usuario.telefone);
+        console.log("Usuário já cadastrado:", currentUser);
         
-        // Tentar chamar uma função simples
-        google.script.run
-          .withSuccessHandler(() => resolve(true))
-          .withFailureHandler(() => resolve(false))
-          .getConfigInfo();
+        // Verifica se já escolheu linha
+        const linhaSalva = localStorage.getItem('linha_atual');
+        const linhaLembrada = localStorage.getItem('linha_lembrada') === 'true';
+        
+        if (linhaSalva && linhaLembrada) {
+          // Vai direto para a linha salva
+          currentLine = linhaSalva;
+          entrarNaLinha(linhaSalva);
+        } else {
+          // Mostra tela de seleção de linha
+          mostrarSelecaoLinha();
+        }
+      }
+    }
+    
+    function criarIdUsuario(nome, telefone) {
+      const primeiroNome = nome.trim().split(/\s+/)[0];
+      const numeroLimpo = telefone.replace(/\D/g, '');
+      return `${primeiroNome}_${numeroLimpo}`;
+    }
+    
+    // ============================================
+    // SISTEMA DE CADASTRO
+    // ============================================
+    function validarNome(nome) {
+      const partes = nome.trim().split(/\s+/);
+      return /^[A-Za-zÀ-ÿ ]+$/.test(nome) && partes.length <= 3 && partes[0].length >= 2;
+    }
+    
+    function validarTelefone(tel) {
+      const limpo = tel.replace(/\D/g, '');
+      return /^(?:258)?(82|83|84|85|86|87)\d{7}$/.test(limpo);
+    }
+    
+    function submeterCadastro() {
+      const nome = document.getElementById("nome").value.trim();
+      let telefone = document.getElementById("telefone").value.trim();
+      
+      if (!validarNome(nome)) {
+        alert("Nome inválido. Use somente letras (até 3 nomes).");
+        return;
+      }
+      
+      telefone = telefone.replace(/\D/g, '');
+      if (telefone.length === 9) {
+        telefone = '258' + telefone;
+      }
+      
+      if (!validarTelefone(telefone)) {
+        alert("Número inválido. Use formato: 84xxxxxxx");
+        return;
+      }
+      
+      document.getElementById("btnEntrar").style.display = "none";
+      document.getElementById("loader").style.display = "flex";
+      
+      // Enviar cadastro para o Google Sheets
+      const formData = new URLSearchParams();
+      formData.append("nome", nome);
+      formData.append("telefone", `+${telefone}`);
+      
+      fetch(CADASTRO_URL, {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(resposta => {
+        if (resposta.status === "salvo" || resposta.status === "existe") {
+          // Salva no localStorage
+          localStorage.setItem("usuario", JSON.stringify({ 
+            nome, 
+            telefone: `+${telefone}` 
+          }));
+          
+          // Cria ID do usuário
+          currentUser = criarIdUsuario(nome, telefone);
+          console.log("Usuário cadastrado:", currentUser);
+          
+          // Esconde tela de cadastro
+          document.getElementById('capa').style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("capa").classList.add("hidden");
+            
+            // Mostra seleção de linha
+            mostrarSelecaoLinha();
+          }, 800);
+          
+        } else {
+          throw new Error(resposta.mensagem);
+        }
+      })
+      .catch(err => {
+        alert("Erro ao enviar dados.");
+        document.getElementById("btnEntrar").style.display = "block";
+        document.getElementById("loader").style.display = "none";
       });
     }
-
-    // Fallback automático se GAS não responder
-    setTimeout(() => {
-      verificarStatusGAS().then(conectado => {
-        if (!conectado) {
-          console.warn('⚠️ GAS não disponível, usando modo local completo');
-          // Sobrescrever funções para modo local
-          window.gerarObjetivosComIA = gerarObjetivosLocal;
-          window.gerarPDFComGAS = function() {
-            alert('GAS não disponível. Use Ctrl+P para imprimir o plano.');
-            window.print();
-          };
-          window.abrirAnexo = function() {
-            alert('Sistema de anexos não disponível em modo local.');
-          };
+    
+    // ============================================
+    // SISTEMA DE SELEÇÃO DE LINHA
+    // ============================================
+    function mostrarSelecaoLinha() {
+      const container = document.getElementById('linhasContainer');
+      let html = '';
+      
+      for (const [id, linha] of Object.entries(LINHAS)) {
+        const stats = getLineStats(id);
+        html += `
+          <div class="linha-card" data-linha="${id}" onclick="selecionarLinha('${id}')">
+            <div class="linha-emoji">${linha.emoji}</div>
+            <div class="linha-info">
+              <h3>${linha.nome}</h3>
+              <p>${linha.descricao}</p>
+              <div class="linha-stats">
+                <i class="fas fa-history"></i>
+                <span>${stats.updates} atualizações hoje</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = html;
+      document.getElementById('linhaSelection').classList.add('active');
+    }
+    
+    function getLineStats(lineId) {
+      // Pode ser implementado para buscar estatísticas reais
+      return {
+        updates: 0,
+        lastUpdate: null
+      };
+    }
+    
+    function selecionarLinha(lineId) {
+      // Remove classe active de todas as linhas
+      document.querySelectorAll('.linha-card').forEach(card => {
+        card.classList.remove('active');
+      });
+      
+      // Adiciona classe active à linha selecionada
+      document.querySelector(`.linha-card[data-linha="${lineId}"]`).classList.add('active');
+      
+      // Atualiza linha atual
+      currentLine = lineId;
+    }
+    
+    function confirmarLinha() {
+      if (!currentLine) {
+        alert('Por favor, selecione uma linha');
+        return;
+      }
+      
+      const remember = document.getElementById('rememberLine').checked;
+      
+      // Salva preferências
+      localStorage.setItem('linha_atual', currentLine);
+      localStorage.setItem('linha_lembrada', remember.toString());
+      
+      // Entra na linha selecionada
+      entrarNaLinha(currentLine);
+    }
+    
+    function entrarNaLinha(lineId) {
+      // Esconde tela de seleção
+      document.getElementById('linhaSelection').classList.remove('active');
+      
+      // Mostra conteúdo principal
+      document.getElementById('mainContent').classList.add('active');
+      
+      // Atualiza header
+      atualizarHeaderComLinha(lineId);
+      
+      // Carrega atualizações da linha
+      carregarAtualizacoes(lineId);
+      
+      // Inicia verificações periódicas
+      iniciarVerificacoesPeriodicas();
+    }
+    
+    function atualizarHeaderComLinha(lineId) {
+      const linha = LINHAS[lineId];
+      if (!linha) return;
+      
+      document.getElementById('currentLineEmoji').textContent = linha.emoji;
+      document.getElementById('currentLineName').textContent = linha.nome;
+      
+      // Atualiza dropdown
+      atualizarDropdownLinhas();
+    }
+    
+    function atualizarDropdownLinhas() {
+      const dropdown = document.getElementById('linhasDropdown');
+      let html = '';
+      
+      for (const [id, linha] of Object.entries(LINHAS)) {
+        const isActive = id === currentLine;
+        html += `
+          <div class="linha-dropdown-item ${isActive ? 'active' : ''}" 
+               data-linha="${id}" 
+               onclick="trocarParaLinha('${id}')">
+            <div class="linha-dropdown-emoji">${linha.emoji}</div>
+            <div class="linha-dropdown-info">
+              <h4>${linha.nome}</h4>
+              <p>${linha.descricao}</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      dropdown.innerHTML = html;
+    }
+    
+    function trocarParaLinha(novaLinha) {
+      if (novaLinha === currentLine) {
+        fecharDropdown();
+        return;
+      }
+      
+      currentLine = novaLinha;
+      localStorage.setItem('linha_atual', novaLinha);
+      
+      // Atualiza header
+      atualizarHeaderComLinha(novaLinha);
+      
+      // Carrega novas atualizações
+      carregarAtualizacoes(novaLinha);
+      
+      // Fecha dropdown
+      fecharDropdown();
+      
+      // Mostra notificação
+      showToast(`Mudou para linha: ${LINHAS[novaLinha].nome}`);
+    }
+    
+    // ============================================
+    // FUNÇÕES DE ATUALIZAÇÕES
+    // ============================================
+    async function carregarAtualizacoes(lineId, showNotification = false) {
+      if (!lineId) return;
+      
+      const container = document.getElementById('updates-content');
+      const loader = document.getElementById('updatesLoader');
+      loader.style.display = 'flex';
+      
+      try {
+        const params = new URLSearchParams();
+        params.append('action', 'updates');
+        params.append('linha', lineId);
+        
+        const response = await fetch(`${GAS_URL}?${params.toString()}&t=${Date.now()}`);
+        const data = await response.json();
+        
+        const updates = data.updates || [];
+        updates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        const currentCount = updates.length;
+        
+        if (showNotification && lastUpdateCount > 0 && currentCount > lastUpdateCount) {
+          const newCount = currentCount - lastUpdateCount;
+          showNewUpdateNotification(newCount);
+        }
+        
+        lastUpdateCount = currentCount;
+        cachedUpdates[lineId] = updates;
+        
+        if (updates.length === 0) {
+          container.innerHTML = `
+            <p class="waiting">
+              <i class="fas fa-train"></i><br>
+              Nenhuma actualização para esta linha ainda.<br>
+              <small>As actualizações aparecerão aqui quando disponíveis.</small>
+            </p>
+          `;
+        } else {
+          renderUpdates(updates, container);
+        }
+        
+        // Rola para o topo quando muda de linha
+        if (!showNotification) {
+          document.getElementById('mainContainer').scrollTop = 0;
+        }
+        
+      } catch (error) {
+        console.error('Erro ao carregar actualizações:', error);
+        container.innerHTML = `
+          <p class="waiting" style="color: var(--cfm-red);">
+            <i class="fas fa-wifi-slash"></i><br>
+            Erro ao carregar actualizações.<br>
+            <small>Verifique sua conexão e tente novamente.</small>
+          </p>
+        `;
+      } finally {
+        loader.style.display = 'none';
+        updateLastUpdateTime();
+      }
+    }
+    
+    function renderUpdates(updates, container) {
+      const html = updates.map(update => {
+        const time = new Date(update.timestamp).toLocaleString('pt-MZ', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        const textLower = update.textoOriginal.toLowerCase();
+        let icon = '📢';
+        if (textLower.includes('atraso') || textLower.includes('atrasado')) icon = '⏰';
+        if (textLower.includes('cancel') || textLower.includes('cancelado')) icon = '❌';
+        if (textLower.includes('importante') || textLower.includes('urgente')) icon = '⚠️';
+        if (textLower.includes('horário') || textLower.includes('hora')) icon = '🕒';
+        if (textLower.includes('partida') || textLower.includes('chegada')) icon = '🚂';
+        
+        // Formatar texto (negrito e quebras de linha)
+        let formattedText = update.textoOriginal
+          .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
+        
+        return `
+          <div class="update-card">
+            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
+              <span style="font-size: 1.5rem; flex-shrink: 0;">${icon}</span>
+              <div style="flex: 1;">
+                <div class="admin-info" style="margin: 0;">
+                  <span class="admin-name">🛡️ADM ${update.adminName || "Administração CFM"}</span>
+                  <span>${time}</span>
+                </div>
+                <div class="original-message">${formattedText}</div>
+              </div>
+            </div>
+            <div class="update-actions">
+              <button onclick="copyToClipboard(\`${escapeText(update.textoOriginal)}\`)" 
+                      class="update-action-btn copy" title="Copiar">
+                <i class="far fa-copy"></i> Copiar
+              </button>
+              <button onclick="shareUpdate(\`${escapeText(update.textoOriginal)}\`)" 
+                      class="update-action-btn share" title="Partilhar">
+                <i class="fas fa-share-alt"></i> Partilhar
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    }
+    
+    function escapeText(text) {
+      return text.replace(/`/g, "\\`").replace(/\n/g, "\\n");
+    }
+    
+    // ============================================
+    // FUNÇÕES AUXILIARES
+    // ============================================
+    function setupMenu() {
+      const menu = document.getElementById('menu');
+      const overlay = document.getElementById('overlay');
+      const menuToggle = document.getElementById('menuToggle');
+      
+      menuToggle.addEventListener('click', () => {
+        menu.classList.add('open');
+        overlay.classList.add('active');
+      });
+      
+      overlay.addEventListener('click', () => {
+        menu.classList.remove('open');
+        overlay.classList.remove('active');
+      });
+    }
+    
+    function setupEventListeners() {
+      // Toggle dropdown de linhas
+      document.getElementById('linhaSelector').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById('linhasDropdown');
+        dropdown.classList.toggle('active');
+      });
+      
+      // Fecha dropdown ao clicar fora
+      document.addEventListener('click', function() {
+        document.getElementById('linhasDropdown').classList.remove('active');
+      });
+      
+      // Botão de refresh
+      document.getElementById('manualRefresh').addEventListener('click', () => {
+        const btn = document.getElementById('manualRefresh');
+        btn.classList.add('spinning');
+        
+        if (currentLine) {
+          carregarAtualizacoes(currentLine, false).finally(() => {
+            setTimeout(() => btn.classList.remove('spinning'), 1000);
+          });
+        } else {
+          setTimeout(() => btn.classList.remove('spinning'), 1000);
         }
       });
-    }, 2000);
+      
+      // Scroll to bottom
+      document.getElementById('scrollToBottom').addEventListener('click', () => {
+        document.getElementById('mainContainer').scrollTo({
+          top: document.getElementById('mainContainer').scrollHeight,
+          behavior: 'smooth'
+        });
+      });
+      
+      // Detecta scroll para mostrar/ocultar botão
+      document.getElementById('mainContainer').addEventListener('scroll', () => {
+        const container = document.getElementById('mainContainer');
+        const btn = document.getElementById('scrollToBottom');
+        
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+        
+        if (isNearBottom) {
+          btn.classList.remove('visible');
+        } else {
+          btn.classList.add('visible');
+        }
+      });
+    }
+    
+    function iniciarVerificacoesPeriodicas() {
+      // Verifica novas atualizações a cada 30 segundos
+      setInterval(() => {
+        if (currentLine && document.visibilityState === 'visible') {
+          carregarAtualizacoes(currentLine, true);
+        }
+      }, 30000);
+      
+      // Atualiza horário a cada minuto
+      setInterval(updateLastUpdateTime, 60000);
+    }
+    
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit' });
+      const lastUpdate = document.getElementById('lastUpdateTime');
+      if (lastUpdate) {
+        lastUpdate.innerHTML = `<i class="fas fa-clock"></i> Última verificação: ${timeStr}`;
+      }
+    }
+    
+    function showNewUpdateNotification(count) {
+      const notification = document.getElementById('new-update-notification');
+      notification.querySelector('span').textContent = 
+        count === 1 ? 'Nova actualização!' : `${count} novas actualizações!`;
+      notification.style.display = 'flex';
+      
+      // Toca som se disponível
+      playNotificationSound();
+      
+      // Auto-esconde após 10 segundos
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 10000);
+      
+      // Clicar para recarregar
+      notification.onclick = () => {
+        if (currentLine) {
+          carregarAtualizacoes(currentLine, false);
+        }
+        notification.style.display = 'none';
+      };
+    }
+    
+    function playNotificationSound() {
+      try {
+        // Som simples usando Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } catch (e) {
+        console.log('Audio não suportado');
+      }
+    }
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyConfirmation();
+      }).catch(() => {
+        // Fallback para navegadores antigos
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showCopyConfirmation();
+      });
+    }
+    
+    function showCopyConfirmation() {
+      const confirm = document.getElementById('copyConfirmation');
+      confirm.style.display = 'flex';
+      setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+    }
+    
+    function shareUpdate(text) {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Actualização CFM',
+          text: text.substring(0, 100) + '...',
+          url: window.location.href
+        });
+      } else {
+        copyToClipboard(text);
+      }
+    }
+    
+    function showToast(message) {
+      // Implementação simples de toast
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 10000;
+        animation: fadeIn 0.3s ease;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+    
+    function fecharDropdown() {
+      document.getElementById('linhasDropdown').classList.remove('active');
+    }
+    
+    // ============================================
+    // FUNÇÕES DO MENU
+    // ============================================
+    function debugUsuario() {
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      const linhaAtual = localStorage.getItem('linha_atual');
+      
+      if (!usuario) {
+        alert('Nenhum usuário encontrado!');
+      } else {
+        alert(`Usuário: ${usuario.nome}\nTelefone: ${usuario.telefone}\nLinha atual: ${LINHAS[linhaAtual]?.nome || 'Nenhuma'}`);
+      }
+    }
+    
+    function sairDoSistema() {
+      if (confirm("Deseja sair do sistema?")) {
+        // Remove apenas dados de sessão, mantém cadastro
+        localStorage.removeItem('linha_atual');
+        localStorage.removeItem('linha_lembrada');
+        
+        // Recarrega para mostrar seleção de linha
+        location.reload();
+      }
+    }
+    
+    // ============================================
+    // FUNÇÕES PARA PWA (OPCIONAL)
+    // ============================================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('Service Worker registrado:', registration.scope);
+          })
+          .catch(error => {
+            console.log('Service Worker falhou:', error);
+          });
+      });
+    }
   </script>
 </body>
 </html>
