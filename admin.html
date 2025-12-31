@@ -1,1827 +1,2689 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel Admin CFM - Linhas de Comboio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛡️ Admin CFM - Multi-linhas</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* ============================================
+       VARIÁVEIS E RESET
+       ============================================ */
     :root {
-      --cfm-blue: #0d47a1;
-      --cfm-blue-light: #1e88e5;
-      --cfm-green: #2e7d32;
-      --cfm-green-light: #4caf50;
-      --cfm-red: #c62828;
-      --cfm-red-light: #ef5350;
-      --cfm-orange: #f57c00;
-      --cfm-orange-light: #ff9800;
-      --cfm-purple: #6a1b9a;
-      --light-bg: #f8fbff;
-      --card-bg: #ffffff;
-      --border: #e0e0e0;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --primary: #0d47a1;
+      --primary-dark: #0a3a8a;
+      --primary-light: #e3f2fd;
+      --secondary: #ff9800;
+      --secondary-dark: #f57c00;
+      --success: #2e7d32;
+      --danger: #c62828;
+      --warning: #f57c00;
+      --info: #0277bd;
+      --light: #f5f5f5;
+      --dark: #222;
+      --gray: #757575;
+      --gray-light: #eee;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
       --radius: 12px;
+      --radius-sm: 8px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: 'Roboto', sans-serif;
     }
-    
+
     body {
-      background: linear-gradient(135deg, #f8fbff 0%, #e8f4ff 100%);
-      color: #222;
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================
+       ANIMAÇÕES
+       ============================================ */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(13, 71, 161, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0); }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    /* ============================================
+       LAYOUT PRINCIPAL
+       ============================================ */
+    .container {
+      display: flex;
       min-height: 100vh;
     }
-    
-    /* Telas */
-    .screen {
-      display: none;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+    /* ============================================
+       SIDEBAR
+       ============================================ */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 25px 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
     }
-    
-    .screen.active {
-      display: block;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    
-    @keyframes fadeInUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+
+    .logo-icon {
+      font-size: 2.5rem;
+      animation: float 3s ease-in-out infinite;
     }
-    
-    /* Card Principal */
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 30px;
-      margin-bottom: 25px;
+
+    .logo-text h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .logo-text p {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .user-info {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 30px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .user-info h3 {
+      font-size: 1rem;
+      margin-bottom: 5px;
+    }
+
+    .user-info p {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .user-role {
+      display: inline-block;
+      background: var(--secondary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      margin-top: 5px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 20px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
       transition: var(--transition);
-      border: 1px solid rgba(255, 255, 255, 0.8);
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
     }
-    
-    .card:hover {
-      box-shadow: var(--shadow-hover);
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateX(5px);
     }
-    
-    /* Header comum */
-    header {
+
+    .menu-item.active {
+      background: rgba(255,255,255,0.15);
+      border-left: 4px solid var(--secondary);
+    }
+
+    .menu-item i {
+      width: 20px;
       text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .menu-badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+    }
+
+    /* ============================================
+       CONTEÚDO PRINCIPAL
+       ============================================ */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--gray-light);
     }
-    
-    h1 {
-      color: var(--cfm-blue);
+
+    .page-title {
+      font-family: 'Poppins', sans-serif;
       font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 8px;
+      color: var(--primary);
       display: flex;
       align-items: center;
-      justify-content: center;
       gap: 10px;
     }
-    
-    .subtitle {
-      color: #666;
-      font-size: 1rem;
-      font-weight: 400;
+
+    .page-title i {
+      color: var(--secondary);
     }
-    
-    /* Formulários */
-    .form-group {
-      margin-bottom: 22px;
-    }
-    
-    label {
+
+    .header-actions {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-weight: 500;
-      color: #333;
-      font-size: 0.95rem;
-    }
-    
-    .required::after {
-      content: " *";
-      color: var(--cfm-red);
-    }
-    
-    input, textarea, select {
-      width: 100%;
-      padding: 16px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-size: 1rem;
-      background: white;
-      transition: var(--transition);
-    }
-    
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--cfm-blue);
-      box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
-      transform: translateY(-1px);
-    }
-    
-    textarea {
-      height: 160px;
-      resize: vertical;
-      min-height: 120px;
-      line-height: 1.5;
-    }
-    
-    /* Botões */
-    .btn {
-      background: linear-gradient(135deg, var(--cfm-blue) 0%, var(--cfm-blue-light) 100%);
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      position: relative;
-      transition: var(--transition);
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      overflow: hidden;
-    }
-    
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: 0.5s;
-    }
-    
-    .btn:hover::before {
-      left: 100%;
-    }
-    
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(13, 71, 161, 0.25);
-    }
-    
-    .btn:active {
-      transform: translateY(0);
-    }
-    
-    .btn:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-    
-    .btn-secondary {
-      background: linear-gradient(135deg, #666 0%, #888 100%);
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, var(--cfm-green) 0%, var(--cfm-green-light) 100%);
-    }
-    
-    .btn-whatsapp {
-      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-    }
-    
-    .btn-whatsapp:hover {
-      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.25);
-    }
-    
-    .btn-logout {
-      background: linear-gradient(135deg, var(--cfm-red) 0%, var(--cfm-red-light) 100%);
-      width: auto;
-      padding: 12px 24px;
-      font-size: 0.95rem;
-      margin-top: 0;
-    }
-    
-    /* Botões de ação */
-    .action-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 15px;
-      margin-top: 20px;
+      align-items: center;
     }
-    
-    /* Loader */
-    .loader {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    
-    @keyframes spin {
-      to { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-    
-    /* Status e mensagens */
-    .status {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 10px;
-      text-align: center;
-      font-weight: 500;
-      display: none;
-      animation: slideIn 0.3s ease;
-      border-left: 5px solid;
-    }
-    
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    
-    .success { 
-      background: linear-gradient(135deg, #e6f4ea 0%, #d4edda 100%); 
-      color: #137333;
-      border-left-color: #28a745;
-    }
-    
-    .error { 
-      background: linear-gradient(135deg, #fce8e6 0%, #f8d7da 100%); 
-      color: #c5221f;
-      border-left-color: #dc3545;
-    }
-    
-    .info { 
-      background: linear-gradient(135deg, #e8f0fe 0%, #d1e7fd 100%); 
-      color: #1967d2;
-      border-left-color: #007bff;
-    }
-    
-    /* Navegação */
-    .nav {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-    }
-    
-    .nav-btn {
-      padding: 14px 24px;
-      border: 2px solid var(--cfm-blue);
-      background: white;
-      color: var(--cfm-blue);
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
+
+    .online-status {
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-    
-    .nav-btn.active {
-      background: linear-gradient(135deg, var(--cfm-blue) 0%, var(--cfm-blue-light) 100%);
+      background: var(--success);
       color: white;
-      border-color: var(--cfm-blue);
-    }
-    
-    .nav-btn:hover:not(.active) {
-      background: #e8f0fe;
-      transform: translateY(-2px);
-    }
-    
-    /* Painel de usuários */
-    .user-list {
-      background: white;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      margin-top: 20px;
-      overflow: hidden;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    
-    .user-item {
-      padding: 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: var(--transition);
-    }
-    
-    .user-item:hover {
-      background: #f8f9fa;
-    }
-    
-    .user-item:last-child {
-      border-bottom: none;
-    }
-    
-    .user-info h4 {
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 1.05rem;
-    }
-    
-    .user-info p {
-      color: #666;
+      padding: 8px 15px;
+      border-radius: 20px;
       font-size: 0.9rem;
     }
-    
-    .user-role {
-      background: linear-gradient(135deg, var(--cfm-blue) 0%, var(--cfm-blue-light) 100%);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    
-    .user-role.admin {
-      background: linear-gradient(135deg, var(--cfm-red) 0%, var(--cfm-red-light) 100%);
-    }
-    
-    /* Logout */
-    .logout-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: white;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    
-    .user-welcome {
-      color: #333;
-      font-weight: 500;
-      font-size: 1.1rem;
-    }
-    
-    .user-welcome span {
-      color: var(--cfm-blue);
-      font-weight: 700;
-    }
-    
-    /* Notas de ajuda */
-    .help-text {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 6px;
-      font-style: italic;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    /* Contador de caracteres */
-    .char-counter {
-      text-align: right;
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 5px;
-    }
-    
-    .char-counter.warning {
-      color: var(--cfm-orange);
-      font-weight: bold;
-    }
-    
-    .char-counter.danger {
-      color: var(--cfm-red);
-      font-weight: bold;
-    }
-    
-    /* Preview da Mensagem */
-    .message-preview {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 15px;
-      border-left: 4px solid var(--cfm-blue);
-      display: none;
-    }
-    
-    .message-preview h4 {
-      color: var(--cfm-blue);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .message-preview-content {
-      color: #444;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-      padding: 10px;
-      background: white;
-      border-radius: 5px;
-    }
-    
-    /* Badge de status */
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-left: 10px;
-    }
-    
-    .status-badge.sent {
-      background: #e6f4ea;
-      color: #137333;
-    }
-    
-    .status-badge.shared {
-      background: #e8f0fe;
-      color: #1967d2;
-    }
-    
-    /* Seletor de Linha */
-    .line-selector {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-    
-    .line-option {
-      padding: 20px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .line-option:hover {
-      border-color: var(--cfm-blue);
-      background: var(--light-bg);
-      transform: translateY(-2px);
-    }
-    
-    .line-option.selected {
-      border-color: var(--cfm-blue);
-      background: linear-gradient(135deg, #e8f0fe 0%, #d1e7fd 100%);
-      box-shadow: var(--shadow);
-    }
-    
-    .line-emoji {
-      font-size: 2rem;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      background: #4caf50;
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .line-info h4 {
-      margin: 0 0 5px 0;
-      color: #333;
-    }
-    
-    .line-info p {
-      margin: 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .line-stats {
-      font-size: 0.8rem;
-      color: #888;
-      margin-top: 5px;
-    }
-    
-    /* Histórico por linha */
-    .history-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-    
-    .history-tab {
-      padding: 10px 20px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: var(--transition);
-    }
-    
-    .history-tab.active {
-      background: var(--cfm-blue);
-      color: white;
-      border-color: var(--cfm-blue);
-    }
-    
-    /* Responsividade */
-    @media (max-width: 600px) {
-      body {
-        padding: 15px;
-      }
-      
-      .card {
-        padding: 20px;
-      }
-      
-      .nav {
-        flex-direction: column;
-      }
-      
-      .nav-btn {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .action-buttons {
-        grid-template-columns: 1fr;
-      }
-      
-      .logout-bar {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-      }
-      
-      .line-selector {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    /* Animações */
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    
-    .pulse {
       animation: pulse 2s infinite;
     }
-    
-    /* Scrollbar personalizada */
-    ::-webkit-scrollbar {
-      width: 8px;
+
+    .logout-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
     }
-    
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
+
+    .logout-btn:hover {
+      background: #b71c1c;
+      transform: translateY(-2px);
     }
-    
-    ::-webkit-scrollbar-thumb {
-      background: var(--cfm-blue);
-      border-radius: 10px;
+
+    /* ============================================
+       ESTATÍSTICAS RÁPIDAS
+       ============================================ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
     }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--cfm-blue-light);
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: var(--transition);
+      animation: fadeIn 0.6s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    .stat-icon.users { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-icon.updates { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-icon.chat { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stat-icon.lines { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+    .stat-info h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-info p {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* ============================================
+       SEÇÕES DO PAINEL
+       ============================================ */
+    .section {
+      background: white;
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.7s ease;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--gray-light);
+    }
+
+    .section-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: var(--secondary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #1b5e20;
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #b71c1c;
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* ============================================
+       FORMULÁRIOS
+       ============================================ */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--primary);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+    }
+
+    .select-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background: white;
+      cursor: pointer;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 15px;
+      background: var(--gray-light);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    .checkbox-label:hover {
+      background: #ddd;
+    }
+
+    .checkbox-label input {
+      margin: 0;
+    }
+
+    /* ============================================
+       TABELAS
+       ============================================ */
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--gray-light);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    thead {
+      background: var(--primary-light);
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--primary);
+      border-bottom: 2px solid var(--gray-light);
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid var(--gray-light);
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .badge-success { background: #e8f5e9; color: var(--success); }
+    .badge-warning { background: #fff3e0; color: var(--warning); }
+    .badge-danger { background: #ffebee; color: var(--danger); }
+    .badge-info { background: #e1f5fe; color: var(--info); }
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      background: var(--gray-light);
+      color: var(--gray);
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .action-btn.edit:hover { background: var(--warning); color: white; }
+    .action-btn.delete:hover { background: var(--danger); color: white; }
+    .action-btn.view:hover { background: var(--info); color: white; }
+
+    /* ============================================
+       CARDS DE LINHA
+       ============================================ */
+    .lines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+    }
+
+    .line-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border: 3px solid transparent;
+    }
+
+    .line-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .line-card.active {
+      border-color: var(--success);
+    }
+
+    .line-header {
+      padding: 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .line-header.bm { background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); }
+    .line-header.bmar { background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%); }
+    .line-header.bc { background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%); }
+
+    .line-emoji {
+      font-size: 2.5rem;
+    }
+
+    .line-info h3 {
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+    }
+
+    .line-info p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .line-body {
+      padding: 20px;
+    }
+
+    .line-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .line-stat {
+      text-align: center;
+    }
+
+    .line-stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .line-stat-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+
+    .line-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ============================================
+       MODAIS
+       ============================================ */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-lg {
+      max-width: 800px;
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid var(--gray-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      color: var(--primary);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gray);
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      color: var(--danger);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .modal-footer {
+      padding: 20px 25px;
+      border-top: 1px solid var(--gray-light);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* ============================================
+       TOAST NOTIFICATIONS
+       ============================================ */
+    .toast-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 3000;
+    }
+
+    .toast {
+      background: white;
+      border-radius: var(--radius);
+      padding: 15px 20px;
+      margin-top: 10px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      animation: slideIn 0.3s ease;
+      min-width: 300px;
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.warning { border-left: 4px solid var(--warning); }
+    .toast.info { border-left: 4px solid var(--info); }
+
+    .toast-icon {
+      font-size: 1.3rem;
+    }
+
+    .toast.success .toast-icon { color: var(--success); }
+    .toast.error .toast-icon { color: var(--danger); }
+    .toast.warning .toast-icon { color: var(--warning); }
+    .toast.info .toast-icon { color: var(--info); }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-title {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .toast-message {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: var(--transition);
+    }
+
+    .toast-close:hover {
+      color: var(--dark);
+    }
+
+    /* ============================================
+       LOADERS
+       ============================================ */
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gray-light);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    .loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4000;
+    }
+
+    /* ============================================
+       RESPONSIVIDADE
+       ============================================ */
+    @media (max-width: 1200px) {
+      .sidebar {
+        width: 250px;
+      }
+      .main-content {
+        margin-left: 250px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        transition: var(--transition);
+        z-index: 1001;
+      }
+      .sidebar.active {
+        left: 0;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .menu-toggle {
+        display: block !important;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .lines-grid {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1002;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .menu-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    /* ============================================
+       LOGIN SCREEN
+       ============================================ */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-logo i {
+      font-size: 3rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .login-logo h1 {
+      font-family: 'Poppins', sans-serif;
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    .login-logo p {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--gray-light);
+      color: var(--gray);
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <!-- Tela de Login -->
-  <div id="loginScreen" class="screen active">
-    <div class="card">
-      <header>
-        <h1><i class="fas fa-lock"></i> Login Administrativo CFM</h1>
-        <p class="subtitle">Painel de Actualização Multi-linhas</p>
-      </header>
-      
-      <div class="form-group">
-        <label for="loginIdentifier">
-          <i class="fas fa-user-circle"></i>
-          <span>Email ou Telefone</span>
-          <span class="required"></span>
-        </label>
-        <input type="text" id="loginIdentifier" placeholder="seu@email.com ou 841234567" />
+  <!-- TELA DE LOGIN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <i class="fas fa-shield-alt"></i>
+        <h1>Admin CFM</h1>
+        <p>Sistema Multi-linhas</p>
       </div>
       
-      <div class="form-group">
-        <label for="loginPassword">
-          <i class="fas fa-key"></i>
-          <span>Senha</span>
-          <span class="required"></span>
-        </label>
-        <input type="password" id="loginPassword" placeholder="••••••" maxlength="8" />
-        <div class="help-text">
-          <i class="fas fa-info-circle"></i>
-          Máximo 8 caracteres (letras e números)
-        </div>
-      </div>
-      
-      <button class="btn" onclick="handleLogin()">
-        <i class="fas fa-sign-in-alt"></i>
-        Entrar no Painel Admin
-        <div class="loader" id="loginLoader"></div>
-      </button>
-      
-      <div id="loginStatus" class="status"></div>
-    </div>
-  </div>
-  
-  <!-- Tela Principal (Após Login) -->
-  <div id="adminScreen" class="screen">
-    <div class="logout-bar">
-      <div class="user-welcome">
-        <i class="fas fa-user-shield"></i>
-        Bem-vindo, <span id="currentUserName">Administrador</span>
-        <span id="userRoleBadge" class="status-badge">Carregando...</span>
-      </div>
-      <button class="btn btn-logout" onclick="handleLogout()">
-        <i class="fas fa-sign-out-alt"></i>
-        Sair
-      </button>
-    </div>
-    
-    <div class="card">
-      <div class="nav">
-        <div class="nav-btn active" onclick="showTab('sendUpdate')">
-          <i class="fas fa-paper-plane"></i>
-          Enviar Actualização
-        </div>
-        <div class="nav-btn" onclick="showTab('createUser')">
-          <i class="fas fa-user-plus"></i>
-          Criar Usuário
-        </div>
-        <div class="nav-btn" onclick="showTab('viewUsers')">
-          <i class="fas fa-users"></i>
-          Ver Usuários
-        </div>
-        <div class="nav-btn" onclick="showTab('history')">
-          <i class="fas fa-history"></i>
-          Histórico
-        </div>
-      </div>
-      
-      <!-- Sub-tela: Enviar Actualização -->
-      <div id="sendUpdateTab" class="screen active">
-        <header>
-          <h1><i class="fas fa-bullhorn"></i> Enviar Actualização Oficial</h1>
-          <p class="subtitle" id="adminLinesInfo">Selecionar linha para actualização</p>
-        </header>
-        
-        <!-- Seletor de Linha -->
+      <form id="loginForm">
         <div class="form-group">
-          <label>
-            <i class="fas fa-train"></i>
-            <span>Linha de Comboio</span>
-            <span class="required"></span>
-          </label>
-          <div class="line-selector" id="lineSelector">
-            <!-- Linhas serão carregadas dinamicamente -->
-          </div>
+          <label for="loginEmail"><i class="fas fa-envelope"></i> Email ou Telefone</label>
+          <input type="text" id="loginEmail" class="form-control" placeholder="admin@cfm.com" required>
         </div>
         
         <div class="form-group">
-          <label for="adminName">
-            <i class="fas fa-user-tie"></i>
-            Seu Nome (Administrador)
-          </label>
-          <input type="text" id="adminName" placeholder="Ex: Coutinho Pita" />
+          <label for="loginPassword"><i class="fas fa-lock"></i> Senha</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
         </div>
         
-        <div class="form-group">
-          <label for="message">
-            <i class="fas fa-comment-alt"></i>
-            Mensagem Completa
-            <span class="required"></span>
-          </label>
-          <textarea id="message" placeholder="Digite aqui a mensagem completa..."></textarea>
-          <div class="char-counter" id="charCounter">
-            <span id="charCount">0</span> caracteres
-          </div>
-        </div>
-        
-        <!-- Preview da Mensagem -->
-        <div id="messagePreview" class="message-preview">
-          <h4><i class="fas fa-eye"></i> Pré-visualização</h4>
-          <div id="messagePreviewContent" class="message-preview-content"></div>
-        </div>
-        
-        <!-- Botões de Ação -->
-        <div class="action-buttons">
-          <button class="btn btn-success" onclick="sendUpdate()" id="sendUpdateBtn" disabled>
-            <i class="fas fa-cloud-upload-alt"></i>
-            Salvar no Sistema
-            <div class="loader" id="updateLoader"></div>
-          </button>
-          
-          <button class="btn btn-whatsapp" onclick="shareToWhatsApp()" id="whatsappBtn" disabled>
-            <i class="fab fa-whatsapp"></i>
-            Compartilhar no WhatsApp
-            <div class="loader" id="whatsappLoader"></div>
-          </button>
-        </div>
-        
-        <div id="updateStatus" class="status"></div>
-      </div>
-      
-      <!-- Sub-tela: Criar Usuário -->
-      <div id="createUserTab" class="screen">
-        <header>
-          <h1><i class="fas fa-user-plus"></i> Criar Novo Usuário</h1>
-          <p class="subtitle">Adicionar membro à equipa administrativa</p>
-        </header>
-        
-        <div class="form-group">
-          <label for="userPhone">
-            <i class="fas fa-phone"></i>
-            <span>Número de Telefone</span>
-            <span class="required"></span>
-          </label>
-          <input type="tel" id="userPhone" placeholder="841234567" pattern="[0-9]{9}" />
-          <div class="help-text">
-            <i class="fas fa-info-circle"></i>
-            Apenas 9 dígitos, sem espaços ou +258
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="userFullName">
-            <i class="fas fa-id-card"></i>
-            <span>Nome Completo</span>
-            <span class="required"></span>
-          </label>
-          <input type="text" id="userFullName" placeholder="João da Silva" />
-        </div>
-        
-        <div class="form-group">
-          <label for="userNickname">
-            <i class="fas fa-user-tag"></i>
-            Nickname/Apelido
-          </label>
-          <input type="text" id="userNickname" placeholder="Jota" />
-        </div>
-        
-        <div class="form-group">
-          <label for="userEmail">
-            <i class="fas fa-envelope"></i>
-            <span>Email</span>
-            <span class="required"></span>
-          </label>
-          <input type="email" id="userEmail" placeholder="joao@exemplo.com" />
-        </div>
-        
-        <div class="form-group">
-          <label for="userPassword">
-            <i class="fas fa-lock"></i>
-            <span>Senha Temporária</span>
-            <span class="required"></span>
-          </label>
-          <input type="password" id="userPassword" placeholder="••••••" maxlength="8" />
-          <div class="help-text">
-            <i class="fas fa-info-circle"></i>
-            Máximo 8 caracteres (letras e números)
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="userRole">
-            <i class="fas fa-user-shield"></i>
-            <span>Tipo de Acesso</span>
-            <span class="required"></span>
-          </label>
-          <select id="userRole" onchange="toggleLinePermissions()">
-            <option value="user">Usuário Normal</option>
-            <option value="admin">Administrador</option>
-            <option value="superadmin">Super Administrador</option>
-          </select>
-        </div>
-        
-        <!-- Permissões de Linha (apenas para admins) -->
-        <div class="form-group" id="linePermissionsGroup" style="display: none;">
-          <label>
-            <i class="fas fa-train"></i>
-            <span>Linhas Permitidas</span>
-          </label>
-          <div class="line-selector" id="adminLineSelector">
-            <!-- Opções de linha para administrador -->
-          </div>
-          <div class="help-text">
-            <i class="fas fa-info-circle"></i>
-            Selecione as linhas que este administrador pode actualizar
-          </div>
-        </div>
-        
-        <button class="btn btn-success" onclick="createUser()">
-          <i class="fas fa-plus-circle"></i>
-          Criar Usuário
-          <div class="loader" id="createUserLoader"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px;">
+          <i class="fas fa-sign-in-alt"></i> Entrar
         </button>
-        
-        <div id="createUserStatus" class="status"></div>
-      </div>
+      </form>
       
-      <!-- Sub-tela: Ver Usuários -->
-      <div id="viewUsersTab" class="screen">
-        <header>
-          <h1><i class="fas fa-users"></i> Usuários do Sistema</h1>
-          <p class="subtitle">Lista de todos os usuários cadastrados</p>
-        </header>
-        
-        <div class="form-group">
-          <label for="filterRole">
-            <i class="fas fa-filter"></i>
-            Filtrar por Tipo
-          </label>
-          <select id="filterRole" onchange="loadUsers()">
-            <option value="all">Todos os usuários</option>
-            <option value="admin">Apenas Administradores</option>
-            <option value="user">Apenas Usuários Normais</option>
-          </select>
-        </div>
-        
-        <button class="btn btn-secondary" onclick="loadUsers()">
-          <i class="fas fa-sync-alt"></i>
-          Actualizar Lista
-          <div class="loader" id="usersLoader"></div>
-        </button>
-        
-        <div id="usersList" class="user-list">
-          <!-- Lista de usuários será carregada aqui -->
-          <div class="user-item">
-            <div class="user-info">
-              <h4>Carregando usuários...</h4>
-              <p>Aguarde enquanto buscamos os dados</p>
-            </div>
-          </div>
-        </div>
-        
-        <div id="usersStatus" class="status"></div>
-      </div>
-      
-      <!-- Sub-tela: Histórico -->
-      <div id="historyTab" class="screen">
-        <header>
-          <h1><i class="fas fa-history"></i> Histórico de Actualizações</h1>
-          <p class="subtitle">Todas as actualizações enviadas</p>
-        </header>
-        
-        <div class="history-tabs" id="historyTabs">
-          <!-- Tabs por linha serão carregadas dinamicamente -->
-        </div>
-        
-        <div id="historyList" class="user-list">
-          <!-- Histórico será carregado aqui -->
-          <div class="user-item">
-            <div class="user-info">
-              <h4>Selecione uma linha para ver o histórico</h4>
-              <p>Clique em uma das linhas acima</p>
-            </div>
-          </div>
-        </div>
-        
-        <div id="historyStatus" class="status"></div>
+      <div class="login-footer">
+        <p><i class="fas fa-info-circle"></i> Credenciais padrão: admin@cfm.com / admin123</p>
       </div>
     </div>
   </div>
 
+  <!-- PAINEL ADMIN -->
+  <div class="container" id="adminPanel" style="display: none;">
+    <button class="menu-toggle" id="menuToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-train"></i>
+        </div>
+        <div class="logo-text">
+          <h1>CFM Admin</h1>
+          <p>Multi-linhas</p>
+        </div>
+      </div>
+      
+      <div class="user-info" id="userInfo">
+        <h3>Carregando...</h3>
+        <p>admin@cfm.com</p>
+        <span class="user-role">Super Admin</span>
+      </div>
+      
+      <div class="menu">
+        <div class="menu-item active" data-section="dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </div>
+        
+        <div class="menu-item" data-section="updates">
+          <i class="fas fa-bullhorn"></i>
+          <span>Actualizações</span>
+          <span class="menu-badge" id="updatesBadge">0</span>
+        </div>
+        
+        <div class="menu-item" data-section="chat">
+          <i class="fas fa-comments"></i>
+          <span>Chat</span>
+          <span class="menu-badge" id="chatBadge">0</span>
+        </div>
+        
+        <div class="menu-item" data-section="users">
+          <i class="fas fa-users"></i>
+          <span>Usuários</span>
+        </div>
+        
+        <div class="menu-item" data-section="lines">
+          <i class="fas fa-train"></i>
+          <span>Linhas</span>
+        </div>
+        
+        <div class="menu-item" data-section="admins">
+          <i class="fas fa-user-shield"></i>
+          <span>Administradores</span>
+        </div>
+        
+        <div class="menu-item" data-section="settings">
+          <i class="fas fa-cog"></i>
+          <span>Configurações</span>
+        </div>
+        
+        <div class="menu-item" data-section="stats">
+          <i class="fas fa-chart-bar"></i>
+          <span>Estatísticas</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="main-content">
+      <!-- HEADER -->
+      <div class="header">
+        <div>
+          <h1 class="page-title" id="pageTitle">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+          </h1>
+          <p id="pageSubtitle">Visão geral do sistema</p>
+        </div>
+        
+        <div class="header-actions">
+          <div class="online-status">
+            <div class="online-dot"></div>
+            <span>Online</span>
+          </div>
+          
+          <button class="btn btn-outline" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+            Atualizar
+          </button>
+          
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+          </button>
+        </div>
+      </div>
+      
+      <!-- ESTATÍSTICAS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon users">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalUsers">0</h3>
+            <p>Usuários Cadastrados</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon updates">
+            <i class="fas fa-bullhorn"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalUpdates">0</h3>
+            <p>Actualizações Hoje</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon chat">
+            <i class="fas fa-comments"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalChat">0</h3>
+            <p>Mensagens Hoje</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon lines">
+            <i class="fas fa-train"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="activeLines">3</h3>
+            <p>Linhas Activas</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SEÇÕES (serão carregadas dinamicamente) -->
+      <div id="sectionsContainer">
+        <!-- Dashboard será carregada aqui inicialmente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAIS -->
+  <div id="modalsContainer"></div>
+  
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- LOADER OVERLAY -->
+  <div class="loader-overlay" id="loaderOverlay" style="display: none;">
+    <div class="loader"></div>
+  </div>
+
   <script>
     // ============================================
-    // CONFIGURAÇÕES DO SISTEMA
+    // CONFIGURAÇÕES
     // ============================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxkYlOB7KKfYEyKxaxJRc9L3HgGmczr2nWKlelLbzLGB5DYJO_yNRLSQOiklHwAmbEV/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbznhVIF5Z2ienyACocgwBz3WeVmlVgQfvtwxi6ElKmheuqgxtdKAFW1hCj-7rVFylq5/exec";
     
-    // CONFIGURAÇÃO DAS LINHAS
+    // Configuração das Linhas
     const LINHAS = {
       'bm': {
         id: 'bm',
         nome: 'Beira - Moatize',
-        descricao: 'Via Dondo, Mutarara, Tete',
         emoji: '🚂',
-        cor: '#0d47a1'
+        color: '#0d47a1',
+        updates_sheet: 'updates_bm',
+        chat_sheet: 'chat_bm'
       },
       'bmar': {
         id: 'bmar',
         nome: 'Beira - Marromeu',
-        descricao: 'Via Buzi, Inhaminga',
         emoji: '🚆',
-        cor: '#2e7d32'
+        color: '#2e7d32',
+        updates_sheet: 'updates_bmar',
+        chat_sheet: 'chat_bmar'
       },
       'bc': {
         id: 'bc',
         nome: 'Beira - Chimoio',
-        descricao: 'Via Nhamatanda, Inchope',
         emoji: '🚄',
-        cor: '#6a1b9a'
+        color: '#6a1b9a',
+        updates_sheet: 'updates_bc',
+        chat_sheet: 'chat_bc'
       }
     };
     
-    // ESTADO DA APLICAÇÃO
+    // Variáveis globais
     let currentUser = null;
-    let authToken = null;
-    let selectedLine = null;
-    let lastSavedMessage = null;
-    let lastUpdateId = null;
-    let userLines = []; // Linhas permitidas para o admin atual
+    let currentToken = null;
+    let currentSection = 'dashboard';
+    let statsData = {};
+    let pollingInterval = null;
     
     // ============================================
-    // INICIALIZAÇÃO
+    // FUNÇÕES DE UTILIDADE
     // ============================================
-    document.addEventListener('DOMContentLoaded', function() {
-      checkExistingSession();
-      setupMessagePreview();
-      loadAdminLineSelector();
-      loadHistoryTabs();
-    });
+    function showLoader() {
+      document.getElementById('loaderOverlay').style.display = 'flex';
+    }
     
-    function checkExistingSession() {
-      const savedToken = localStorage.getItem('cfm_auth_token');
-      const savedUser = localStorage.getItem('cfm_user');
+    function hideLoader() {
+      document.getElementById('loaderOverlay').style.display = 'none';
+    }
+    
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
       
-      if (savedToken && savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          authToken = savedToken;
-          
-          // Verifica se o token ainda é válido
-          validateSession();
-        } catch (e) {
-          localStorage.clear();
+      const icons = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-exclamation-circle',
+        warning: 'fas fa-exclamation-triangle',
+        info: 'fas fa-info-circle'
+      };
+      
+      toast.innerHTML = `
+        <div class="toast-icon">
+          <i class="${icons[type]}"></i>
+        </div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto-remove após 5 segundos
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
         }
+      }, 5000);
+    }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString('pt-MZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    function formatTimeAgo(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffMins < 1) return 'Agora mesmo';
+      if (diffMins < 60) return `Há ${diffMins} min`;
+      if (diffHours < 24) return `Há ${diffHours}h`;
+      if (diffDays === 1) return 'Ontem';
+      if (diffDays < 7) return `Há ${diffDays} dias`;
+      return formatDate(dateString);
+    }
+    
+    // ============================================
+    // FUNÇÕES DE API
+    // ============================================
+    async function apiCall(action, data = {}, method = 'POST') {
+      try {
+        const params = new URLSearchParams();
+        params.append('action', action);
+        
+        if (currentToken) {
+          params.append('token', currentToken);
+        }
+        
+        Object.keys(data).forEach(key => {
+          params.append(key, data[key]);
+        });
+        
+        const response = await fetch(GAS_URL, {
+          method: method,
+          body: params
+        });
+        
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        return { success: false, error: 'Erro de conexão' };
+      }
+    }
+    
+    async function login(identifier, password) {
+      showLoader();
+      try {
+        const result = await apiCall('login', { identifier, password });
+        
+        if (result.success) {
+          currentUser = result.user;
+          currentToken = result.token;
+          
+          // Salvar sessão
+          localStorage.setItem('cfm_admin_token', result.token);
+          localStorage.setItem('cfm_admin_user', JSON.stringify(result.user));
+          
+          showToast('Login bem-sucedido', `Bem-vindo, ${result.user.fullName}!`, 'success');
+          
+          // Mostrar painel
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'flex';
+          
+          // Inicializar
+          loadUserInfo();
+          loadDashboard();
+          startPolling();
+          
+        } else {
+          showToast('Erro no login', result.error || 'Credenciais inválidas', 'error');
+        }
+      } catch (error) {
+        showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
+      } finally {
+        hideLoader();
       }
     }
     
     async function validateSession() {
+      const token = localStorage.getItem('cfm_admin_token');
+      const user = JSON.parse(localStorage.getItem('cfm_admin_user'));
+      
+      if (!token || !user) {
+        return false;
+      }
+      
+      showLoader();
       try {
-        const params = new URLSearchParams();
-        params.append('action', 'validate_session');
-        params.append('token', authToken);
-        
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: params
-        });
-        
-        const result = await response.json();
+        const result = await apiCall('validate_session', { token });
         
         if (result.success) {
-          // Atualiza dados do usuário
-          currentUser = result.user;
-          userLines = result.user.linhas_permitidas ? result.user.linhas_permitidas.split(',') : [];
-          showAdminScreen();
-        } else {
-          handleLogout();
+          currentUser = user;
+          currentToken = token;
+          
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'flex';
+          
+          loadUserInfo();
+          loadDashboard();
+          startPolling();
+          
+          return true;
         }
       } catch (error) {
-        console.error('Erro ao validar sessão:', error);
-        handleLogout();
-      }
-    }
-    
-    // ============================================
-    // FUNÇÕES DE LOGIN/LOGOUT
-    // ============================================
-    async function handleLogin() {
-      const identifier = document.getElementById('loginIdentifier').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const loader = document.getElementById('loginLoader');
-      const statusEl = document.getElementById('loginStatus');
-      const btn = document.querySelector('#loginScreen .btn');
-      
-      // Validação
-      if (!identifier || !password) {
-        showStatus(statusEl, "Por favor, preencha todos os campos", false);
-        return;
-      }
-      
-      if (password.length > 8) {
-        showStatus(statusEl, "Senha deve ter no máximo 8 caracteres", false);
-        return;
-      }
-      
-      btn.disabled = true;
-      loader.style.display = "block";
-      statusEl.style.display = "none";
-      
-      try {
-        const params = new URLSearchParams();
-        params.append('action', 'login');
-        params.append('identifier', identifier);
-        params.append('password', password);
-        
-        const urlComCacheBust = GAS_URL + '?t=' + Date.now();
-        
-        const response = await fetch(urlComCacheBust, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-          },
-          body: params.toString(),
-          mode: 'cors',
-          credentials: 'omit'
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          // Salva sessão
-          currentUser = result.user;
-          authToken = result.token;
-          userLines = result.user.linhas_permitidas ? result.user.linhas_permitidas.split(',') : [];
-          
-          localStorage.setItem('cfm_auth_token', authToken);
-          localStorage.setItem('cfm_user', JSON.stringify(currentUser));
-          
-          // Limpar formulário
-          document.getElementById('loginIdentifier').value = '';
-          document.getElementById('loginPassword').value = '';
-          
-          // Mostrar painel admin
-          showAdminScreen();
-          
-          showStatus(statusEl, "✅ Login realizado com sucesso!", true);
-          
-          // Configura interface baseada nas permissões
-          setupAdminInterface();
-          
-        } else {
-          showStatus(statusEl, "❌ " + (result.error || "Credenciais inválidas"), false);
-        }
-        
-      } catch (error) {
-        console.error('Erro no login:', error);
-        showStatus(statusEl, "⚠️ Erro de conexão: " + error.message, false);
+        console.error('Session validation failed:', error);
       } finally {
-        btn.disabled = false;
-        loader.style.display = "none";
+        hideLoader();
       }
+      
+      return false;
     }
     
-    function handleLogout() {
-      if (confirm("Tem certeza que deseja sair?")) {
+    function logout() {
+      if (confirm('Tem certeza que deseja sair?')) {
+        localStorage.removeItem('cfm_admin_token');
+        localStorage.removeItem('cfm_admin_user');
+        
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+        }
+        
         currentUser = null;
-        authToken = null;
-        userLines = [];
-        localStorage.removeItem('cfm_auth_token');
-        localStorage.removeItem('cfm_user');
-        showLoginScreen();
+        currentToken = null;
+        
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('adminPanel').style.display = 'none';
+        
+        showToast('Logout', 'Sessão encerrada com sucesso', 'info');
       }
     }
     
     // ============================================
-    // FUNÇÕES DE NAVEGAÇÃO
+    // FUNÇÕES DE INTERFACE
     // ============================================
-    function showLoginScreen() {
-      document.getElementById('loginScreen').classList.add('active');
-      document.getElementById('adminScreen').classList.remove('active');
+    function loadUserInfo() {
+      if (!currentUser) return;
+      
+      const userInfo = document.getElementById('userInfo');
+      userInfo.innerHTML = `
+        <h3>${currentUser.fullName}</h3>
+        <p>${currentUser.email}</p>
+        <span class="user-role">${currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span>
+      `;
     }
     
-    function showAdminScreen() {
-      document.getElementById('loginScreen').classList.remove('active');
-      document.getElementById('adminScreen').classList.add('active');
+    function setupMenu() {
+      // Menu toggle mobile
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('active');
+      });
       
-      if (currentUser) {
-        document.getElementById('currentUserName').textContent = currentUser.fullName || currentUser.nickname;
-        document.getElementById('adminName').value = currentUser.fullName || '';
+      // Menu items
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          // Remover active de todos
+          document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+          // Adicionar ao clicado
+          item.classList.add('active');
+          
+          const section = item.dataset.section;
+          currentSection = section;
+          
+          // Atualizar título
+          const titles = {
+            dashboard: { title: 'Dashboard', icon: 'fas fa-tachometer-alt' },
+            updates: { title: 'Actualizações', icon: 'fas fa-bullhorn' },
+            chat: { title: 'Chat', icon: 'fas fa-comments' },
+            users: { title: 'Usuários', icon: 'fas fa-users' },
+            lines: { title: 'Linhas', icon: 'fas fa-train' },
+            admins: { title: 'Administradores', icon: 'fas fa-user-shield' },
+            settings: { title: 'Configurações', icon: 'fas fa-cog' },
+            stats: { title: 'Estatísticas', icon: 'fas fa-chart-bar' }
+          };
+          
+          const title = titles[section];
+          document.getElementById('pageTitle').innerHTML = `
+            <i class="${title.icon}"></i>
+            ${title.title}
+          `;
+          document.getElementById('pageSubtitle').textContent = getSectionSubtitle(section);
+          
+          // Carregar seção
+          loadSection(section);
+          
+          // Fechar sidebar no mobile
+          if (window.innerWidth < 992) {
+            document.getElementById('sidebar').classList.remove('active');
+          }
+        });
+      });
+      
+      // Logout button
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+      
+      // Refresh button
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        refreshCurrentSection();
+        showToast('Atualizado', 'Dados atualizados com sucesso', 'success');
+      });
+    }
+    
+    function getSectionSubtitle(section) {
+      const subtitles = {
+        dashboard: 'Visão geral do sistema',
+        updates: 'Gerir actualizações das linhas',
+        chat: 'Monitorar mensagens dos passageiros',
+        users: 'Gerir usuários cadastrados',
+        lines: 'Configurar linhas de comboio',
+        admins: 'Gerir administradores do sistema',
+        settings: 'Configurações do sistema',
+        stats: 'Estatísticas detalhadas'
+      };
+      return subtitles[section] || '';
+    }
+    
+    // ============================================
+    // CARREGAMENTO DE SEÇÕES
+    // ============================================
+    async function loadSection(section) {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = '<div class="loader"></div>';
+      
+      switch(section) {
+        case 'dashboard':
+          await loadDashboard();
+          break;
+        case 'updates':
+          await loadUpdatesSection();
+          break;
+        case 'chat':
+          await loadChatSection();
+          break;
+        case 'users':
+          await loadUsersSection();
+          break;
+        case 'lines':
+          await loadLinesSection();
+          break;
+        case 'admins':
+          await loadAdminsSection();
+          break;
+        case 'settings':
+          await loadSettingsSection();
+          break;
+        case 'stats':
+          await loadStatsSection();
+          break;
+      }
+    }
+    
+    function refreshCurrentSection() {
+      loadSection(currentSection);
+    }
+    
+    // ============================================
+    // DASHBOARD
+    // ============================================
+    async function loadDashboard() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        // Buscar dados gerais
+        const [usersData, updatesData, chatData] = await Promise.all([
+          apiCall('get_users'),
+          getLineStats('bm'),
+          getChatStats()
+        ]);
         
-        // Atualiza badge de perfil
-        const roleBadge = document.getElementById('userRoleBadge');
-        if (currentUser.role === 'superadmin') {
-          roleBadge.textContent = 'SUPER ADMIN';
-          roleBadge.style.background = 'linear-gradient(135deg, var(--cfm-purple) 0%, #9c27b0 100%)';
-        } else if (currentUser.role === 'admin') {
-          roleBadge.textContent = 'ADMIN';
-          roleBadge.style.background = 'linear-gradient(135deg, var(--cfm-red) 0%, var(--cfm-red-light) 100%)';
-        } else {
-          roleBadge.textContent = 'USUÁRIO';
-          roleBadge.style.background = 'linear-gradient(135deg, var(--cfm-blue) 0%, var(--cfm-blue-light) 100%)';
+        // Atualizar stats cards
+        document.getElementById('totalUsers').textContent = usersData.users ? usersData.users.length : 0;
+        
+        let totalUpdatesToday = 0;
+        for (const linhaId in LINHAS) {
+          const stats = await getLineStats(linhaId);
+          totalUpdatesToday += stats.today || 0;
         }
-      }
-      
-      // Mostrar primeira aba
-      showTab('sendUpdate');
-    }
-    
-    function showTab(tabName) {
-      // Atualizar botões de navegação
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      event.target.classList.add('active');
-      
-      // Esconder todas as abas
-      document.querySelectorAll('#adminScreen .screen').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Mostrar aba selecionada
-      document.getElementById(tabName + 'Tab').classList.add('active');
-      
-      // Ações específicas por aba
-      if (tabName === 'viewUsers') {
-        loadUsers();
-      } else if (tabName === 'history') {
-        loadHistory('bm'); // Carrega histórico da primeira linha por default
-      }
-    }
-    
-    // ============================================
-    // CONFIGURAÇÃO DA INTERFACE DO ADMIN
-    // ============================================
-    function setupAdminInterface() {
-      // Atualiza informações das linhas permitidas
-      const adminLinesInfo = document.getElementById('adminLinesInfo');
-      
-      if (currentUser.role === 'superadmin') {
-        adminLinesInfo.textContent = 'Super Admin - Acesso a todas as linhas';
-        adminLinesInfo.style.color = 'var(--cfm-purple)';
-        adminLinesInfo.innerHTML += ' <i class="fas fa-crown"></i>';
-      } else if (userLines.length > 0) {
-        const lineNames = userLines.map(lineId => LINHAS[lineId]?.nome || lineId).join(', ');
-        adminLinesInfo.textContent = `Linhas permitidas: ${lineNames}`;
-      } else {
-        adminLinesInfo.textContent = 'Sem linhas atribuídas';
-        adminLinesInfo.style.color = 'var(--cfm-orange)';
-      }
-      
-      // Carrega seletor de linhas baseado nas permissões
-      loadLineSelector();
-    }
-    
-    function loadLineSelector() {
-      const container = document.getElementById('lineSelector');
-      let html = '';
-      
-      // Determina quais linhas mostrar
-      let linesToShow = [];
-      
-      if (currentUser.role === 'superadmin') {
-        // Super admin vê todas as linhas
-        linesToShow = Object.keys(LINHAS);
-      } else {
-        // Admin normal vê apenas suas linhas
-        linesToShow = userLines;
-      }
-      
-      if (linesToShow.length === 0) {
-        html = '<p style="color: var(--cfm-orange); text-align: center; padding: 20px;">Nenhuma linha atribuída</p>';
-        container.innerHTML = html;
-        return;
-      }
-      
-      // Se tiver apenas uma linha, seleciona automaticamente
-      if (linesToShow.length === 1) {
-        selectedLine = linesToShow[0];
-        document.getElementById('sendUpdateBtn').disabled = false;
-      }
-      
-      // Cria cards para cada linha
-      for (const lineId of linesToShow) {
-        const linha = LINHAS[lineId];
-        if (!linha) continue;
+        document.getElementById('totalUpdates').textContent = totalUpdatesToday;
         
-        const isSelected = selectedLine === lineId;
+        document.getElementById('totalChat').textContent = chatData.total_today || 0;
+        document.getElementById('activeLines').textContent = Object.keys(LINHAS).length;
         
-        html += `
-          <div class="line-option ${isSelected ? 'selected' : ''}" 
-               data-line="${lineId}" 
-               onclick="selectLine('${lineId}')">
-            <div class="line-emoji">${linha.emoji}</div>
-            <div class="line-info">
-              <h4>${linha.nome}</h4>
-              <p>${linha.descricao}</p>
-              <div class="line-stats">
-                <i class="fas fa-paper-plane"></i>
-                <span id="stats-${lineId}">Carregando...</span>
+        // Construir dashboard
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Estatísticas em Tempo Real
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-outline" onclick="loadDashboard()">
+                  <i class="fas fa-sync-alt"></i>
+                  Atualizar
+                </button>
               </div>
             </div>
-          </div>
-        `;
-      }
-      
-      container.innerHTML = html;
-      
-      // Carrega estatísticas para cada linha
-      linesToShow.forEach(lineId => {
-        loadLineStats(lineId);
-      });
-    }
-    
-    function loadLineStats(lineId) {
-      // Esta função pode ser implementada para buscar estatísticas reais
-      const statsElement = document.getElementById(`stats-${lineId}`);
-      if (statsElement) {
-        // Simulação - substitua por chamada real ao servidor
-        const randomCount = Math.floor(Math.random() * 50);
-        statsElement.textContent = `${randomCount} actualizações`;
-      }
-    }
-    
-    function loadAdminLineSelector() {
-      const container = document.getElementById('adminLineSelector');
-      let html = '';
-      
-      for (const [id, linha] of Object.entries(LINHAS)) {
-        html += `
-          <div class="line-option" data-line="${id}" onclick="toggleAdminLine('${id}')">
-            <div class="line-emoji">${linha.emoji}</div>
-            <div class="line-info">
-              <h4>${linha.nome}</h4>
-              <p>${linha.descricao}</p>
-            </div>
-          </div>
-        `;
-      }
-      
-      container.innerHTML = html;
-    }
-    
-    function selectLine(lineId) {
-      selectedLine = lineId;
-      
-      // Atualiza seleção visual
-      document.querySelectorAll('.line-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      document.querySelector(`.line-option[data-line="${lineId}"]`).classList.add('selected');
-      
-      // Habilita botão de envio
-      document.getElementById('sendUpdateBtn').disabled = false;
-      
-      // Mostra linha selecionada
-      showStatus(document.getElementById('updateStatus'), 
-        `✅ Linha selecionada: ${LINHAS[lineId].nome}`, true);
-    }
-    
-    function toggleLinePermissions() {
-      const role = document.getElementById('userRole').value;
-      const linePermissionsGroup = document.getElementById('linePermissionsGroup');
-      
-      if (role === 'admin') {
-        linePermissionsGroup.style.display = 'block';
-        resetAdminLineSelection();
-      } else {
-        linePermissionsGroup.style.display = 'none';
-      }
-    }
-    
-    function resetAdminLineSelection() {
-      document.querySelectorAll('#adminLineSelector .line-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-    }
-    
-    function toggleAdminLine(lineId) {
-      const option = document.querySelector(`#adminLineSelector .line-option[data-line="${lineId}"]`);
-      option.classList.toggle('selected');
-    }
-    
-    function getSelectedAdminLines() {
-      const selected = [];
-      document.querySelectorAll('#adminLineSelector .line-option.selected').forEach(option => {
-        selected.push(option.getAttribute('data-line'));
-      });
-      return selected.join(',');
-    }
-    
-    // ============================================
-    // FUNÇÕES DO PAINEL ADMIN
-    // ============================================
-    function setupMessagePreview() {
-      const messageInput = document.getElementById('message');
-      const charCounter = document.getElementById('charCounter');
-      const charCount = document.getElementById('charCount');
-      const preview = document.getElementById('messagePreview');
-      const previewContent = document.getElementById('messagePreviewContent');
-      const whatsappBtn = document.getElementById('whatsappBtn');
-      
-      messageInput.addEventListener('input', function() {
-        const text = this.value;
-        const length = text.length;
-        
-        // Atualizar contador
-        charCount.textContent = length;
-        
-        // Atualizar classe do contador
-        charCounter.className = 'char-counter';
-        if (length > 1000) {
-          charCounter.classList.add('warning');
-        }
-        if (length > 2000) {
-          charCounter.classList.add('danger');
-        }
-        
-        // Atualizar pré-visualização
-        if (text.length > 0) {
-          previewContent.textContent = text;
-          preview.style.display = 'block';
-          whatsappBtn.disabled = false;
-        } else {
-          preview.style.display = 'none';
-          whatsappBtn.disabled = true;
-        }
-      });
-    }
-    
-    async function sendUpdate() {
-      if (!authToken) {
-        showStatus(document.getElementById('updateStatus'), "❌ Sessão expirada. Faça login novamente.", false);
-        handleLogout();
-        return;
-      }
-      
-      if (!selectedLine) {
-        showStatus(document.getElementById('updateStatus'), "❌ Por favor, selecione uma linha.", false);
-        return;
-      }
-      
-      const msg = document.getElementById('message').value.trim();
-      const adminName = document.getElementById('adminName').value.trim() || currentUser.fullName;
-      const btn = document.getElementById('sendUpdateBtn');
-      const loader = document.getElementById('updateLoader');
-      const statusEl = document.getElementById('updateStatus');
-      const whatsappBtn = document.getElementById('whatsappBtn');
-      
-      if (!msg) {
-        showStatus(statusEl, "❌ Por favor, insira a mensagem completa.", false);
-        return;
-      }
-      
-      btn.disabled = true;
-      loader.style.display = "block";
-      statusEl.style.display = "none";
-      
-      const formData = new URLSearchParams();
-      formData.append('action', 'admin_update');
-      formData.append('msg', msg);
-      formData.append('adminName', adminName);
-      formData.append('linha', selectedLine);
-      formData.append('token', authToken);
-      
-      try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          // Salva referência da mensagem
-          lastSavedMessage = msg;
-          lastUpdateId = result.updateId;
-          
-          showStatus(statusEl, 
-            `✅ Actualização salva com sucesso na linha ${LINHAS[selectedLine].nome}! 
-             <br> <span class="status-badge sent"><i class="fas fa-check"></i> Salva</span>
-             <br> <small>${result.timestamp || ''}</small>`, 
-            true);
-          
-          // Limpa o campo de mensagem
-          document.getElementById('message').value = '';
-          document.getElementById('charCount').textContent = '0';
-          document.getElementById('messagePreview').style.display = 'none';
-          
-          // Habilita botão do WhatsApp
-          whatsappBtn.disabled = false;
-          
-          // Atualiza estatísticas
-          loadLineStats(selectedLine);
-          
-        } else {
-          showStatus(statusEl, "❌ Erro: " + (result.error || "Falha ao enviar"), false);
-          if (result.error === 'invalid_token') {
-            handleLogout();
-          }
-        }
-      } catch (e) {
-        showStatus(statusEl, "⚠️ Erro de conexão: " + e.message, false);
-      } finally {
-        btn.disabled = false;
-        loader.style.display = "none";
-      }
-    }
-    
-    async function shareToWhatsApp() {
-      const msg = document.getElementById('message').value.trim() || lastSavedMessage;
-      const adminName = document.getElementById('adminName').value.trim() || currentUser.fullName;
-      const btn = document.getElementById('whatsappBtn');
-      const loader = document.getElementById('whatsappLoader');
-      const statusEl = document.getElementById('updateStatus');
-      
-      if (!msg) {
-        showStatus(statusEl, "❌ Não há mensagem para compartilhar.", false);
-        return;
-      }
-      
-      if (!selectedLine) {
-        showStatus(statusEl, "❌ Selecione uma linha primeiro.", false);
-        return;
-      }
-      
-      btn.disabled = true;
-      loader.style.display = "block";
-      
-      try {
-        // Formatar mensagem para WhatsApp
-        const linhaNome = LINHAS[selectedLine].nome;
-        const whatsappMessage = encodeURIComponent(
-          `*ACTUALIZAÇÃO OFICIAL - CFM*\n` +
-          `*Linha:* ${linhaNome}\n` +
-          `*De:* ${adminName}\n` +
-          `*Data:* ${new Date().toLocaleString('pt-PT')}\n\n` +
-          `${msg}\n\n` +
-          `_Enviado via Painel Administrativo CFM_`
-        );
-        
-        // Criar URL do WhatsApp
-        const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
-        
-        // Registrar compartilhamento no GAS
-        if (authToken && lastUpdateId) {
-          const formData = new URLSearchParams();
-          formData.append('action', 'log_whatsapp_share');
-          formData.append('updateId', lastUpdateId);
-          formData.append('token', authToken);
-          
-          await fetch(GAS_URL, {
-            method: 'POST',
-            body: formData
-          });
-        }
-        
-        // Abrir WhatsApp em nova aba
-        window.open(whatsappUrl, '_blank');
-        
-        // Atualizar status
-        showStatus(statusEl, 
-          `✅ Mensagem compartilhada no WhatsApp! 
-           <span class="status-badge shared"><i class="fab fa-whatsapp"></i> Compartilhado</span>`, 
-          true);
-        
-      } catch (e) {
-        showStatus(statusEl, "⚠️ Erro ao preparar compartilhamento: " + e.message, false);
-      } finally {
-        btn.disabled = false;
-        loader.style.display = "none";
-      }
-    }
-    
-    async function createUser() {
-      if (!authToken) {
-        showStatus(document.getElementById('createUserStatus'), "❌ Sessão expirada. Faça login novamente.", false);
-        handleLogout();
-        return;
-      }
-      
-      const phone = document.getElementById('userPhone').value.trim();
-      const fullName = document.getElementById('userFullName').value.trim();
-      const nickname = document.getElementById('userNickname').value.trim();
-      const email = document.getElementById('userEmail').value.trim();
-      const password = document.getElementById('userPassword').value.trim();
-      const role = document.getElementById('userRole').value;
-      
-      const btn = document.getElementById('createUserLoader').parentElement;
-      const loader = document.getElementById('createUserLoader');
-      const statusEl = document.getElementById('createUserStatus');
-      
-      // Validações
-      if (!phone || !fullName || !email || !password) {
-        showStatus(statusEl, "❌ Por favor, preencha todos os campos obrigatórios", false);
-        return;
-      }
-      
-      if (!/^\d{9}$/.test(phone)) {
-        showStatus(statusEl, "❌ Número de telefone deve ter 9 dígitos", false);
-        return;
-      }
-      
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showStatus(statusEl, "❌ Email inválido", false);
-        return;
-      }
-      
-      if (password.length > 8 || !/^[a-zA-Z0-9]+$/.test(password)) {
-        showStatus(statusEl, "❌ Senha deve ter até 8 caracteres (apenas letras e números)", false);
-        return;
-      }
-      
-      // Para administradores, verifica se selecionou linhas
-      let linhasPermitidas = '';
-      if (role === 'admin') {
-        linhasPermitidas = getSelectedAdminLines();
-        if (!linhasPermitidas) {
-          showStatus(statusEl, "❌ Para administradores, selecione pelo menos uma linha", false);
-          return;
-        }
-      }
-      
-      btn.disabled = true;
-      loader.style.display = "block";
-      statusEl.style.display = "none";
-      
-      const formData = new URLSearchParams();
-      formData.append('action', 'create_user');
-      formData.append('phone', phone);
-      formData.append('fullName', fullName);
-      formData.append('nickname', nickname);
-      formData.append('email', email);
-      formData.append('password', password);
-      formData.append('role', role);
-      formData.append('linhas_permitidas', linhasPermitidas);
-      formData.append('token', authToken);
-      formData.append('createdBy', currentUser.email);
-      
-      try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          showStatus(statusEl, 
-            `✅ Usuário criado com sucesso! 
-             <br> <strong>${fullName}</strong> (${email})
-             <br> <small>${role === 'admin' ? `Acesso às linhas: ${linhasPermitidas.split(',').map(l => LINHAS[l]?.nome || l).join(', ')}` : 'Usuário normal'}</small>`, 
-            true);
-          
-          // Limpar formulário
-          document.getElementById('userPhone').value = '';
-          document.getElementById('userFullName').value = '';
-          document.getElementById('userNickname').value = '';
-          document.getElementById('userEmail').value = '';
-          document.getElementById('userPassword').value = '';
-          document.getElementById('userRole').value = 'user';
-          document.getElementById('linePermissionsGroup').style.display = 'none';
-          resetAdminLineSelection();
-          
-          // Atualizar lista de usuários
-          loadUsers();
-        } else {
-          showStatus(statusEl, "❌ Erro: " + (result.error || "Falha ao criar usuário"), false);
-          if (result.error === 'invalid_token') {
-            handleLogout();
-          }
-        }
-      } catch (e) {
-        showStatus(statusEl, "⚠️ Erro de conexão: " + e.message, false);
-      } finally {
-        btn.disabled = false;
-        loader.style.display = "none";
-      }
-    }
-    
-    async function loadUsers() {
-      if (!authToken) return;
-      
-      const loader = document.getElementById('usersLoader');
-      const statusEl = document.getElementById('usersStatus');
-      const usersList = document.getElementById('usersList');
-      const filterRole = document.getElementById('filterRole').value;
-      const btn = loader.parentElement;
-      
-      btn.disabled = true;
-      loader.style.display = "block";
-      statusEl.style.display = "none";
-      
-      try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'get_users');
-        formData.append('token', authToken);
-        
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          let users = result.users || [];
-          
-          // Aplica filtro
-          if (filterRole !== 'all') {
-            users = users.filter(user => user.role === filterRole);
-          }
-          
-          usersList.innerHTML = '';
-          
-          if (users.length === 0) {
-            usersList.innerHTML = `
-              <div class="user-item">
-                <div class="user-info">
-                  <h4><i class="fas fa-user-slash"></i> Nenhum usuário encontrado</h4>
-                  <p>Crie o primeiro usuário na aba "Criar Usuário"</p>
-                </div>
-              </div>
-            `;
-          } else {
-            users.forEach(user => {
-              const userItem = document.createElement('div');
-              userItem.className = 'user-item';
-              
-              const roleClass = user.role === 'superadmin' ? 'admin' : 
-                               user.role === 'admin' ? 'admin' : '';
-              const roleIcon = user.role === 'superadmin' ? 'fa-crown' : 
-                              user.role === 'admin' ? 'fa-user-shield' : 'fa-user';
-              const roleText = user.role === 'superadmin' ? 'SUPER ADMIN' : 
-                              user.role === 'admin' ? 'ADMIN' : 'USUÁRIO';
-              
-              // Linhas permitidas (para admins)
-              let linhasInfo = '';
-              if (user.role === 'admin' && user.linhas_permitidas) {
-                const linhas = user.linhas_permitidas.split(',');
-                const linhaNomes = linhas.map(l => LINHAS[l]?.nome || l).join(', ');
-                linhasInfo = `<br><small><i class="fas fa-train"></i> Linhas: ${linhaNomes}</small>`;
-              }
-              
-              userItem.innerHTML = `
-                <div class="user-info">
-                  <h4><i class="fas ${roleIcon}"></i> ${user.fullName} ${user.nickname ? `<span style="color: #666;">(${user.nickname})</span>` : ''}</h4>
-                  <p><i class="fas fa-envelope"></i> ${user.email} • <i class="fas fa-phone"></i> ${user.phone}</p>
-                  <small><i class="fas fa-calendar"></i> Criado em: ${user.createdAt || 'N/A'} por ${user.createdBy || 'sistema'}</small>
-                  ${linhasInfo}
-                </div>
-                <div class="user-role ${roleClass}">
-                  <i class="fas ${roleIcon}"></i> ${roleText}
-                </div>
-              `;
-              
-              usersList.appendChild(userItem);
-            });
-          }
-        } else {
-          showStatus(statusEl, "❌ Erro ao carregar usuários: " + (result.error || ""), false);
-          if (result.error === 'invalid_token') {
-            handleLogout();
-          }
-        }
-      } catch (e) {
-        showStatus(statusEl, "⚠️ Erro de conexão: " + e.message, false);
-      } finally {
-        btn.disabled = false;
-        loader.style.display = "none";
-      }
-    }
-    
-    // ============================================
-    // HISTÓRICO DE ATUALIZAÇÕES
-    // ============================================
-    function loadHistoryTabs() {
-      const container = document.getElementById('historyTabs');
-      let html = '';
-      
-      // Determina quais linhas mostrar no histórico
-      let linesToShow = [];
-      
-      if (currentUser && currentUser.role === 'superadmin') {
-        linesToShow = Object.keys(LINHAS);
-      } else if (currentUser && userLines.length > 0) {
-        linesToShow = userLines;
-      } else {
-        linesToShow = Object.keys(LINHAS); // Fallback
-      }
-      
-      for (const lineId of linesToShow) {
-        const linha = LINHAS[lineId];
-        html += `
-          <div class="history-tab" data-line="${lineId}" onclick="loadHistory('${lineId}')">
-            ${linha.emoji} ${linha.nome}
-          </div>
-        `;
-      }
-      
-      container.innerHTML = html;
-    }
-    
-    async function loadHistory(lineId) {
-      if (!authToken) return;
-      
-      const historyList = document.getElementById('historyList');
-      const statusEl = document.getElementById('historyStatus');
-      
-      // Ativa a tab selecionada
-      document.querySelectorAll('.history-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.querySelector(`.history-tab[data-line="${lineId}"]`).classList.add('active');
-      
-      try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'get_history');
-        formData.append('linha', lineId);
-        formData.append('token', authToken);
-        
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          const updates = result.updates || [];
-          
-          if (updates.length === 0) {
-            historyList.innerHTML = `
-              <div class="user-item">
-                <div class="user-info">
-                  <h4><i class="fas fa-history"></i> Nenhuma actualização</h4>
-                  <p>Não há actualizações registadas para esta linha</p>
-                </div>
-              </div>
-            `;
-          } else {
-            historyList.innerHTML = '';
             
-            updates.forEach(update => {
-              const time = new Date(update.timestamp).toLocaleString('pt-MZ', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              });
-              
-              const item = document.createElement('div');
-              item.className = 'user-item';
-              
-              // Limita o texto para preview
-              const previewText = update.textoOriginal.length > 100 
-                ? update.textoOriginal.substring(0, 100) + '...' 
-                : update.textoOriginal;
-              
-              item.innerHTML = `
-                <div class="user-info">
-                  <h4><i class="fas fa-newspaper"></i> ${LINHAS[lineId]?.nome || 'Linha'}</h4>
-                  <p>${previewText}</p>
-                  <small><i class="fas fa-user-tie"></i> ${update.adminName || 'Admin'} • <i class="fas fa-clock"></i> ${time}</small>
+            <div class="lines-grid">
+        `;
+        
+        // Cards das linhas
+        for (const linhaId in LINHAS) {
+          const linha = LINHAS[linhaId];
+          const stats = await getLineStats(linhaId);
+          
+          html += `
+            <div class="line-card ${stats.today > 0 ? 'active' : ''}">
+              <div class="line-header ${linhaId}">
+                <div class="line-emoji">${linha.emoji}</div>
+                <div class="line-info">
+                  <h3>${linha.nome}</h3>
+                  <p>ID: ${linhaId}</p>
                 </div>
-                <div class="user-role" style="background: #f0f0f0; color: #666;">
-                  <i class="fas fa-eye"></i>
-                </div>
-              `;
+              </div>
               
-              historyList.appendChild(item);
-            });
-          }
-        } else {
-          historyList.innerHTML = `
-            <div class="user-item">
-              <div class="user-info">
-                <h4><i class="fas fa-exclamation-triangle"></i> Erro ao carregar histórico</h4>
-                <p>${result.error || 'Tente novamente mais tarde'}</p>
+              <div class="line-body">
+                <div class="line-stats">
+                  <div class="line-stat">
+                    <div class="line-stat-value">${stats.today || 0}</div>
+                    <div class="line-stat-label">Updates hoje</div>
+                  </div>
+                  <div class="line-stat">
+                    <div class="line-stat-value">${stats.total || 0}</div>
+                    <div class="line-stat-label">Total updates</div>
+                  </div>
+                  <div class="line-stat">
+                    <div class="line-stat-value">${stats.chat_today || 0}</div>
+                    <div class="line-stat-label">Chat hoje</div>
+                  </div>
+                </div>
+                
+                <div class="line-actions">
+                  <button class="btn btn-primary" style="flex: 1;" onclick="openSendUpdateModal('${linhaId}')">
+                    <i class="fas fa-bullhorn"></i>
+                    Nova Actualização
+                  </button>
+                  <button class="btn btn-outline" onclick="viewLineDetails('${linhaId}')">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
               </div>
             </div>
           `;
         }
-      } catch (e) {
-        historyList.innerHTML = `
-          <div class="user-item">
-            <div class="user-info">
-              <h4><i class="fas fa-exclamation-triangle"></i> Erro de conexão</h4>
-              <p>Verifique sua conexão com a internet</p>
+        
+        html += `
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Últimas Actualizações
+              </h2>
+              <button class="btn btn-primary" onclick="loadSection('updates')">
+                <i class="fas fa-list"></i>
+                Ver Todas
+              </button>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Linha</th>
+                    <th>Mensagem</th>
+                    <th>Administrador</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+                <tbody id="recentUpdatesTable">
+                  <tr><td colspan="4" style="text-align: center;">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        // Carregar atualizações recentes
+        await loadRecentUpdates();
+        
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning); margin-bottom: 20px;"></i>
+              <h3>Erro ao carregar dashboard</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadDashboard()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    async function getLineStats(linhaId) {
+      try {
+        const result = await apiCall('stats', { linha: linhaId }, 'GET');
+        return result.success ? result.stats : { total: 0, today: 0, chat_total: 0, chat_today: 0 };
+      } catch (error) {
+        return { total: 0, today: 0, chat_total: 0, chat_today: 0 };
+      }
+    }
+    
+    async function getChatStats() {
+      try {
+        let total_today = 0;
+        let total = 0;
+        
+        for (const linhaId in LINHAS) {
+          const stats = await getLineStats(linhaId);
+          total_today += stats.chat_today || 0;
+          total += stats.chat_total || 0;
+        }
+        
+        return { total_today, total };
+      } catch (error) {
+        return { total_today: 0, total: 0 };
+      }
+    }
+    
+    async function loadRecentUpdates() {
+      const table = document.getElementById('recentUpdatesTable');
+      if (!table) return;
+      
+      try {
+        let allUpdates = [];
+        
+        // Buscar atualizações de todas as linhas
+        for (const linhaId in LINHAS) {
+          const result = await apiCall('get_history', { linha: linhaId });
+          if (result.success && result.updates) {
+            const linhaUpdates = result.updates.slice(0, 5).map(update => ({
+              ...update,
+              linha: linhaId,
+              linha_nome: LINHAS[linhaId].nome,
+              linha_emoji: LINHAS[linhaId].emoji
+            }));
+            allUpdates = [...allUpdates, ...linhaUpdates];
+          }
+        }
+        
+        // Ordenar por data
+        allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Pegar as 10 mais recentes
+        const recentUpdates = allUpdates.slice(0, 10);
+        
+        if (recentUpdates.length === 0) {
+          table.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 30px;">
+                <i class="fas fa-info-circle" style="color: var(--info); font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>Nenhuma actualização encontrada</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        table.innerHTML = recentUpdates.map(update => `
+          <tr>
+            <td>
+              <span class="badge badge-primary">
+                ${update.linha_emoji} ${update.linha_nome}
+              </span>
+            </td>
+            <td>
+              <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${update.textoOriginal.substring(0, 60)}${update.textoOriginal.length > 60 ? '...' : ''}
+              </div>
+            </td>
+            <td>${update.adminName}</td>
+            <td>${formatTimeAgo(update.timestamp)}</td>
+          </tr>
+        `).join('');
+        
+      } catch (error) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              Erro ao carregar actualizações
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    // ============================================
+    // MODAL: ENVIAR ACTUALIZAÇÃO
+    // ============================================
+    function openSendUpdateModal(linhaId = 'bm') {
+      const modalHtml = `
+        <div class="modal-overlay" id="sendUpdateModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h2 class="modal-title">
+                <i class="fas fa-bullhorn"></i>
+                Nova Actualização
+              </h2>
+              <button class="modal-close" onclick="closeModal('sendUpdateModal')">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <form id="sendUpdateForm">
+                <div class="form-group">
+                  <label for="updateLinha">Linha</label>
+                  <select id="updateLinha" class="select-control" required>
+                    ${Object.keys(LINHAS).map(id => `
+                      <option value="${id}" ${id === linhaId ? 'selected' : ''}>
+                        ${LINHAS[id].emoji} ${LINHAS[id].nome}
+                      </option>
+                    `).join('')}
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="updateMessage">Mensagem</label>
+                  <textarea 
+                    id="updateMessage" 
+                    class="form-control" 
+                    rows="5" 
+                    placeholder="Digite a actualização aqui..." 
+                    maxlength="500"
+                    required
+                    style="resize: vertical;"
+                  ></textarea>
+                  <div style="text-align: right; margin-top: 5px; font-size: 0.8rem; color: var(--gray);">
+                    <span id="charCount">0</span>/500 caracteres
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="updateAdminName">Nome do Administrador</label>
+                  <input 
+                    type="text" 
+                    id="updateAdminName" 
+                    class="form-control" 
+                    value="${currentUser.fullName}" 
+                    placeholder="Seu nome"
+                    required
+                  >
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="updateUrgent">
+                    <span style="margin-left: 8px;">Marcar como urgente</span>
+                  </label>
+                </div>
+              </form>
+            </div>
+            
+            <div class="modal-footer">
+              <button class="btn btn-outline" onclick="closeModal('sendUpdateModal')">
+                Cancelar
+              </button>
+              <button class="btn btn-success" onclick="sendUpdate()">
+                <i class="fas fa-paper-plane"></i>
+                Enviar Actualização
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('modalsContainer').innerHTML = modalHtml;
+      
+      // Contador de caracteres
+      const textarea = document.getElementById('updateMessage');
+      const charCount = document.getElementById('charCount');
+      
+      textarea.addEventListener('input', () => {
+        charCount.textContent = textarea.value.length;
+      });
+      
+      charCount.textContent = textarea.value.length;
+    }
+    
+    async function sendUpdate() {
+      const linha = document.getElementById('updateLinha').value;
+      const message = document.getElementById('updateMessage').value;
+      const adminName = document.getElementById('updateAdminName').value;
+      const urgent = document.getElementById('updateUrgent').checked;
+      
+      if (!message.trim()) {
+        showToast('Erro', 'Digite uma mensagem', 'error');
+        return;
+      }
+      
+      showLoader();
+      
+      try {
+        const finalMessage = urgent ? `🚨 URGENTE: ${message}` : message;
+        const result = await apiCall('admin_update', {
+          linha,
+          msg: finalMessage,
+          adminName
+        });
+        
+        if (result.success) {
+          showToast('Sucesso', 'Actualização enviada com sucesso!', 'success');
+          closeModal('sendUpdateModal');
+          refreshCurrentSection();
+        } else {
+          showToast('Erro', result.error || 'Falha ao enviar', 'error');
+        }
+      } catch (error) {
+        showToast('Erro', 'Falha na comunicação', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.remove();
+      }
+    }
+    
+    // ============================================
+    // FUNÇÕES PARA OUTRAS SEÇÕES
+    // ============================================
+    async function loadUpdatesSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let allUpdates = [];
+        
+        // Buscar todas as atualizações
+        for (const linhaId in LINHAS) {
+          const result = await apiCall('get_history', { linha: linhaId });
+          if (result.success && result.updates) {
+            const linhaUpdates = result.updates.map(update => ({
+              ...update,
+              linha: linhaId,
+              linha_nome: LINHAS[linhaId].nome,
+              linha_emoji: LINHAS[linhaId].emoji
+            }));
+            allUpdates = [...allUpdates, ...linhaUpdates];
+          }
+        }
+        
+        // Ordenar por data (mais recente primeiro)
+        allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-bullhorn"></i>
+                Todas as Actualizações
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-primary" onclick="openSendUpdateModal()">
+                  <i class="fas fa-plus"></i>
+                  Nova Actualização
+                </button>
+                <button class="btn btn-outline" onclick="loadUpdatesSection()">
+                  <i class="fas fa-sync-alt"></i>
+                  Atualizar
+                </button>
+              </div>
+            </div>
+        `;
+        
+        if (allUpdates.length === 0) {
+          html += `
+            <div style="text-align: center; padding: 40px;">
+              <i class="fas fa-bullhorn" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
+              <h3>Nenhuma actualização encontrada</h3>
+              <p>Clique em "Nova Actualização" para criar a primeira</p>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Linha</th>
+                    <th>Mensagem</th>
+                    <th>Administrador</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${allUpdates.map(update => `
+                    <tr>
+                      <td>${formatDate(update.timestamp)}</td>
+                      <td>
+                        <span class="badge badge-primary">
+                          ${update.linha_emoji} ${update.linha_nome}
+                        </span>
+                      </td>
+                      <td>
+                        <div style="max-width: 300px;">
+                          ${update.textoOriginal.replace(/\n/g, '<br>')}
+                        </div>
+                      </td>
+                      <td>${update.adminName}</td>
+                      <td class="actions-cell">
+                        <button class="action-btn copy" onclick="copyToClipboard('${update.textoOriginal.replace(/'/g, "\\'")}')" title="Copiar">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteUpdate('${update.id}', '${update.linha}')" title="Apagar">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+        
+        html += `</div>`;
+        container.innerHTML = html;
+        
+      } catch (error) {
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar actualizações</h3>
+              <p>${error.message}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    async function loadChatSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-comments"></i>
+              Chat dos Passageiros
+            </h2>
+            <div class="section-actions">
+              <button class="btn btn-outline" onclick="loadChatSection()">
+                <i class="fas fa-sync-alt"></i>
+                Atualizar
+              </button>
+            </div>
+          </div>
+          
+          <div class="lines-grid">
+            ${Object.keys(LINHAS).map(linhaId => `
+              <div class="line-card">
+                <div class="line-header ${linhaId}">
+                  <div class="line-emoji">${LINHAS[linhaId].emoji}</div>
+                  <div class="line-info">
+                    <h3>${LINHAS[linhaId].nome}</h3>
+                    <p>Chat em tempo real</p>
+                  </div>
+                </div>
+                <div class="line-body">
+                  <div id="chat-${linhaId}" style="height: 200px; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px; background: var(--light);">
+                    <div style="text-align: center; padding: 20px;">
+                      <div class="loader"></div>
+                      <p>Carregando mensagens...</p>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary" style="width: 100%;" onclick="openChatModal('${linhaId}')">
+                    <i class="fas fa-eye"></i>
+                    Ver Chat Completo
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      // Carregar mensagens para cada linha
+      for (const linhaId in LINHAS) {
+        await loadLineChat(linhaId);
+      }
+    }
+    
+    async function loadLineChat(linhaId) {
+      const container = document.getElementById(`chat-${linhaId}`);
+      if (!container) return;
+      
+      try {
+        const result = await apiCall('chat', { linha: linhaId }, 'GET');
+        
+        if (result.success && result.chat && result.chat.length > 0) {
+          const lastMessages = result.chat.slice(-5); // Últimas 5 mensagens
+          
+          container.innerHTML = lastMessages.map(msg => `
+            <div style="margin-bottom: 10px; padding: 8px; background: white; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <strong style="color: var(--primary); font-size: 0.9rem;">${msg.usuario}</strong>
+                <small style="color: var(--gray);">${formatTimeAgo(msg.timestamp)}</small>
+              </div>
+              <div style="font-size: 0.9rem;">${msg.mensagem}</div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 30px; color: var(--gray);">
+              <i class="fas fa-comment-slash"></i>
+              <p>Nenhuma mensagem</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: var(--danger);">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Erro ao carregar</p>
+          </div>
+        `;
+      }
+    }
+    
+    function openChatModal(linhaId) {
+      const linha = LINHAS[linhaId];
+      const modalHtml = `
+        <div class="modal-overlay" id="chatModal">
+          <div class="modal modal-lg">
+            <div class="modal-header">
+              <h2 class="modal-title">
+                ${linha.emoji} Chat - ${linha.nome}
+              </h2>
+              <button class="modal-close" onclick="closeModal('chatModal')">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <div id="chatMessages" style="height: 400px; overflow-y: auto; margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
+                <div style="text-align: center; padding: 40px;">
+                  <div class="loader"></div>
+                  <p>Carregando mensagens...</p>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="chatFilter">Filtrar por usuário ou conteúdo</label>
+                <input type="text" id="chatFilter" class="form-control" placeholder="Digite para filtrar..." onkeyup="filterChatMessages()">
+              </div>
+            </div>
+            
+            <div class="modal-footer">
+              <button class="btn btn-outline" onclick="clearChat('${linhaId}')">
+                <i class="fas fa-trash"></i>
+                Limpar Chat
+              </button>
+              <button class="btn btn-primary" onclick="closeModal('chatModal')">
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('modalsContainer').innerHTML = modalHtml;
+      loadChatMessages(linhaId);
+    }
+    
+    async function loadChatMessages(linhaId) {
+      const container = document.getElementById('chatMessages');
+      if (!container) return;
+      
+      try {
+        const result = await apiCall('chat', { linha: linhaId }, 'GET');
+        
+        if (result.success && result.chat && result.chat.length > 0) {
+          container.innerHTML = result.chat.map(msg => `
+            <div class="chat-message" data-user="${msg.usuario}" data-content="${msg.mensagem.toLowerCase()}" style="margin-bottom: 15px; padding: 12px; background: white; border-radius: var(--radius-sm); border-left: 4px solid var(--primary);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <div>
+                  <strong style="color: var(--primary);">${msg.usuario}</strong>
+                  <small style="color: var(--gray); margin-left: 10px;">${formatDate(msg.timestamp)}</small>
+                </div>
+                <button class="action-btn delete" onclick="deleteChatMessage('${linhaId}', '${msg.id}')" title="Apagar mensagem">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <div>${msg.mensagem}</div>
+            </div>
+          `).join('');
+          
+          // Rolagem automática para o final
+          container.scrollTop = container.scrollHeight;
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--gray);">
+              <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 15px;"></i>
+              <h4>Nenhuma mensagem no chat</h4>
+              <p>Os passageiros ainda não enviaram mensagens.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--danger);">
+            <i class="fas fa-exclamation-circle"></i>
+            <h4>Erro ao carregar mensagens</h4>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    function filterChatMessages() {
+      const filter = document.getElementById('chatFilter').value.toLowerCase();
+      const messages = document.querySelectorAll('.chat-message');
+      
+      messages.forEach(msg => {
+        const user = msg.dataset.user.toLowerCase();
+        const content = msg.dataset.content;
+        const matches = user.includes(filter) || content.includes(filter);
+        msg.style.display = matches ? 'block' : 'none';
+      });
+    }
+    
+    async function clearChat(linhaId) {
+      if (confirm('Tem certeza que deseja limpar todo o chat desta linha? Esta ação não pode ser desfeita.')) {
+        showLoader();
+        try {
+          // Nota: Você precisaria implementar uma função no GAS para limpar o chat
+          showToast('Informação', 'Função de limpar chat será implementada no backend', 'info');
+        } catch (error) {
+          showToast('Erro', 'Falha ao limpar chat', 'error');
+        } finally {
+          hideLoader();
+        }
+      }
+    }
+    
+    async function deleteChatMessage(linhaId, messageId) {
+      if (confirm('Apagar esta mensagem?')) {
+        showLoader();
+        try {
+          // Nota: Você precisaria implementar uma função no GAS para apagar mensagens
+          showToast('Informação', 'Função de apagar mensagem será implementada no backend', 'info');
+          loadChatMessages(linhaId);
+        } catch (error) {
+          showToast('Erro', 'Falha ao apagar mensagem', 'error');
+        } finally {
+          hideLoader();
+        }
+      }
+    }
+    
+    // ============================================
+    // FUNÇÕES RESTANTES (simplificadas)
+    // ============================================
+    async function loadUsersSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-users"></i>
+              Usuários Cadastrados
+            </h2>
+            <div class="section-actions">
+              <button class="btn btn-outline" onclick="loadUsersSection()">
+                <i class="fas fa-sync-alt"></i>
+                Atualizar
+              </button>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 40px;">
+            <i class="fas fa-users" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+            <h3>Gestão de Usuários</h3>
+            <p>Esta seção mostrará todos os usuários cadastrados no sistema.</p>
+            <p style="color: var(--gray); font-size: 0.9rem; margin-top: 10px;">
+              <i class="fas fa-info-circle"></i>
+              Funcionalidade em desenvolvimento
+            </p>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function loadLinesSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-train"></i>
+              Linhas de Comboio
+            </h2>
+          </div>
+          
+          <div class="lines-grid">
+            ${Object.keys(LINHAS).map(linhaId => {
+              const linha = LINHAS[linhaId];
+              return `
+                <div class="line-card">
+                  <div class="line-header ${linhaId}">
+                    <div class="line-emoji">${linha.emoji}</div>
+                    <div class="line-info">
+                      <h3>${linha.nome}</h3>
+                      <p>ID: ${linhaId}</p>
+                    </div>
+                  </div>
+                  <div class="line-body">
+                    <div style="margin-bottom: 15px;">
+                      <strong style="display: block; margin-bottom: 5px; color: var(--primary);">Configuração:</strong>
+                      <div style="font-size: 0.9rem;">
+                        <div><strong>Aba Updates:</strong> ${linha.updates_sheet}</div>
+                        <div><strong>Aba Chat:</strong> ${linha.chat_sheet}</div>
+                      </div>
+                    </div>
+                    <div class="line-actions">
+                      <button class="btn btn-primary" style="flex: 1;" onclick="openSendUpdateModal('${linhaId}')">
+                        <i class="fas fa-bullhorn"></i>
+                        Nova Actualização
+                      </button>
+                      <button class="btn btn-outline" onclick="openChatModal('${linhaId}')">
+                        <i class="fas fa-comments"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          
+          <div style="margin-top: 30px; padding: 20px; background: var(--primary-light); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--primary); margin-bottom: 10px;">
+              <i class="fas fa-info-circle"></i>
+              Sobre as Linhas
+            </h4>
+            <p style="font-size: 0.9rem;">
+              Cada linha tem suas próprias abas no Google Sheets para actualizações e chat.
+              Isso mantém os dados isolados e organizados.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function loadAdminsSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        const result = await apiCall('get_users');
+        
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-user-shield"></i>
+                Administradores
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-primary" onclick="openNewAdminModal()">
+                  <i class="fas fa-plus"></i>
+                  Novo Admin
+                </button>
+                <button class="btn btn-outline" onclick="loadAdminsSection()">
+                  <i class="fas fa-sync-alt"></i>
+                  Atualizar
+                </button>
+              </div>
+            </div>
+        `;
+        
+        if (result.success && result.users) {
+          const admins = result.users.filter(user => user.role === 'admin' || user.role === 'superadmin');
+          
+          if (admins.length === 0) {
+            html += `
+              <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
+                <h3>Nenhum administrador encontrado</h3>
+                <p>Clique em "Novo Admin" para adicionar o primeiro.</p>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Telefone</th>
+                      <th>Cargo</th>
+                      <th>Linhas Permitidas</th>
+                      <th>Último Login</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${admins.map(admin => `
+                      <tr>
+                        <td>
+                          <strong>${admin.fullName}</strong>
+                          ${admin.nickname ? `<br><small>@${admin.nickname}</small>` : ''}
+                        </td>
+                        <td>${admin.email}</td>
+                        <td>${admin.phone}</td>
+                        <td>
+                          <span class="badge ${admin.role === 'superadmin' ? 'badge-danger' : 'badge-primary'}">
+                            ${admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                          </span>
+                        </td>
+                        <td>
+                          ${admin.linhas_permitidas ? 
+                            admin.linhas_permitidas.split(',').map(l => `
+                              <span class="badge badge-info" style="margin: 2px;">
+                                ${LINHAS[l] ? LINHAS[l].emoji : l}
+                              </span>
+                            `).join('') : 
+                            '<span class="badge badge-warning">Todas</span>'
+                          }
+                        </td>
+                        <td>${admin.lastLogin ? formatTimeAgo(admin.lastLogin) : 'Nunca'}</td>
+                        <td class="actions-cell">
+                          <button class="action-btn edit" onclick="editAdmin('${admin.id}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          ${admin.role !== 'superadmin' ? `
+                            <button class="action-btn delete" onclick="deleteAdmin('${admin.id}')" title="Remover">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          ` : ''}
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+        } else {
+          html += `
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar administradores</h3>
+              <p>${result.error || 'Falha na comunicação'}</p>
+            </div>
+          `;
+        }
+        
+        html += `</div>`;
+        container.innerHTML = html;
+        
+      } catch (error) {
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar administradores</h3>
+              <p>${error.message}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    function openNewAdminModal() {
+      const modalHtml = `
+        <div class="modal-overlay" id="newAdminModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h2 class="modal-title">
+                <i class="fas fa-user-plus"></i>
+                Novo Administrador
+              </h2>
+              <button class="modal-close" onclick="closeModal('newAdminModal')">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <form id="newAdminForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="adminFullName">Nome Completo</label>
+                    <input type="text" id="adminFullName" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="adminNickname">Apelido (opcional)</label>
+                    <input type="text" id="adminNickname" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="adminPhone">Telefone (9 dígitos)</label>
+                    <input type="text" id="adminPhone" class="form-control" pattern="[0-9]{9}" required>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="adminPassword">Senha</label>
+                    <input type="password" id="adminPassword" class="form-control" required minlength="6">
+                  </div>
+                  <div class="form-group">
+                    <label for="adminRole">Cargo</label>
+                    <select id="adminRole" class="select-control" required onchange="toggleLinePermissions()">
+                      <option value="admin">Admin</option>
+                      <option value="superadmin">Super Admin</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-group" id="linePermissions" style="display: none;">
+                  <label>Linhas Permitidas</label>
+                  <div class="checkbox-group">
+                    ${Object.keys(LINHAS).map(linhaId => `
+                      <label class="checkbox-label">
+                        <input type="checkbox" name="adminLines" value="${linhaId}">
+                        ${LINHAS[linhaId].emoji} ${LINHAS[linhaId].nome}
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            <div class="modal-footer">
+              <button class="btn btn-outline" onclick="closeModal('newAdminModal')">
+                Cancelar
+              </button>
+              <button class="btn btn-success" onclick="createNewAdmin()">
+                <i class="fas fa-save"></i>
+                Criar Administrador
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('modalsContainer').innerHTML = modalHtml;
+    }
+    
+    function toggleLinePermissions() {
+      const role = document.getElementById('adminRole').value;
+      const permissionsDiv = document.getElementById('linePermissions');
+      permissionsDiv.style.display = role === 'admin' ? 'block' : 'none';
+    }
+    
+    async function createNewAdmin() {
+      // Implementação simplificada
+      showToast('Informação', 'Funcionalidade de criar admin será implementada', 'info');
+      closeModal('newAdminModal');
+    }
+    
+    async function loadSettingsSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-cog"></i>
+              Configurações do Sistema
+            </h2>
+          </div>
+          
+          <div class="form-group">
+            <label for="systemName">Nome do Sistema</label>
+            <input type="text" id="systemName" class="form-control" value="CFM Multi-linhas" disabled>
+          </div>
+          
+          <div class="form-group">
+            <label for="gasUrl">URL do Google Apps Script</label>
+            <input type="text" id="gasUrl" class="form-control" value="${GAS_URL}" disabled>
+            <small style="color: var(--gray);">URL do backend</small>
+          </div>
+          
+          <div class="form-group">
+            <label>Linhas Configuradas</label>
+            <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm);">
+              ${Object.keys(LINHAS).map(linhaId => `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-light);">
+                  <span style="font-size: 1.5rem;">${LINHAS[linhaId].emoji}</span>
+                  <div style="flex: 1;">
+                    <strong>${LINHAS[linhaId].nome}</strong><br>
+                    <small style="color: var(--gray);">ID: ${linhaId}</small>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: var(--radius-sm);">
+            <h4 style="margin-bottom: 10px;">
+              <i class="fas fa-info-circle"></i>
+              Informações do Sistema
+            </h4>
+            <div style="font-size: 0.9rem;">
+              <div><strong>Versão:</strong> 2.0 (Multi-linhas)</div>
+              <div><strong>Desenvolvido por:</strong> Stunner System</div>
+              <div><strong>Última atualização:</strong> ${new Date().toLocaleDateString('pt-MZ')}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function loadStatsSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let stats = {};
+        for (const linhaId in LINHAS) {
+          stats[linhaId] = await getLineStats(linhaId);
+        }
+        
+        let totalUpdates = 0;
+        let totalChat = 0;
+        let todayUpdates = 0;
+        let todayChat = 0;
+        
+        for (const linhaId in stats) {
+          totalUpdates += stats[linhaId].total || 0;
+          totalChat += stats[linhaId].chat_total || 0;
+          todayUpdates += stats[linhaId].today || 0;
+          todayChat += stats[linhaId].chat_today || 0;
+        }
+        
+        const html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                Estatísticas Detalhadas
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-outline" onclick="loadStatsSection()">
+                  <i class="fas fa-sync-alt"></i>
+                  Atualizar
+                </button>
+              </div>
+            </div>
+            
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                  <i class="fas fa-bullhorn"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>${totalUpdates}</h3>
+                  <p>Total de Actualizações</p>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                  <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>${totalChat}</h3>
+                  <p>Total de Mensagens</p>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                  <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>${todayUpdates}</h3>
+                  <p>Updates Hoje</p>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                  <i class="fas fa-comment-medical"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>${todayChat}</h3>
+                  <p>Mensagens Hoje</p>
+                </div>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+              ${Object.keys(LINHAS).map(linhaId => {
+                const linhaStats = stats[linhaId];
+                return `
+                  <div class="section" style="padding: 20px;">
+                    <h3 style="color: var(--primary); margin-bottom: 15px;">
+                      ${LINHAS[linhaId].emoji} ${LINHAS[linhaId].nome}
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                      <div style="text-align: center; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
+                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary);">${linhaStats.today || 0}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">Updates Hoje</div>
+                      </div>
+                      <div style="text-align: center; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
+                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--success);">${linhaStats.total || 0}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">Total Updates</div>
+                      </div>
+                      <div style="text-align: center; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
+                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--info);">${linhaStats.chat_today || 0}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">Chat Hoje</div>
+                      </div>
+                      <div style="text-align: center; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
+                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--warning);">${linhaStats.chat_total || 0}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">Total Chat</div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+      } catch (error) {
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar estatísticas</h3>
+              <p>${error.message}</p>
             </div>
           </div>
         `;
@@ -1831,27 +2693,156 @@
     // ============================================
     // FUNÇÕES AUXILIARES
     // ============================================
-    function showStatus(element, text, success) {
-      element.innerHTML = text;
-      element.className = "status " + (success ? "success" : "error");
-      element.style.display = "block";
-      
-      // Auto-esconder mensagens de sucesso após 5 segundos
-      if (success) {
-        setTimeout(() => {
-          if (element.style.opacity !== '0') {
-            element.style.opacity = '1';
-            setTimeout(() => {
-              element.style.opacity = '0';
-              setTimeout(() => {
-                element.style.display = "none";
-                element.style.opacity = '1';
-              }, 300);
-            }, 5000);
-          }
-        }, 100);
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copiado', 'Texto copiado para a área de transferência', 'success');
+      }).catch(() => {
+        showToast('Erro', 'Não foi possível copiar o texto', 'error');
+      });
+    }
+    
+    async function deleteUpdate(updateId, linhaId) {
+      if (confirm('Tem certeza que deseja apagar esta actualização?')) {
+        showLoader();
+        try {
+          // Nota: Você precisaria implementar uma função no GAS para apagar updates
+          showToast('Informação', 'Função de apagar update será implementada', 'info');
+          refreshCurrentSection();
+        } catch (error) {
+          showToast('Erro', 'Falha ao apagar actualização', 'error');
+        } finally {
+          hideLoader();
+        }
       }
     }
+    
+    function viewLineDetails(linhaId) {
+      const linha = LINHAS[linhaId];
+      const modalHtml = `
+        <div class="modal-overlay" id="lineDetailsModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h2 class="modal-title">
+                ${linha.emoji} ${linha.nome}
+              </h2>
+              <button class="modal-close" onclick="closeModal('lineDetailsModal')">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <span style="font-size: 3rem;">${linha.emoji}</span>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <h4 style="color: var(--primary); margin-bottom: 10px;">
+                  <i class="fas fa-info-circle"></i>
+                  Informações
+                </h4>
+                <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm);">
+                  <div><strong>ID:</strong> ${linha.id}</div>
+                  <div><strong>Aba Updates:</strong> ${linha.updates_sheet}</div>
+                  <div><strong>Aba Chat:</strong> ${linha.chat_sheet}</div>
+                  <div><strong>Cor Principal:</strong> <span style="color: ${linha.color};">${linha.color}</span></div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 style="color: var(--primary); margin-bottom: 10px;">
+                  <i class="fas fa-tools"></i>
+                  Ações Rápidas
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <button class="btn btn-primary" onclick="openSendUpdateModal('${linhaId}'); closeModal('lineDetailsModal');">
+                    <i class="fas fa-bullhorn"></i>
+                    Nova Actualização
+                  </button>
+                  <button class="btn btn-secondary" onclick="openChatModal('${linhaId}'); closeModal('lineDetailsModal');">
+                    <i class="fas fa-comments"></i>
+                    Ver Chat
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-footer">
+              <button class="btn btn-outline" onclick="closeModal('lineDetailsModal')">
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('modalsContainer').innerHTML = modalHtml;
+    }
+    
+    // ============================================
+    // POLLING E ATUALIZAÇÃO AUTOMÁTICA
+    // ============================================
+    function startPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      
+      // Atualizar a cada 30 segundos
+      pollingInterval = setInterval(async () => {
+        await updateBadges();
+      }, 30000);
+      
+      // Primeira atualização
+      updateBadges();
+    }
+    
+    async function updateBadges() {
+      try {
+        // Atualizar contador de updates
+        let totalUpdatesToday = 0;
+        for (const linhaId in LINHAS) {
+          const stats = await getLineStats(linhaId);
+          totalUpdatesToday += stats.today || 0;
+        }
+        
+        const updatesBadge = document.getElementById('updatesBadge');
+        updatesBadge.textContent = totalUpdatesToday;
+        updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
+        
+        // Atualizar contador de chat
+        const chatStats = await getChatStats();
+        const chatBadge = document.getElementById('chatBadge');
+        chatBadge.textContent = chatStats.total_today;
+        chatBadge.style.display = chatStats.total_today > 0 ? 'inline' : 'none';
+        
+      } catch (error) {
+        console.error('Error updating badges:', error);
+      }
+    }
+    
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Evento de login
+      document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        login(email, password);
+      });
+      
+      // Tentar validar sessão existente
+      validateSession().then(valid => {
+        if (!valid) {
+          // Mostrar tela de login
+          document.getElementById('loginScreen').style.display = 'flex';
+          document.getElementById('adminPanel').style.display = 'none';
+        }
+      });
+      
+      // Configurar menu
+      setupMenu();
+    });
   </script>
 </body>
 </html>
