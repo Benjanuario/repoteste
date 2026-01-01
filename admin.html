@@ -1139,7 +1139,7 @@
     // ============================================
     // CONFIGURAÇÕES
     // ============================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbznhVIF5Z2ienyACocgwBz3WeVmlVgQfvtwxi6ElKmheuqgxtdKAFW1hCj-7rVFylq5/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxxkC9xBtgVV5wc84bWMEDVmRevyF2ZVo7k4SrUs_MDGxBctAMTuerLkLG9BZAzvXt2/exec";
     
     // Configuração das Linhas
     const LINHAS = {
@@ -1258,6 +1258,33 @@
     }
     
     // ============================================
+    // FUNÇÃO DE DEBUG PARA LOGIN
+    // ============================================
+    async function debugLogin(identifier, password) {
+      console.log('=== DEBUG LOGIN ===');
+      console.log('Identifier:', identifier);
+      console.log('Password:', password);
+      
+      const formData = new FormData();
+      formData.append('action', 'debug_login');
+      formData.append('identifier', identifier);
+      formData.append('password', password);
+      
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+        console.log('DEBUG RESULT:', result);
+        return result;
+      } catch (error) {
+        console.error('Debug failed:', error);
+        return null;
+      }
+    }
+    
+    // ============================================
     // FUNÇÕES DE API
     // ============================================
     async function apiCall(action, data = {}, method = 'POST') {
@@ -1273,12 +1300,17 @@
           params.append(key, data[key]);
         });
         
+        console.log(`📡 API Call: ${action}`, data);
+        
         const response = await fetch(GAS_URL, {
           method: method,
           body: params
         });
         
-        return await response.json();
+        const result = await response.json();
+        console.log(`📡 API Response ${action}:`, result);
+        
+        return result;
       } catch (error) {
         console.error('API Error:', error);
         return { success: false, error: 'Erro de conexão' };
@@ -1288,6 +1320,32 @@
     async function login(identifier, password) {
       showLoader();
       try {
+        // Primeiro, fazer debug para ver o que está acontecendo
+        const debugResult = await debugLogin(identifier, password);
+        
+        if (debugResult) {
+          console.log('Debug Info:', debugResult);
+          
+          if (!debugResult.userFound) {
+            showToast('Erro no login', 'Usuário não encontrado. Verifique seu email/telefone.', 'error');
+            hideLoader();
+            return;
+          }
+          
+          if (!debugResult.passwordValid) {
+            showToast('Erro no login', 'Senha incorreta. Tente novamente.', 'error');
+            hideLoader();
+            return;
+          }
+          
+          if (!debugResult.userActive) {
+            showToast('Erro no login', 'Conta suspensa. Contacte o administrador principal.', 'error');
+            hideLoader();
+            return;
+          }
+        }
+        
+        // Agora tentar o login normal
         const result = await apiCall('login', { identifier, password });
         
         if (result.success) {
@@ -1320,6 +1378,7 @@
         }
       } catch (error) {
         showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
+        console.error('Login error:', error);
       } finally {
         hideLoader();
       }
@@ -2786,7 +2845,7 @@ Equipe CFM
     // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-      // Evento de login
+      // Evento de login com debug
       document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const identifier = document.getElementById('loginIdentifier').value;
