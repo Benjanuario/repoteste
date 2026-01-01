@@ -1258,37 +1258,12 @@
     }
     
     // ============================================
-    // FUNÇÃO DE DEBUG PARA LOGIN
-    // ============================================
-    async function debugLogin(identifier, password) {
-      console.log('=== DEBUG LOGIN ===');
-      console.log('Identifier:', identifier);
-      console.log('Password:', password);
-      
-      const formData = new FormData();
-      formData.append('action', 'debug_login');
-      formData.append('identifier', identifier);
-      formData.append('password', password);
-      
-      try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: formData
-        });
-        const result = await response.json();
-        console.log('DEBUG RESULT:', result);
-        return result;
-      } catch (error) {
-        console.error('Debug failed:', error);
-        return null;
-      }
-    }
-    
-    // ============================================
     // FUNÇÕES DE API
     // ============================================
     async function apiCall(action, data = {}, method = 'POST') {
       try {
+        console.log(`📡 API Call: ${action}`, data);
+        
         const params = new URLSearchParams();
         params.append('action', action);
         
@@ -1299,8 +1274,6 @@
         Object.keys(data).forEach(key => {
           params.append(key, data[key]);
         });
-        
-        console.log(`📡 API Call: ${action}`, data);
         
         const response = await fetch(GAS_URL, {
           method: method,
@@ -1313,6 +1286,7 @@
         return result;
       } catch (error) {
         console.error('API Error:', error);
+        showToast('Erro de conexão', 'Não foi possível conectar ao servidor', 'error');
         return { success: false, error: 'Erro de conexão' };
       }
     }
@@ -1320,32 +1294,8 @@
     async function login(identifier, password) {
       showLoader();
       try {
-        // Primeiro, fazer debug para ver o que está acontecendo
-        const debugResult = await debugLogin(identifier, password);
+        console.log('🔐 Tentando login com:', identifier);
         
-        if (debugResult) {
-          console.log('Debug Info:', debugResult);
-          
-          if (!debugResult.userFound) {
-            showToast('Erro no login', 'Usuário não encontrado. Verifique seu email/telefone.', 'error');
-            hideLoader();
-            return;
-          }
-          
-          if (!debugResult.passwordValid) {
-            showToast('Erro no login', 'Senha incorreta. Tente novamente.', 'error');
-            hideLoader();
-            return;
-          }
-          
-          if (!debugResult.userActive) {
-            showToast('Erro no login', 'Conta suspensa. Contacte o administrador principal.', 'error');
-            hideLoader();
-            return;
-          }
-        }
-        
-        // Agora tentar o login normal
         const result = await apiCall('login', { identifier, password });
         
         if (result.success) {
@@ -1377,8 +1327,8 @@
           showToast('Erro no login', result.error || 'Credenciais inválidas', 'error');
         }
       } catch (error) {
-        showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
         console.error('Login error:', error);
+        showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
       } finally {
         hideLoader();
       }
@@ -1840,7 +1790,7 @@
                     type="text" 
                     id="updateAdminName" 
                     class="form-control" 
-                    value="${currentUser.fullName}" 
+                    value="${currentUser ? currentUser.fullName : ''}" 
                     placeholder="Seu nome"
                     required
                     maxlength="50"
@@ -2044,18 +1994,18 @@
                   <div class="form-group">
                     <label for="adminRole">Nível de Acesso *</label>
                     <select id="adminRole" class="select-control" required onchange="toggleLinePermissions()">
-                      ${currentUser.role === 'superadmin' ? '<option value="superadmin">Super Admin</option>' : ''}
+                      ${currentUser && currentUser.role === 'superadmin' ? '<option value="superadmin">Super Admin</option>' : ''}
                       <option value="admin">Admin</option>
                     </select>
                     <small style="color: var(--gray);">
-                      ${currentUser.role === 'superadmin' ? 
+                      ${currentUser && currentUser.role === 'superadmin' ? 
                         'Super Admin: acesso total | Admin: acesso restrito' : 
                         'Admin: acesso restrito às linhas selecionadas'}
                     </small>
                   </div>
                 </div>
                 
-                <div class="form-group" id="linePermissions" style="${currentUser.role === 'admin' ? 'display: block;' : 'display: none;'}">
+                <div class="form-group" id="linePermissions" style="${currentUser && currentUser.role === 'admin' ? 'display: block;' : 'display: none;'}">
                   <label>Linhas Permitidas *</label>
                   <small style="color: var(--gray); display: block; margin-bottom: 10px;">
                     Selecione as linhas que este administrador poderá gerir
@@ -2200,7 +2150,7 @@ Equipe CFM
     // GESTÃO DE ADMINISTRADORES (SUPER ADMIN)
     // ============================================
     async function loadAdminsSection() {
-      if (currentUser.role !== 'superadmin') {
+      if (!currentUser || currentUser.role !== 'superadmin') {
         document.getElementById('sectionsContainer').innerHTML = `
           <div class="section">
             <div style="text-align: center; padding: 40px;">
@@ -2774,9 +2724,9 @@ Equipe CFM
               Suas Informações
             </h4>
             <div style="font-size: 0.9rem;">
-              <div><strong>Nome:</strong> ${currentUser.fullName}</div>
-              <div><strong>Email:</strong> ${currentUser.email}</div>
-              <div><strong>Nível:</strong> ${currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}</div>
+              <div><strong>Nome:</strong> ${currentUser ? currentUser.fullName : 'N/A'}</div>
+              <div><strong>Email:</strong> ${currentUser ? currentUser.email : 'N/A'}</div>
+              <div><strong>Nível:</strong> ${currentUser ? (currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin') : 'N/A'}</div>
               <div><strong>Linhas:</strong> ${userPermittedLines.length}</div>
             </div>
           </div>
@@ -2822,8 +2772,10 @@ Equipe CFM
         }
         
         const updatesBadge = document.getElementById('updatesBadge');
-        updatesBadge.textContent = totalUpdatesToday;
-        updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
+        if (updatesBadge) {
+          updatesBadge.textContent = totalUpdatesToday;
+          updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
+        }
         
         // Atualizar contador de chat
         let totalChatToday = 0;
@@ -2833,8 +2785,10 @@ Equipe CFM
         }
         
         const chatBadge = document.getElementById('chatBadge');
-        chatBadge.textContent = totalChatToday;
-        chatBadge.style.display = totalChatToday > 0 ? 'inline' : 'none';
+        if (chatBadge) {
+          chatBadge.textContent = totalChatToday;
+          chatBadge.style.display = totalChatToday > 0 ? 'inline' : 'none';
+        }
         
       } catch (error) {
         console.error('Error updating badges:', error);
@@ -2845,7 +2799,7 @@ Equipe CFM
     // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-      // Evento de login com debug
+      // Evento de login
       document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const identifier = document.getElementById('loginIdentifier').value;
