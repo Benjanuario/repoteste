@@ -1268,66 +1268,43 @@
     // ============================================
     // FUNÇÕES DE API - ATUALIZADAS
     // ============================================
-    async function apiCall(action, data = {}, method = 'POST') {
-      try {
-        console.log(`📡 API Call: ${action}`, data);
-        
-        // Para GET requests com parâmetros
-        if (method === 'GET') {
-          const params = new URLSearchParams();
-          params.append('action', action);
-          
-          Object.keys(data).forEach(key => {
-            if (data[key] !== undefined && data[key] !== null) {
-              params.append(key, data[key]);
-            }
-          });
-          
-          const url = `${GAS_URL}?${params.toString()}&t=${Date.now()}`;
-          console.log('GET URL:', url);
-          
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-          
-          const result = await response.json();
-          console.log(`📡 API Response ${action}:`, result);
-          return result;
-        }
-        
-        // Para POST requests
-        const params = new URLSearchParams();
-        params.append('action', action);
-        
-        if (currentToken) {
-          params.append('token', currentToken);
-        }
-        
-        Object.keys(data).forEach(key => {
-          if (data[key] !== undefined && data[key] !== null) {
-            params.append(key, data[key]);
-          }
-        });
-        
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: params
-        });
-        
-        const result = await response.json();
-        console.log(`📡 API Response ${action}:`, result);
-        
-        return result;
-      } catch (error) {
-        console.error('API Error:', error);
-        showToast('Erro de conexão', 'Não foi possível conectar ao servidor', 'error');
-        return { success: false, error: 'Erro de conexão' };
-      }
+    
+    // ============================================
+// FUNÇÕES DE API - CORRIGIDAS PARA IGUAL AO admin.html
+// ============================================
+async function apiCall(action, data = {}, method = 'POST') {
+  try {
+    console.log(`📡 API Call: ${action}`, data);
+    
+    const params = new URLSearchParams();
+    params.append('action', action);
+    
+    if (currentToken) {
+      params.append('token', currentToken);
     }
     
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        params.append(key, data[key]);
+      }
+    });
+    
+    // ABORDAGEM SIMPLIFICADA IGUAL AO admin.html
+    const response = await fetch(GAS_URL, {
+      method: method,
+      body: params
+    });
+    
+    const result = await response.json();
+    console.log(`📡 API Response ${action}:`, result);
+    
+    return result;
+  } catch (error) {
+    console.error('API Error:', error);
+    showToast('Erro de conexão', 'Não foi possível conectar ao servidor', 'error');
+    return { success: false, error: 'Erro de conexão' };
+  }
+}
     // ============================================
     // SISTEMA DE AUTENTICAÇÃO
     // ============================================
