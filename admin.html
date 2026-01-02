@@ -1137,9 +1137,9 @@
 
   <script>
     // ============================================
-    // CONFIGURAÇÕES
+    // CONFIGURAÇÕES E CONSTANTES
     // ============================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxxkC9xBtgVV5wc84bWMEDVmRevyF2ZVo7k4SrUs_MDGxBctAMTuerLkLG9BZAzvXt2/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwTrQORcI7om3gX22nNjRZfh5QX-spdLxTLSgMaYHOaNV4t-4H17QmYzSb3zOPl6rsI/exec";
     
     // Configuração das Linhas
     const LINHAS = {
@@ -1223,42 +1223,49 @@
     }
     
     function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleString('pt-MZ', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleString('pt-MZ', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return dateString;
+      }
     }
     
     function formatTimeAgo(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
-      if (diffMins < 1) return 'Agora mesmo';
-      if (diffMins < 60) return `Há ${diffMins} min`;
-      if (diffHours < 24) return `Há ${diffHours}h`;
-      if (diffDays === 1) return 'Ontem';
-      if (diffDays < 7) return `Há ${diffDays} dias`;
-      return formatDate(dateString);
+      try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffMins < 1) return 'Agora mesmo';
+        if (diffMins < 60) return `Há ${diffMins} min`;
+        if (diffHours < 24) return `Há ${diffHours}h`;
+        if (diffDays === 1) return 'Ontem';
+        if (diffDays < 7) return `Há ${diffDays} dias`;
+        return formatDate(dateString);
+      } catch (e) {
+        return dateString;
+      }
     }
     
     function sanitizeInput(text, maxLength = 100) {
       if (!text) return '';
-      // Remover tags HTML e limitar comprimento
       let sanitized = text.replace(/<[^>]*>/g, '');
       sanitized = sanitized.replace(/[<>'"`]/g, '');
       return sanitized.substring(0, maxLength);
     }
     
     // ============================================
-    // FUNÇÕES DE API
+    // FUNÇÕES DE API ASSÍNCRONAS
     // ============================================
     async function apiCall(action, data = {}, method = 'POST') {
       try {
@@ -1272,13 +1279,25 @@
         }
         
         Object.keys(data).forEach(key => {
-          params.append(key, data[key]);
+          if (data[key] !== undefined && data[key] !== null) {
+            params.append(key, data[key]);
+          }
         });
+        
+        // Adicionar timestamp para evitar cache
+        params.append('_t', Date.now());
         
         const response = await fetch(GAS_URL, {
           method: method,
-          body: params
+          body: params,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          }
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
         const result = await response.json();
         console.log(`📡 API Response ${action}:`, result);
@@ -1287,10 +1306,13 @@
       } catch (error) {
         console.error('API Error:', error);
         showToast('Erro de conexão', 'Não foi possível conectar ao servidor', 'error');
-        return { success: false, error: 'Erro de conexão' };
+        return { success: false, error: 'Erro de conexão: ' + error.message };
       }
     }
     
+    // ============================================
+    // SISTEMA DE AUTENTICAÇÃO
+    // ============================================
     async function login(identifier, password) {
       showLoader();
       try {
@@ -1303,9 +1325,15 @@
           currentToken = result.token;
           
           // Processar linhas permitidas
-          userPermittedLines = result.user.linhas_permitidas ? 
-            result.user.linhas_permitidas.split(',') : 
-            Object.keys(LINHAS); // Super admin tem acesso a todas
+          userPermittedLines = result.user.linhas_permitidas || '';
+          if (typeof userPermittedLines === 'string') {
+            userPermittedLines = userPermittedLines.split(',').filter(line => line.trim() !== '');
+          }
+          
+          // Se for superadmin ou não tiver linhas específicas, dá acesso a todas
+          if (userPermittedLines.length === 0 || currentUser.role === 'superadmin') {
+            userPermittedLines = Object.keys(LINHAS);
+          }
           
           // Salvar sessão
           localStorage.setItem('cfm_admin_token', result.token);
@@ -1320,7 +1348,7 @@
           
           // Inicializar
           loadUserInfo();
-          loadDashboard();
+          await loadDashboard();
           startPolling();
           
         } else {
@@ -1328,7 +1356,7 @@
         }
       } catch (error) {
         console.error('Login error:', error);
-        showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
+        showToast('Erro', 'Não foi possível conectar ao servidor: ' + error.message, 'error');
       } finally {
         hideLoader();
       }
@@ -1336,8 +1364,8 @@
     
     async function validateSession() {
       const token = localStorage.getItem('cfm_admin_token');
-      const user = JSON.parse(localStorage.getItem('cfm_admin_user'));
-      const lines = JSON.parse(localStorage.getItem('cfm_admin_lines'));
+      const user = JSON.parse(localStorage.getItem('cfm_admin_user') || 'null');
+      const lines = JSON.parse(localStorage.getItem('cfm_admin_lines') || '[]');
       
       if (!token || !user) {
         return false;
@@ -1356,7 +1384,7 @@
           document.getElementById('adminPanel').style.display = 'flex';
           
           loadUserInfo();
-          loadDashboard();
+          await loadDashboard();
           startPolling();
           
           return true;
@@ -1387,12 +1415,15 @@
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('adminPanel').style.display = 'none';
         
+        document.getElementById('loginIdentifier').value = '';
+        document.getElementById('loginPassword').value = '';
+        
         showToast('Logout', 'Sessão encerrada com sucesso', 'info');
       }
     }
     
     // ============================================
-    // FUNÇÕES DE INTERFACE
+    // INTERFACE DO USUÁRIO
     // ============================================
     function loadUserInfo() {
       if (!currentUser) return;
@@ -1403,38 +1434,32 @@
       const adminsMenuItem = document.getElementById('adminsMenuItem');
       
       userInfo.innerHTML = `
-        <h3>${currentUser.fullName}</h3>
-        <p>${currentUser.email}</p>
+        <h3>${currentUser.fullName || 'Administrador'}</h3>
+        <p>${currentUser.email || 'admin@cfm.com'}</p>
         <span class="user-role" id="userRole">${currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span>
       `;
       
-      userEmail.textContent = currentUser.email;
+      userEmail.textContent = currentUser.email || 'admin@cfm.com';
       userRole.textContent = currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin';
       
-      // Mostrar item de administradores apenas para super admins
       if (currentUser.role === 'superadmin') {
         adminsMenuItem.style.display = 'flex';
       }
     }
     
     function setupMenu() {
-      // Menu toggle mobile
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('active');
       });
       
-      // Menu items
       document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
-          // Remover active de todos
           document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-          // Adicionar ao clicado
           item.classList.add('active');
           
           const section = item.dataset.section;
           currentSection = section;
           
-          // Atualizar título
           const titles = {
             dashboard: { title: 'Dashboard', icon: 'fas fa-tachometer-alt' },
             updates: { title: 'Actualizações', icon: 'fas fa-bullhorn' },
@@ -1451,26 +1476,21 @@
           `;
           document.getElementById('pageSubtitle').textContent = getSectionSubtitle(section);
           
-          // Carregar seção
           loadSection(section);
           
-          // Fechar sidebar no mobile
           if (window.innerWidth < 992) {
             document.getElementById('sidebar').classList.remove('active');
           }
         });
       });
       
-      // Logout button
       document.getElementById('logoutBtn').addEventListener('click', logout);
       
-      // Refresh button
-      document.getElementById('refreshBtn').addEventListener('click', () => {
-        refreshCurrentSection();
+      document.getElementById('refreshBtn').addEventListener('click', async () => {
+        await refreshCurrentSection();
         showToast('Atualizado', 'Dados atualizados com sucesso', 'success');
       });
       
-      // Quick send update button
       document.getElementById('quickSendUpdate').addEventListener('click', () => {
         openSendUpdateModal();
       });
@@ -1489,46 +1509,62 @@
     }
     
     // ============================================
-    // CARREGAMENTO DE SEÇÕES
+    // CARREGAMENTO DINÂMICO DE SEÇÕES
     // ============================================
     async function loadSection(section) {
       const container = document.getElementById('sectionsContainer');
       container.innerHTML = '<div class="loader"></div>';
       
-      switch(section) {
-        case 'dashboard':
-          await loadDashboard();
-          break;
-        case 'updates':
-          await loadUpdatesSection();
-          break;
-        case 'chat':
-          await loadChatSection();
-          break;
-        case 'admins':
-          await loadAdminsSection();
-          break;
-        case 'lines':
-          await loadLinesSection();
-          break;
-        case 'settings':
-          await loadSettingsSection();
-          break;
+      try {
+        switch(section) {
+          case 'dashboard':
+            await loadDashboard();
+            break;
+          case 'updates':
+            await loadUpdatesSection();
+            break;
+          case 'chat':
+            await loadChatSection();
+            break;
+          case 'admins':
+            await loadAdminsSection();
+            break;
+          case 'lines':
+            await loadLinesSection();
+            break;
+          case 'settings':
+            await loadSettingsSection();
+            break;
+        }
+      } catch (error) {
+        console.error(`Error loading section ${section}:`, error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadSection('${section}')" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
       }
     }
     
-    function refreshCurrentSection() {
-      loadSection(currentSection);
+    async function refreshCurrentSection() {
+      await loadSection(currentSection);
     }
     
     // ============================================
-    // DASHBOARD SIMPLIFICADO
+    // DASHBOARD (SEÇÃO PRINCIPAL)
     // ============================================
     async function loadDashboard() {
       const container = document.getElementById('sectionsContainer');
       
       try {
-        // Verificar se tem linhas permitidas
         if (userPermittedLines.length === 0) {
           container.innerHTML = `
             <div class="section">
@@ -1542,7 +1578,6 @@
           return;
         }
         
-        // Construir dashboard simplificado
         let html = `
           <div class="section">
             <div class="section-header">
@@ -1555,12 +1590,10 @@
             <div class="lines-grid">
         `;
         
-        // Cards apenas das linhas permitidas
         for (const linhaId of userPermittedLines) {
           const linha = LINHAS[linhaId];
           if (!linha) continue;
           
-          // Buscar estatísticas da linha
           const stats = await getLineStats(linhaId);
           
           html += `
@@ -1577,11 +1610,11 @@
                 <div class="line-stats">
                   <div class="line-stat">
                     <div class="line-stat-value">${stats.today || 0}</div>
-                    <div class="line-stat-label">Hoje</div>
+                    <div class="line-stat-label">Actualizações Hoje</div>
                   </div>
                   <div class="line-stat">
                     <div class="line-stat-value">${stats.total || 0}</div>
-                    <div class="line-stat-label">Total</div>
+                    <div class="line-stat-label">Total Actualizações</div>
                   </div>
                 </div>
                 
@@ -1635,7 +1668,6 @@
         
         container.innerHTML = html;
         
-        // Carregar atualizações recentes
         await loadRecentUpdates();
         
       } catch (error) {
@@ -1661,6 +1693,7 @@
         const result = await apiCall('stats', { linha: linhaId }, 'GET');
         return result.success ? result.stats : { total: 0, today: 0, chat_total: 0, chat_today: 0 };
       } catch (error) {
+        console.error('Error getting line stats:', error);
         return { total: 0, today: 0, chat_total: 0, chat_today: 0 };
       }
     }
@@ -1672,24 +1705,24 @@
       try {
         let allUpdates = [];
         
-        // Buscar atualizações apenas das linhas permitidas
         for (const linhaId of userPermittedLines) {
-          const result = await apiCall('get_history', { linha: linhaId });
-          if (result.success && result.updates) {
-            const linhaUpdates = result.updates.slice(0, 3).map(update => ({
-              ...update,
-              linha: linhaId,
-              linha_nome: LINHAS[linhaId].nome,
-              linha_emoji: LINHAS[linhaId].emoji
-            }));
-            allUpdates = [...allUpdates, ...linhaUpdates];
+          try {
+            const result = await apiCall('get_history', { linha: linhaId });
+            if (result.success && result.updates) {
+              const linhaUpdates = result.updates.slice(0, 3).map(update => ({
+                ...update,
+                linha: linhaId,
+                linha_nome: LINHAS[linhaId].nome,
+                linha_emoji: LINHAS[linhaId].emoji
+              }));
+              allUpdates = [...allUpdates, ...linhaUpdates];
+            }
+          } catch (error) {
+            console.error(`Error loading updates for line ${linhaId}:`, error);
           }
         }
         
-        // Ordenar por data
         allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Pegar as 10 mais recentes
         const recentUpdates = allUpdates.slice(0, 10);
         
         if (recentUpdates.length === 0) {
@@ -1713,15 +1746,16 @@
             </td>
             <td>
               <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${update.textoOriginal.substring(0, 60)}${update.textoOriginal.length > 60 ? '...' : ''}
+                ${(update.textoOriginal || '').substring(0, 60)}${(update.textoOriginal || '').length > 60 ? '...' : ''}
               </div>
             </td>
-            <td>${update.adminName}</td>
+            <td>${update.adminName || 'Administrador'}</td>
             <td>${formatTimeAgo(update.timestamp)}</td>
           </tr>
         `).join('');
         
       } catch (error) {
+        console.error('Error loading recent updates:', error);
         table.innerHTML = `
           <tr>
             <td colspan="4" style="text-align: center; color: var(--danger);">
@@ -1734,10 +1768,759 @@
     }
     
     // ============================================
-    // MODAL: ENVIAR ACTUALIZAÇÃO COM WHATSAPP
+    // SEÇÃO: ACTUALIZAÇÕES
+    // ============================================
+    async function loadUpdatesSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Histórico de Actualizações
+              </h2>
+              <button class="btn btn-primary" onclick="openSendUpdateModal()">
+                <i class="fas fa-plus"></i>
+                Nova Actualização
+              </button>
+            </div>
+            
+            <div class="form-group">
+              <label>Filtrar por Linha</label>
+              <select id="filterLine" class="select-control" onchange="filterUpdates()">
+                <option value="all">Todas as Linhas</option>
+                ${userPermittedLines.map(id => `
+                  <option value="${id}">${LINHAS[id].emoji} ${LINHAS[id].nome}</option>
+                `).join('')}
+              </select>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Linha</th>
+                    <th>Mensagem</th>
+                    <th>Administrador</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="updatesTable">
+                  <tr><td colspan="5" style="text-align: center; padding: 30px;">
+                    <div class="loader"></div>
+                    <p>Carregando actualizações...</p>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        await loadAllUpdates();
+        
+      } catch (error) {
+        console.error('Error loading updates section:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar actualizações</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadUpdatesSection()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    async function loadAllUpdates() {
+      const table = document.getElementById('updatesTable');
+      if (!table) return;
+      
+      try {
+        let allUpdates = [];
+        
+        for (const linhaId of userPermittedLines) {
+          try {
+            const result = await apiCall('get_history', { linha: linhaId });
+            if (result.success && result.updates) {
+              const linhaUpdates = result.updates.map(update => ({
+                ...update,
+                linha: linhaId,
+                linha_nome: LINHAS[linhaId].nome,
+                linha_emoji: LINHAS[linhaId].emoji
+              }));
+              allUpdates = [...allUpdates, ...linhaUpdates];
+            }
+          } catch (error) {
+            console.error(`Error loading updates for line ${linhaId}:`, error);
+          }
+        }
+        
+        allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        if (allUpdates.length === 0) {
+          table.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 30px;">
+                <i class="fas fa-info-circle" style="color: var(--info); font-size: 2rem; margin-bottom: 10px;"></i>
+                <h3>Nenhuma actualização encontrada</h3>
+                <p>Envie sua primeira actualização usando o botão acima.</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        table.innerHTML = allUpdates.map(update => `
+          <tr data-line="${update.linha}">
+            <td>
+              <span class="badge badge-primary">
+                ${update.linha_emoji} ${update.linha_nome}
+              </span>
+            </td>
+            <td style="max-width: 300px;">
+              <div style="max-height: 60px; overflow: hidden;">
+                ${update.textoOriginal || ''}
+              </div>
+              ${(update.textoOriginal || '').length > 100 ? 
+                `<small style="color: var(--gray);">(${(update.textoOriginal || '').length} caracteres)</small>` : ''}
+            </td>
+            <td>${update.adminName || 'Administrador'}</td>
+            <td>
+              <div>${formatTimeAgo(update.timestamp)}</div>
+              <small style="color: var(--gray);">${formatDate(update.timestamp)}</small>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn delete" onclick="deleteUpdate('${update.id}', '${update.linha}')" title="Apagar">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        
+      } catch (error) {
+        console.error('Error loading all updates:', error);
+        table.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--danger); padding: 30px;">
+              <i class="fas fa-exclamation-circle"></i>
+              <h4>Erro ao carregar actualizações</h4>
+              <p>${error.message}</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    function filterUpdates() {
+      const filterValue = document.getElementById('filterLine').value;
+      const rows = document.querySelectorAll('#updatesTable tr[data-line]');
+      
+      rows.forEach(row => {
+        if (filterValue === 'all' || row.dataset.line === filterValue) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+    
+    async function deleteUpdate(updateId, linha) {
+      if (!confirm('Tem certeza que deseja apagar esta actualização? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+      
+      showLoader();
+      try {
+        // Nota: Você precisa implementar a função delete_update no seu GAS
+        const result = await apiCall('delete_update', { id: updateId, linha: linha });
+        
+        if (result.success) {
+          showToast('Sucesso', 'Actualização apagada com sucesso', 'success');
+          await loadAllUpdates();
+        } else {
+          showToast('Erro', result.error || 'Falha ao apagar actualização', 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting update:', error);
+        showToast('Erro', 'Erro ao apagar actualização', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    // ============================================
+    // SEÇÃO: CHAT
+    // ============================================
+    async function loadChatSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-comments"></i>
+                Chat com Passageiros
+              </h2>
+              <div class="section-actions">
+                <button class="btn btn-outline" onclick="refreshChat()">
+                  <i class="fas fa-sync-alt"></i>
+                  Atualizar
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Selecionar Linha</label>
+              <select id="chatLineFilter" class="select-control" onchange="loadChatForLine()">
+                ${userPermittedLines.map(id => `
+                  <option value="${id}">${LINHAS[id].emoji} ${LINHAS[id].nome}</option>
+                `).join('')}
+              </select>
+            </div>
+            
+            <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>Mensagem</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+                <tbody id="chatTable">
+                  <tr><td colspan="3" style="text-align: center; padding: 30px;">
+                    <div class="loader"></div>
+                    <p>Carregando mensagens...</p>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        await loadChatForLine();
+        
+      } catch (error) {
+        console.error('Error loading chat section:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar chat</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadChatSection()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    async function loadChatForLine() {
+      const linha = document.getElementById('chatLineFilter').value;
+      const table = document.getElementById('chatTable');
+      
+      if (!table) return;
+      
+      try {
+        // Nota: Você precisa implementar a função get_chat no seu GAS
+        const result = await apiCall('get_chat', { linha });
+        
+        if (result.success && result.chat) {
+          const chatMessages = result.chat;
+          
+          if (chatMessages.length === 0) {
+            table.innerHTML = `
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 30px;">
+                  <i class="fas fa-info-circle" style="color: var(--info); font-size: 2rem; margin-bottom: 10px;"></i>
+                  <h3>Nenhuma mensagem no chat</h3>
+                  <p>Os passageiros ainda não enviaram mensagens para esta linha.</p>
+                </td>
+              </tr>
+            `;
+            return;
+          }
+          
+          table.innerHTML = chatMessages.map(msg => `
+            <tr>
+              <td>
+                <strong>${msg.usuario || 'Passageiro'}</strong>
+                ${msg.usuario && msg.usuario.includes('@') ? 
+                  `<br><small style="color: var(--gray);">Telefone: ${msg.usuario}</small>` : ''}
+              </td>
+              <td>${msg.mensagem || ''}</td>
+              <td>${formatTimeAgo(msg.timestamp)}</td>
+            </tr>
+          `).join('');
+          
+        } else {
+          table.innerHTML = `
+            <tr>
+              <td colspan="3" style="text-align: center; color: var(--danger); padding: 30px;">
+                <i class="fas fa-exclamation-circle"></i>
+                <h4>Erro ao carregar chat</h4>
+                <p>${result.error || 'Falha na comunicação'}</p>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading chat:', error);
+        table.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--danger); padding: 30px;">
+              <i class="fas fa-exclamation-circle"></i>
+              <h4>Erro ao carregar chat</h4>
+              <p>${error.message}</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    function refreshChat() {
+      loadChatForLine();
+      showToast('Atualizado', 'Chat atualizado com sucesso', 'success');
+    }
+    
+    // ============================================
+    // SEÇÃO: ADMINISTRADORES
+    // ============================================
+    async function loadAdminsSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      if (currentUser.role !== 'superadmin') {
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h3>Acesso Negado</h3>
+              <p>Apenas super administradores podem acessar esta seção.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      try {
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-user-shield"></i>
+                Administradores do Sistema
+              </h2>
+              <button class="btn btn-success" onclick="openNewAdminModal()">
+                <i class="fas fa-user-plus"></i>
+                Novo Administrador
+              </button>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email/Telefone</th>
+                    <th>Função</th>
+                    <th>Linhas</th>
+                    <th>Último Login</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="adminsTable">
+                  <tr><td colspan="7" style="text-align: center; padding: 30px;">
+                    <div class="loader"></div>
+                    <p>Carregando administradores...</p>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        await loadAllAdmins();
+        
+      } catch (error) {
+        console.error('Error loading admins section:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar administradores</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadAdminsSection()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    async function loadAllAdmins() {
+      const table = document.getElementById('adminsTable');
+      if (!table) return;
+      
+      try {
+        const result = await apiCall('get_users');
+        
+        if (result.success && result.users) {
+          const admins = result.users;
+          
+          table.innerHTML = admins.map(admin => `
+            <tr>
+              <td>
+                <strong>${admin.fullName || 'Sem nome'}</strong>
+                ${admin.nickname ? `<br><small style="color: var(--gray);">@${admin.nickname}</small>` : ''}
+              </td>
+              <td>
+                <div>${admin.email || 'Sem email'}</div>
+                <small style="color: var(--gray);">${admin.phone || 'Sem telefone'}</small>
+              </td>
+              <td>
+                <span class="badge ${admin.role === 'superadmin' ? 'badge-primary' : 'badge-info'}">
+                  ${admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                </span>
+              </td>
+              <td>
+                <div style="max-width: 200px;">
+                  ${admin.linhas_permitidas ? admin.linhas_permitidas.split(',').map(line => {
+                    const linha = LINHAS[line];
+                    return linha ? `<span class="badge badge-primary" style="margin: 2px;">${linha.emoji}</span>` : '';
+                  }).join('') : 'Todas'}
+                </div>
+              </td>
+              <td>${admin.lastLogin ? formatTimeAgo(admin.lastLogin) : 'Nunca'}</td>
+              <td>
+                <span class="admin-status-badge status-active">
+                  <i class="fas fa-circle"></i> Ativo
+                </span>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  <button class="action-btn suspend" onclick="suspendAdmin('${admin.id}')" title="Suspender">
+                    <i class="fas fa-ban"></i>
+                  </button>
+                  <button class="action-btn delete" onclick="deleteAdmin('${admin.id}')" title="Remover">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+          
+        } else {
+          table.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--danger); padding: 30px;">
+                <i class="fas fa-exclamation-circle"></i>
+                <h4>Erro ao carregar administradores</h4>
+                <p>${result.error || 'Falha na comunicação'}</p>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading admins:', error);
+        table.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--danger); padding: 30px;">
+              <i class="fas fa-exclamation-circle"></i>
+              <h4>Erro ao carregar administradores</h4>
+              <p>${error.message}</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    async function suspendAdmin(adminId) {
+      if (!confirm('Tem certeza que deseja suspender este administrador?')) {
+        return;
+      }
+      
+      showLoader();
+      try {
+        // Nota: Você precisa implementar a função suspend_admin no seu GAS
+        const result = await apiCall('suspend_admin', { adminId });
+        
+        if (result.success) {
+          showToast('Sucesso', 'Administrador suspenso com sucesso', 'success');
+          await loadAllAdmins();
+        } else {
+          showToast('Erro', result.error || 'Falha ao suspender administrador', 'error');
+        }
+      } catch (error) {
+        console.error('Error suspending admin:', error);
+        showToast('Erro', 'Erro ao suspender administrador', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    async function deleteAdmin(adminId) {
+      if (!confirm('Tem certeza que deseja remover este administrador? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+      
+      showLoader();
+      try {
+        // Nota: Você precisa implementar a função delete_admin no seu GAS
+        const result = await apiCall('delete_admin', { adminId });
+        
+        if (result.success) {
+          showToast('Sucesso', 'Administrador removido com sucesso', 'success');
+          await loadAllAdmins();
+        } else {
+          showToast('Erro', result.error || 'Falha ao remover administrador', 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        showToast('Erro', 'Erro ao remover administrador', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    // ============================================
+    // SEÇÃO: LINHAS
+    // ============================================
+    async function loadLinesSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-train"></i>
+                Linhas de Comboio
+              </h2>
+            </div>
+            
+            <div class="lines-grid">
+        `;
+        
+        for (const linhaId of Object.keys(LINHAS)) {
+          const linha = LINHAS[linhaId];
+          const isPermitted = userPermittedLines.includes(linhaId);
+          
+          html += `
+            <div class="line-card ${isPermitted ? 'active' : ''}">
+              <div class="line-header ${linhaId}">
+                <div class="line-emoji">${linha.emoji}</div>
+                <div class="line-info">
+                  <h3>${linha.nome}</h3>
+                  <p>ID: ${linhaId}</p>
+                </div>
+                ${isPermitted ? 
+                  '<span class="badge badge-success" style="margin-left: auto;"><i class="fas fa-check"></i> Acesso Permitido</span>' : 
+                  '<span class="badge badge-danger" style="margin-left: auto;"><i class="fas fa-times"></i> Sem Acesso</span>'
+                }
+              </div>
+              
+              <div class="line-body">
+                <div class="line-stats">
+                  <div class="line-stat">
+                    <div class="line-stat-value">${linha.emoji}</div>
+                    <div class="line-stat-label">Emoji</div>
+                  </div>
+                  <div class="line-stat">
+                    <div class="line-stat-value">${linhaId}</div>
+                    <div class="line-stat-label">ID da Linha</div>
+                  </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                  <p><strong>Aba de Actualizações:</strong> ${linha.updates_sheet}</p>
+                  <p><strong>Aba de Chat:</strong> ${linha.chat_sheet}</p>
+                </div>
+                
+                <div class="line-actions">
+                  <button class="btn btn-primary" style="flex: 1;" onclick="openSendUpdateModal('${linhaId}')" ${!isPermitted ? 'disabled' : ''}>
+                    <i class="fas fa-bullhorn"></i>
+                    Nova Actualização
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        html += `
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading lines section:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar linhas</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadLinesSection()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // ============================================
+    // SEÇÃO: CONFIGURAÇÕES
+    // ============================================
+    async function loadSettingsSection() {
+      const container = document.getElementById('sectionsContainer');
+      
+      try {
+        let html = `
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-cog"></i>
+                Configurações do Sistema
+              </h2>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <h3><i class="fas fa-user"></i> Minha Conta</h3>
+                <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm); margin-top: 10px;">
+                  <p><strong>Nome:</strong> ${currentUser.fullName || 'Administrador'}</p>
+                  <p><strong>Email:</strong> ${currentUser.email || 'admin@cfm.com'}</p>
+                  <p><strong>Função:</strong> ${currentUser.role === 'superadmin' ? 'Super Administrador' : 'Administrador'}</p>
+                  <p><strong>Linhas Permitidas:</strong> ${userPermittedLines.map(id => LINHAS[id].nome).join(', ')}</p>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <h3><i class="fas fa-shield-alt"></i> Segurança</h3>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 15px;" onclick="changePassword()">
+                  <i class="fas fa-key"></i>
+                  Alterar Senha
+                </button>
+              </div>
+            </div>
+            
+            ${currentUser.role === 'superadmin' ? `
+              <div class="form-group">
+                <h3><i class="fas fa-tools"></i> Ferramentas do Sistema</h3>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                  <button class="btn btn-outline" onclick="backupSystem()">
+                    <i class="fas fa-download"></i>
+                    Backup
+                  </button>
+                  <button class="btn btn-outline" onclick="clearCache()">
+                    <i class="fas fa-broom"></i>
+                    Limpar Cache
+                  </button>
+                  <button class="btn btn-outline" onclick="testConnection()">
+                    <i class="fas fa-wifi"></i>
+                    Testar Conexão
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+            
+            <div class="form-group">
+              <h3><i class="fas fa-info-circle"></i> Informações do Sistema</h3>
+              <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm); margin-top: 10px;">
+                <p><strong>URL do GAS:</strong> ${GAS_URL}</p>
+                <p><strong>Linhas Configuradas:</strong> ${Object.keys(LINHAS).length}</p>
+                <p><strong>Último Login:</strong> ${currentUser.lastLogin ? formatDate(currentUser.lastLogin) : 'Nunca'}</p>
+                <p><strong>Status:</strong> <span class="badge badge-success">Online</span></p>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading settings section:', error);
+        container.innerHTML = `
+          <div class="section">
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <i class="fas fa-exclamation-circle"></i>
+              <h3>Erro ao carregar configurações</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadSettingsSection()" style="margin-top: 20px;">
+                <i class="fas fa-redo"></i>
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // ============================================
+    // FUNÇÕES AUXILIARES DAS SEÇÕES
+    // ============================================
+    function changePassword() {
+      showToast('Informação', 'Função de alteração de senha em desenvolvimento', 'info');
+    }
+    
+    function backupSystem() {
+      showToast('Informação', 'Função de backup em desenvolvimento', 'info');
+    }
+    
+    function clearCache() {
+      localStorage.removeItem('cfm_admin_token');
+      localStorage.removeItem('cfm_admin_user');
+      localStorage.removeItem('cfm_admin_lines');
+      showToast('Cache Limpo', 'Cache limpo com sucesso', 'success');
+    }
+    
+    async function testConnection() {
+      showLoader();
+      try {
+        const result = await apiCall('test_connection');
+        if (result.success) {
+          showToast('Conexão OK', 'Conexão com o servidor estabelecida com sucesso', 'success');
+        } else {
+          showToast('Erro de Conexão', result.error || 'Falha na conexão', 'error');
+        }
+      } catch (error) {
+        showToast('Erro', 'Não foi possível conectar ao servidor', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    // ============================================
+    // MODAIS
     // ============================================
     function openSendUpdateModal(linhaId = null) {
-      // Se não especificar linha, usar a primeira permitida
       if (!linhaId && userPermittedLines.length > 0) {
         linhaId = userPermittedLines[0];
       }
@@ -1790,7 +2573,7 @@
                     type="text" 
                     id="updateAdminName" 
                     class="form-control" 
-                    value="${currentUser ? currentUser.fullName : ''}" 
+                    value="${currentUser ? (currentUser.fullName || 'Administrador') : 'Administrador'}" 
                     placeholder="Seu nome"
                     required
                     maxlength="50"
@@ -1823,15 +2606,15 @@
       
       document.getElementById('modalsContainer').innerHTML = modalHtml;
       
-      // Contador de caracteres
       const textarea = document.getElementById('updateMessage');
       const charCount = document.getElementById('charCount');
       
-      textarea.addEventListener('input', () => {
+      if (textarea && charCount) {
+        textarea.addEventListener('input', () => {
+          charCount.textContent = textarea.value.length;
+        });
         charCount.textContent = textarea.value.length;
-      });
-      
-      charCount.textContent = textarea.value.length;
+      }
     }
     
     async function sendUpdate() {
@@ -1842,7 +2625,6 @@
       const sendBtn = document.getElementById('sendUpdateBtn');
       const successDiv = document.getElementById('successMessage');
       
-      // Validar entrada
       const sanitizedMessage = sanitizeInput(message, 500);
       const sanitizedAdminName = sanitizeInput(adminName, 50);
       
@@ -1864,7 +2646,6 @@
         });
         
         if (result.success) {
-          // Mostrar mensagem de sucesso com botão WhatsApp
           successDiv.innerHTML = `
             <div class="success-message">
               <div class="success-message-header">
@@ -1887,23 +2668,21 @@
           `;
           successDiv.style.display = 'block';
           
-          // Resetar formulário mas manter valores
           document.getElementById('updateMessage').value = sanitizedMessage;
           document.getElementById('updateAdminName').value = sanitizedAdminName;
           document.getElementById('charCount').textContent = sanitizedMessage.length;
           
-          // Mostrar notificação
           showToast('Sucesso', 'Actualização enviada com sucesso!', 'success');
           
-          // Atualizar dashboard
-          setTimeout(() => {
-            refreshCurrentSection();
+          setTimeout(async () => {
+            await refreshCurrentSection();
           }, 1000);
           
         } else {
           throw new Error(result.error || 'Falha ao enviar');
         }
       } catch (error) {
+        console.error('Error sending update:', error);
         showToast('Erro', error.message || 'Falha na comunicação', 'error');
       } finally {
         sendBtn.disabled = false;
@@ -1913,28 +2692,12 @@
     }
     
     function shareOnWhatsApp(message, linhaNome) {
-      // Formatar mensagem para WhatsApp
       const whatsappMessage = `${message}\n\n---\n📢 Actualização ${linhaNome}\nEnviado via Painel Administrativo CFM`;
-      
-      // URL para WhatsApp Web
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
-      
-      // Abrir em nova aba
       window.open(whatsappUrl, '_blank');
-      
       showToast('Partilhado', 'Mensagem pronta para partilhar no WhatsApp', 'success');
     }
     
-    function closeModal(modalId) {
-      const modal = document.getElementById(modalId);
-      if (modal) {
-        modal.remove();
-      }
-    }
-    
-    // ============================================
-    // CRIAÇÃO DE ADMINISTRADORES
-    // ============================================
     function openNewAdminModal() {
       const modalHtml = `
         <div class="modal-overlay" id="newAdminModal">
@@ -1955,16 +2718,12 @@
                   <div class="form-group">
                     <label for="adminFullName">Nome Completo *</label>
                     <input type="text" id="adminFullName" class="form-control" 
-                      placeholder="João da Silva" required maxlength="50" 
-                      oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '')">
-                    <small style="color: var(--gray);">Apenas letras e espaços (max 50)</small>
+                      placeholder="João da Silva" required maxlength="50">
                   </div>
                   <div class="form-group">
-                    <label for="adminNickname">Apelido (opcional)</label>
-                    <input type="text" id="adminNickname" class="form-control" 
-                      placeholder="joao_silva" maxlength="20"
-                      oninput="this.value = this.value.replace(/[^A-Za-z0-9_]/g, '')">
-                    <small style="color: var(--gray);">Letras, números e underscore (max 20)</small>
+                    <label for="adminEmail">Email *</label>
+                    <input type="email" id="adminEmail" class="form-control" 
+                      placeholder="admin@cfm.com" required maxlength="100">
                   </div>
                 </div>
                 
@@ -1972,44 +2731,27 @@
                   <div class="form-group">
                     <label for="adminPhone">Telefone *</label>
                     <input type="tel" id="adminPhone" class="form-control" 
-                      placeholder="848960732" pattern="[0-9]{9}" required maxlength="9"
-                      oninput="this.value = this.value.replace(/\D/g, '')">
-                    <small style="color: var(--gray);">9 dígitos sem código do país</small>
+                      placeholder="848960732" pattern="[0-9]{9}" required maxlength="9">
                   </div>
-                  <div class="form-group">
-                    <label for="adminEmail">Email *</label>
-                    <input type="email" id="adminEmail" class="form-control" 
-                      placeholder="admin@cfm.com" required maxlength="100">
-                    <small style="color: var(--gray);">Email válido (max 100)</small>
-                  </div>
-                </div>
-                
-                <div class="form-row">
                   <div class="form-group">
                     <label for="adminPassword">Senha Temporária *</label>
                     <input type="password" id="adminPassword" class="form-control" 
                       placeholder="••••••••" required minlength="6" maxlength="20">
-                    <small style="color: var(--gray);">6-20 caracteres</small>
                   </div>
+                </div>
+                
+                <div class="form-row">
                   <div class="form-group">
                     <label for="adminRole">Nível de Acesso *</label>
                     <select id="adminRole" class="select-control" required onchange="toggleLinePermissions()">
                       ${currentUser && currentUser.role === 'superadmin' ? '<option value="superadmin">Super Admin</option>' : ''}
                       <option value="admin">Admin</option>
                     </select>
-                    <small style="color: var(--gray);">
-                      ${currentUser && currentUser.role === 'superadmin' ? 
-                        'Super Admin: acesso total | Admin: acesso restrito' : 
-                        'Admin: acesso restrito às linhas selecionadas'}
-                    </small>
                   </div>
                 </div>
                 
                 <div class="form-group" id="linePermissions" style="${currentUser && currentUser.role === 'admin' ? 'display: block;' : 'display: none;'}">
                   <label>Linhas Permitidas *</label>
-                  <small style="color: var(--gray); display: block; margin-bottom: 10px;">
-                    Selecione as linhas que este administrador poderá gerir
-                  </small>
                   <div class="checkbox-group">
                     ${userPermittedLines.map(linhaId => `
                       <label class="checkbox-label">
@@ -2018,27 +2760,6 @@
                       </label>
                     `).join('')}
                   </div>
-                </div>
-                
-                <div class="form-group">
-                  <label for="adminInstructions">Instruções de Acesso</label>
-                  <textarea id="adminInstructions" class="form-control" rows="3" readonly style="background: var(--light);">
-Olá [Nome],
-
-Foste adicionado como administrador do Sistema CFM Multi-linhas.
-
-Credenciais de acesso:
-• Email/Telefone: [será preenchido]
-• Senha temporária: [será preenchido]
-
-Acesso: https://seusite.com/admin.html
-
-Depois do primeiro login, podes alterar tua senha.
-
-Atenciosamente,
-Equipe CFM
-                  </textarea>
-                  <small style="color: var(--gray);">Esta mensagem será enviada por email ao novo administrador</small>
                 </div>
               </form>
             </div>
@@ -2067,38 +2788,32 @@ Equipe CFM
     
     async function createNewAdmin() {
       const fullName = document.getElementById('adminFullName').value.trim();
-      const nickname = document.getElementById('adminNickname').value.trim();
       const phone = document.getElementById('adminPhone').value.trim();
       const email = document.getElementById('adminEmail').value.trim();
       const password = document.getElementById('adminPassword').value;
       const role = document.getElementById('adminRole').value;
       
-      // Validar campos
       if (!fullName || !phone || !email || !password) {
         showToast('Erro', 'Preencha todos os campos obrigatórios', 'error');
         return;
       }
       
-      // Validar email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         showToast('Erro', 'Email inválido', 'error');
         return;
       }
       
-      // Validar telefone
       if (phone.length !== 9 || !/^\d+$/.test(phone)) {
         showToast('Erro', 'Telefone deve ter 9 dígitos', 'error');
         return;
       }
       
-      // Validar senha
       if (password.length < 6 || password.length > 20) {
         showToast('Erro', 'Senha deve ter entre 6 e 20 caracteres', 'error');
         return;
       }
       
-      // Coletar linhas permitidas se for admin
       let linhas_permitidas = '';
       if (role === 'admin') {
         const lineCheckboxes = document.querySelectorAll('input[name="adminLines"]:checked');
@@ -2111,7 +2826,6 @@ Equipe CFM
         
         linhas_permitidas = selectedLines.join(',');
       } else if (role === 'superadmin') {
-        // Super admin tem acesso a todas as linhas
         linhas_permitidas = Object.keys(LINHAS).join(',');
       }
       
@@ -2119,9 +2833,8 @@ Equipe CFM
       
       try {
         const result = await apiCall('create_user', {
-          phone: '258' + phone, // Adicionar código do país
+          phone: '258' + phone,
           fullName,
-          nickname,
           email,
           password,
           role,
@@ -2130,665 +2843,62 @@ Equipe CFM
         
         if (result.success) {
           showToast('Sucesso', 'Administrador criado com sucesso!', 'success');
-          showToast('Informação', 'Email com instruções será enviado ao novo administrador', 'info');
-          
-          // Fechar modal e atualizar lista
           closeModal('newAdminModal');
-          loadAdminsSection();
-          
+          if (currentSection === 'admins') {
+            await loadAllAdmins();
+          }
         } else {
           showToast('Erro', result.error || 'Falha ao criar administrador', 'error');
         }
       } catch (error) {
-        showToast('Erro', 'Falha na comunicação com o servidor', 'error');
+        console.error('Error creating admin:', error);
+        showToast('Erro', 'Erro ao criar administrador', 'error');
       } finally {
         hideLoader();
       }
     }
     
-    // ============================================
-    // GESTÃO DE ADMINISTRADORES (SUPER ADMIN)
-    // ============================================
-    async function loadAdminsSection() {
-      if (!currentUser || currentUser.role !== 'superadmin') {
-        document.getElementById('sectionsContainer').innerHTML = `
-          <div class="section">
-            <div style="text-align: center; padding: 40px;">
-              <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--warning); margin-bottom: 20px;"></i>
-              <h3>Acesso Restrito</h3>
-              <p>Esta funcionalidade está disponível apenas para Super Administradores.</p>
-            </div>
-          </div>
-        `;
-        return;
-      }
-      
-      const container = document.getElementById('sectionsContainer');
-      
-      try {
-        const result = await apiCall('get_users');
-        
-        let html = `
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <i class="fas fa-user-shield"></i>
-                Gestão de Administradores
-              </h2>
-              <div class="section-actions">
-                <button class="btn btn-primary" onclick="openNewAdminModal()">
-                  <i class="fas fa-plus"></i>
-                  Novo Admin
-                </button>
-                <button class="btn btn-outline" onclick="loadAdminsSection()">
-                  <i class="fas fa-sync-alt"></i>
-                  Atualizar
-                </button>
-              </div>
-            </div>
-        `;
-        
-        if (result.success && result.users) {
-          const admins = result.users.filter(user => user.role === 'admin' || user.role === 'superadmin');
-          
-          if (admins.length === 0) {
-            html += `
-              <div style="text-align: center; padding: 40px;">
-                <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
-                <h3>Nenhum administrador encontrado</h3>
-                <p>Clique em "Novo Admin" para adicionar o primeiro.</p>
-              </div>
-            `;
-          } else {
-            html += `
-              <div class="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Email</th>
-                      <th>Telefone</th>
-                      <th>Nível</th>
-                      <th>Linhas</th>
-                      <th>Estado</th>
-                      <th>Último Login</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${admins.map(admin => `
-                      <tr>
-                        <td>
-                          <strong>${admin.fullName}</strong>
-                          ${admin.nickname ? `<br><small>@${admin.nickname}</small>` : ''}
-                        </td>
-                        <td>${admin.email}</td>
-                        <td>${admin.phone ? admin.phone.replace('258', '') : ''}</td>
-                        <td>
-                          <span class="badge ${admin.role === 'superadmin' ? 'badge-danger' : 'badge-primary'}">
-                            ${admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                          </span>
-                        </td>
-                        <td>
-                          ${admin.linhas_permitidas ? 
-                            admin.linhas_permitidas.split(',').map(l => `
-                              <span class="badge badge-info" style="margin: 2px;">
-                                ${LINHAS[l] ? LINHAS[l].emoji : l}
-                              </span>
-                            `).join('') : 
-                            '<span class="badge badge-warning">Todas</span>'
-                          }
-                        </td>
-                        <td>
-                          <span class="admin-status-badge status-active">
-                            <i class="fas fa-circle"></i> Ativo
-                          </span>
-                        </td>
-                        <td>${admin.lastLogin ? formatTimeAgo(admin.lastLogin) : 'Nunca'}</td>
-                        <td class="actions-cell">
-                          <button class="action-btn edit" onclick="editAdmin('${admin.id}')" title="Editar">
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          ${admin.id !== currentUser.id ? `
-                            <button class="action-btn suspend" onclick="suspendAdmin('${admin.id}')" title="Suspender">
-                              <i class="fas fa-user-slash"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteAdmin('${admin.id}')" title="Remover">
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          ` : ''}
-                        </td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            `;
-          }
-        } else {
-          html += `
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar administradores</h3>
-              <p>${result.error || 'Falha na comunicação'}</p>
-            </div>
-          `;
-        }
-        
-        html += `</div>`;
-        container.innerHTML = html;
-        
-      } catch (error) {
-        container.innerHTML = `
-          <div class="section">
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar administradores</h3>
-              <p>${error.message}</p>
-            </div>
-          </div>
-        `;
-      }
-    }
-    
-    function editAdmin(adminId) {
-      // Implementar edição de admin
-      showToast('Informação', 'Funcionalidade de edição em desenvolvimento', 'info');
-    }
-    
-    async function suspendAdmin(adminId) {
-      if (confirm('Tem certeza que deseja suspender este administrador?\nEle não poderá aceder ao sistema até ser reativado.')) {
-        showLoader();
-        try {
-          // Nota: Você precisaria implementar esta função no GAS
-          showToast('Informação', 'Funcionalidade de suspensão será implementada', 'info');
-          loadAdminsSection();
-        } catch (error) {
-          showToast('Erro', 'Falha ao suspender administrador', 'error');
-        } finally {
-          hideLoader();
-        }
-      }
-    }
-    
-    async function deleteAdmin(adminId) {
-      if (confirm('Tem certeza que deseja remover este administrador?\nEsta ação não pode ser desfeita.')) {
-        showLoader();
-        try {
-          // Nota: Você precisaria implementar esta função no GAS
-          showToast('Informação', 'Funcionalidade de remoção será implementada', 'info');
-          loadAdminsSection();
-        } catch (error) {
-          showToast('Erro', 'Falha ao remover administrador', 'error');
-        } finally {
-          hideLoader();
-        }
-      }
-    }
-    
-    // ============================================
-    // OUTRAS SEÇÕES (SIMPLIFICADAS)
-    // ============================================
-    async function loadUpdatesSection() {
-      const container = document.getElementById('sectionsContainer');
-      
-      try {
-        let allUpdates = [];
-        
-        // Buscar todas as atualizações das linhas permitidas
-        for (const linhaId of userPermittedLines) {
-          const result = await apiCall('get_history', { linha: linhaId });
-          if (result.success && result.updates) {
-            const linhaUpdates = result.updates.map(update => ({
-              ...update,
-              linha: linhaId,
-              linha_nome: LINHAS[linhaId].nome,
-              linha_emoji: LINHAS[linhaId].emoji
-            }));
-            allUpdates = [...allUpdates, ...linhaUpdates];
-          }
-        }
-        
-        // Ordenar por data (mais recente primeiro)
-        allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        let html = `
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <i class="fas fa-bullhorn"></i>
-                Todas as Actualizações
-              </h2>
-              <div class="section-actions">
-                <button class="btn btn-primary" onclick="openSendUpdateModal()">
-                  <i class="fas fa-plus"></i>
-                  Nova Actualização
-                </button>
-                <button class="btn btn-outline" onclick="loadUpdatesSection()">
-                  <i class="fas fa-sync-alt"></i>
-                  Atualizar
-                </button>
-              </div>
-            </div>
-        `;
-        
-        if (allUpdates.length === 0) {
-          html += `
-            <div style="text-align: center; padding: 40px;">
-              <i class="fas fa-bullhorn" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
-              <h3>Nenhuma actualização encontrada</h3>
-              <p>Clique em "Nova Actualização" para criar a primeira</p>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Linha</th>
-                    <th>Mensagem</th>
-                    <th>Administrador</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${allUpdates.map(update => `
-                    <tr>
-                      <td>${formatDate(update.timestamp)}</td>
-                      <td>
-                        <span class="badge badge-primary">
-                          ${update.linha_emoji} ${update.linha_nome}
-                        </span>
-                      </td>
-                      <td>
-                        <div style="max-width: 300px;">
-                          ${update.textoOriginal.replace(/\n/g, '<br>')}
-                        </div>
-                      </td>
-                      <td>${update.adminName}</td>
-                      <td class="actions-cell">
-                        <button class="action-btn copy" onclick="copyToClipboard('${update.textoOriginal.replace(/'/g, "\\'")}')" title="Copiar">
-                          <i class="fas fa-copy"></i>
-                        </button>
-                        <button class="btn btn-whatsapp" style="padding: 5px 10px; font-size: 0.8rem;" onclick="shareOnWhatsApp('${update.textoOriginal.replace(/'/g, "\\'")}', '${update.linha_nome}')" title="Partilhar WhatsApp">
-                          <i class="fab fa-whatsapp"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-        
-        html += `</div>`;
-        container.innerHTML = html;
-        
-      } catch (error) {
-        container.innerHTML = `
-          <div class="section">
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar actualizações</h3>
-              <p>${error.message}</p>
-            </div>
-          </div>
-        `;
-      }
-    }
-    
-    async function loadChatSection() {
-      const container = document.getElementById('sectionsContainer');
-      container.innerHTML = `
-        <div class="section">
-          <div class="section-header">
-            <h2 class="section-title">
-              <i class="fas fa-comments"></i>
-              Chat dos Passageiros
-            </h2>
-            <div class="section-actions">
-              <button class="btn btn-outline" onclick="loadChatSection()">
-                <i class="fas fa-sync-alt"></i>
-                Atualizar
-              </button>
-            </div>
-          </div>
-          
-          <div class="lines-grid">
-            ${userPermittedLines.map(linhaId => `
-              <div class="line-card">
-                <div class="line-header ${linhaId}">
-                  <div class="line-emoji">${LINHAS[linhaId].emoji}</div>
-                  <div class="line-info">
-                    <h3>${LINHAS[linhaId].nome}</h3>
-                    <p>Chat em tempo real</p>
-                  </div>
-                </div>
-                <div class="line-body">
-                  <div id="chat-${linhaId}" style="height: 200px; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px; background: var(--light);">
-                    <div style="text-align: center; padding: 20px;">
-                      <div class="loader"></div>
-                      <p>Carregando mensagens...</p>
-                    </div>
-                  </div>
-                  <button class="btn btn-primary" style="width: 100%;" onclick="openChatModal('${linhaId}')">
-                    <i class="fas fa-eye"></i>
-                    Ver Chat Completo
-                  </button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-      
-      // Carregar mensagens para cada linha permitida
-      for (const linhaId of userPermittedLines) {
-        await loadLineChat(linhaId);
-      }
-    }
-    
-    async function loadLineChat(linhaId) {
-      const container = document.getElementById(`chat-${linhaId}`);
-      if (!container) return;
-      
-      try {
-        const result = await apiCall('chat', { linha: linhaId }, 'GET');
-        
-        if (result.success && result.chat && result.chat.length > 0) {
-          const lastMessages = result.chat.slice(-5);
-          
-          container.innerHTML = lastMessages.map(msg => `
-            <div style="margin-bottom: 10px; padding: 8px; background: white; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong style="color: var(--primary); font-size: 0.9rem;">${msg.usuario}</strong>
-                <small style="color: var(--gray);">${formatTimeAgo(msg.timestamp)}</small>
-              </div>
-              <div style="font-size: 0.9rem;">${msg.mensagem}</div>
-            </div>
-          `).join('');
-        } else {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 30px; color: var(--gray);">
-              <i class="fas fa-comment-slash"></i>
-              <p>Nenhuma mensagem</p>
-            </div>
-          `;
-        }
-      } catch (error) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 20px; color: var(--danger);">
-            <i class="fas fa-exclamation-circle"></i>
-            <p>Erro ao carregar</p>
-          </div>
-        `;
-      }
-    }
-    
     function openChatModal(linhaId) {
-      const linha = LINHAS[linhaId];
-      const modalHtml = `
-        <div class="modal-overlay" id="chatModal">
-          <div class="modal modal-lg">
-            <div class="modal-header">
-              <h2 class="modal-title">
-                ${linha.emoji} Chat - ${linha.nome}
-              </h2>
-              <button class="modal-close" onclick="closeModal('chatModal')">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            
-            <div class="modal-body">
-              <div id="chatMessages" style="height: 400px; overflow-y: auto; margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
-                <div style="text-align: center; padding: 40px;">
-                  <div class="loader"></div>
-                  <p>Carregando mensagens...</p>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="chatFilter">Filtrar por usuário ou conteúdo</label>
-                <input type="text" id="chatFilter" class="form-control" placeholder="Digite para filtrar..." onkeyup="filterChatMessages()">
-              </div>
-            </div>
-            
-            <div class="modal-footer">
-              <button class="btn btn-outline" onclick="closeModal('chatModal')">
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.getElementById('modalsContainer').innerHTML = modalHtml;
-      loadChatMessages(linhaId);
+      showToast('Informação', 'Função de chat em desenvolvimento', 'info');
     }
     
-    async function loadChatMessages(linhaId) {
-      const container = document.getElementById('chatMessages');
-      if (!container) return;
-      
-      try {
-        const result = await apiCall('chat', { linha: linhaId }, 'GET');
-        
-        if (result.success && result.chat && result.chat.length > 0) {
-          container.innerHTML = result.chat.map(msg => `
-            <div class="chat-message" data-user="${msg.usuario}" data-content="${msg.mensagem.toLowerCase()}" style="margin-bottom: 15px; padding: 12px; background: white; border-radius: var(--radius-sm); border-left: 4px solid var(--primary);">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <div>
-                  <strong style="color: var(--primary);">${msg.usuario}</strong>
-                  <small style="color: var(--gray); margin-left: 10px;">${formatDate(msg.timestamp)}</small>
-                </div>
-              </div>
-              <div>${msg.mensagem}</div>
-            </div>
-          `).join('');
-          
-          container.scrollTop = container.scrollHeight;
-        } else {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--gray);">
-              <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 15px;"></i>
-              <h4>Nenhuma mensagem no chat</h4>
-              <p>Os passageiros ainda não enviaram mensagens.</p>
-            </div>
-          `;
-        }
-      } catch (error) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: var(--danger);">
-            <i class="fas fa-exclamation-circle"></i>
-            <h4>Erro ao carregar mensagens</h4>
-            <p>${error.message}</p>
-          </div>
-        `;
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.remove();
       }
     }
     
-    function filterChatMessages() {
-      const filter = document.getElementById('chatFilter').value.toLowerCase();
-      const messages = document.querySelectorAll('.chat-message');
-      
-      messages.forEach(msg => {
-        const user = msg.dataset.user.toLowerCase();
-        const content = msg.dataset.content;
-        const matches = user.includes(filter) || content.includes(filter);
-        msg.style.display = matches ? 'block' : 'none';
-      });
-    }
-    
-    async function loadLinesSection() {
-      const container = document.getElementById('sectionsContainer');
-      container.innerHTML = `
-        <div class="section">
-          <div class="section-header">
-            <h2 class="section-title">
-              <i class="fas fa-train"></i>
-              Linhas de Comboio
-            </h2>
-          </div>
-          
-          <div class="lines-grid">
-            ${userPermittedLines.map(linhaId => {
-              const linha = LINHAS[linhaId];
-              return `
-                <div class="line-card">
-                  <div class="line-header ${linhaId}">
-                    <div class="line-emoji">${linha.emoji}</div>
-                    <div class="line-info">
-                      <h3>${linha.nome}</h3>
-                      <p>ID: ${linhaId}</p>
-                    </div>
-                  </div>
-                  <div class="line-body">
-                    <div style="margin-bottom: 15px;">
-                      <strong style="display: block; margin-bottom: 5px; color: var(--primary);">Configuração:</strong>
-                      <div style="font-size: 0.9rem;">
-                        <div><strong>Aba Updates:</strong> ${linha.updates_sheet}</div>
-                        <div><strong>Aba Chat:</strong> ${linha.chat_sheet}</div>
-                      </div>
-                    </div>
-                    <div class="line-actions">
-                      <button class="btn btn-primary" style="flex: 1;" onclick="openSendUpdateModal('${linhaId}')">
-                        <i class="fas fa-bullhorn"></i>
-                        Nova Actualização
-                      </button>
-                      <button class="btn btn-outline" onclick="openChatModal('${linhaId}')">
-                        <i class="fas fa-comments"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-          
-          <div style="margin-top: 30px; padding: 20px; background: var(--primary-light); border-radius: var(--radius-sm);">
-            <h4 style="color: var(--primary); margin-bottom: 10px;">
-              <i class="fas fa-info-circle"></i>
-              Sobre as Linhas
-            </h4>
-            <p style="font-size: 0.9rem;">
-              Você tem acesso a ${userPermittedLines.length} linha(s). Cada linha tem suas próprias abas no Google Sheets para actualizações e chat.
-            </p>
-          </div>
-        </div>
-      `;
-    }
-    
-    async function loadSettingsSection() {
-      const container = document.getElementById('sectionsContainer');
-      container.innerHTML = `
-        <div class="section">
-          <div class="section-header">
-            <h2 class="section-title">
-              <i class="fas fa-cog"></i>
-              Configurações do Sistema
-            </h2>
-          </div>
-          
-          <div class="form-group">
-            <label for="systemName">Nome do Sistema</label>
-            <input type="text" id="systemName" class="form-control" value="CFM Multi-linhas" disabled>
-          </div>
-          
-          <div class="form-group">
-            <label for="gasUrl">URL do Google Apps Script</label>
-            <input type="text" id="gasUrl" class="form-control" value="${GAS_URL}" disabled>
-            <small style="color: var(--gray);">URL do backend</small>
-          </div>
-          
-          <div class="form-group">
-            <label>Suas Linhas Permitidas</label>
-            <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm);">
-              ${userPermittedLines.map(linhaId => `
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-light);">
-                  <span style="font-size: 1.5rem;">${LINHAS[linhaId].emoji}</span>
-                  <div style="flex: 1;">
-                    <strong>${LINHAS[linhaId].nome}</strong><br>
-                    <small style="color: var(--gray);">ID: ${linhaId}</small>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          
-          <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: var(--radius-sm);">
-            <h4 style="margin-bottom: 10px;">
-              <i class="fas fa-info-circle"></i>
-              Suas Informações
-            </h4>
-            <div style="font-size: 0.9rem;">
-              <div><strong>Nome:</strong> ${currentUser ? currentUser.fullName : 'N/A'}</div>
-              <div><strong>Email:</strong> ${currentUser ? currentUser.email : 'N/A'}</div>
-              <div><strong>Nível:</strong> ${currentUser ? (currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin') : 'N/A'}</div>
-              <div><strong>Linhas:</strong> ${userPermittedLines.length}</div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    
     // ============================================
-    // FUNÇÕES AUXILIARES
-    // ============================================
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Copiado', 'Texto copiado para a área de transferência', 'success');
-      }).catch(() => {
-        showToast('Erro', 'Não foi possível copiar o texto', 'error');
-      });
-    }
-    
-    // ============================================
-    // POLLING E ATUALIZAÇÃO AUTOMÁTICA
+    // POLLING E INICIALIZAÇÃO
     // ============================================
     function startPolling() {
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }
       
-      // Atualizar a cada 30 segundos
       pollingInterval = setInterval(async () => {
-        await updateBadges();
-      }, 30000);
-      
-      // Primeira atualização
-      updateBadges();
+        try {
+          await updateBadges();
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 30000); // Atualizar a cada 30 segundos
     }
     
     async function updateBadges() {
       try {
-        // Atualizar contador de updates
-        let totalUpdatesToday = 0;
+        let totalUpdates = 0;
+        let totalChat = 0;
+        
         for (const linhaId of userPermittedLines) {
           const stats = await getLineStats(linhaId);
-          totalUpdatesToday += stats.today || 0;
+          totalUpdates += stats.today || 0;
+          totalChat += stats.chat_today || 0;
         }
         
-        const updatesBadge = document.getElementById('updatesBadge');
-        if (updatesBadge) {
-          updatesBadge.textContent = totalUpdatesToday;
-          updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
-        }
-        
-        // Atualizar contador de chat
-        let totalChatToday = 0;
-        for (const linhaId of userPermittedLines) {
-          const stats = await getLineStats(linhaId);
-          totalChatToday += stats.chat_today || 0;
-        }
-        
-        const chatBadge = document.getElementById('chatBadge');
-        if (chatBadge) {
-          chatBadge.textContent = totalChatToday;
-          chatBadge.style.display = totalChatToday > 0 ? 'inline' : 'none';
-        }
+        document.getElementById('updatesBadge').textContent = totalUpdates;
+        document.getElementById('chatBadge').textContent = totalChat;
         
       } catch (error) {
         console.error('Error updating badges:', error);
@@ -2796,28 +2906,43 @@ Equipe CFM
     }
     
     // ============================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO DO SISTEMA
     // ============================================
-    document.addEventListener('DOMContentLoaded', function() {
-      // Evento de login
-      document.getElementById('loginForm').addEventListener('submit', function(e) {
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Configurar formulário de login
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const identifier = document.getElementById('loginIdentifier').value;
+        const identifier = document.getElementById('loginIdentifier').value.trim();
         const password = document.getElementById('loginPassword').value;
-        login(identifier, password);
-      });
-      
-      // Tentar validar sessão existente
-      validateSession().then(valid => {
-        if (!valid) {
-          // Mostrar tela de login
-          document.getElementById('loginScreen').style.display = 'flex';
-          document.getElementById('adminPanel').style.display = 'none';
+        
+        if (!identifier || !password) {
+          showToast('Erro', 'Preencha todos os campos', 'error');
+          return;
         }
+        
+        await login(identifier, password);
       });
       
-      // Configurar menu
+      // Verificar sessão existente
+      const hasSession = await validateSession();
+      
+      if (!hasSession) {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('adminPanel').style.display = 'none';
+      }
+      
+      // Configurar menu e eventos
       setupMenu();
+      
+      // Testar conexão inicial
+      try {
+        const testResult = await apiCall('test_connection');
+        if (!testResult.success) {
+          showToast('Aviso', 'Verifique sua conexão com a internet', 'warning');
+        }
+      } catch (error) {
+        console.log('Test connection failed on startup:', error);
+      }
     });
   </script>
 </body>
