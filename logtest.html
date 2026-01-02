@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teste Login Admin</title>
+</head>
+<body>
+  <h1>🔐 Teste de Login CFM</h1>
+  
+  <input id="identifier" placeholder="Email/Telefone" value="benjanuariosite@gmail.com"><br>
+  <input id="password" type="password" placeholder="Senha" value="236523"><br>
+  
+  <button onclick="testarLogin()">Testar Login</button>
+  
+  <div id="resultado"></div>
+  
+  <script>
+    // ⚠️ SUBSTITUA COM SEU URL REAL ⚠️
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxturjlQ6DBjP5kcT9kDdOiJG8sBRXiAfmDh3Pfc4k32nvXBsO2oxbIhf5PlogeIrcI/exec";
+    
+    async function testarLogin() {
+      const identifier = document.getElementById('identifier').value;
+      const password = document.getElementById('password').value;
+      
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = '🔧 Testando...';
+      
+      try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'login');
+        formData.append('identifier', identifier);
+        formData.append('password', password);
+        
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          resultado.innerHTML = `
+            <h3 style="color:green">✅ LOGIN SUCESSO!</h3>
+            <p>Usuário: ${data.user.fullName}</p>
+            <p>Email: ${data.user.email}</p>
+            <p>Token: ${data.token.substring(0, 20)}...</p>
+            <p>O problema está na interface HTML principal.</p>
+          `;
+        } else {
+          resultado.innerHTML = `
+            <h3 style="color:red">❌ LOGIN FALHOU</h3>
+            <p>Erro: ${data.error || 'Desconhecido'}</p>
+            <p>Verifique o GAS_URL: ${GAS_URL}</p>
+          `;
+        }
+        
+      } catch (error) {
+        resultado.innerHTML = `
+          <h3 style="color:red">💥 ERRO DE CONEXÃO</h3>
+          <p>${error.message}</p>
+          <p>URL usado: ${GAS_URL}</p>
+          <p>Verifique se o URL está correto e se o GAS está publicado.</p>
+        `;
+      }
+    }
+    
+    // Teste automático ao carregar
+    window.onload = () => {
+      console.log('🔧 GAS_URL atual:', GAS_URL);
+      console.log('ℹ️ Para testar: Clique no botão "Testar Login"');
+    };
+  </script>
+</body>
+</html>
