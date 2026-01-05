@@ -1215,7 +1215,6 @@ async function submeterCadastro() {
   try {
     console.log("📡 Enviando para GAS...");
     
-    // USAR POST EM VEZ DE GET para cadastro
     const formData = new URLSearchParams();
     formData.append('action', 'cadastro_usuario');
     formData.append('nome', nome);
@@ -1230,29 +1229,54 @@ async function submeterCadastro() {
     });
     
     const resultado = await response.json();
-    console.log("📡 Resposta do GAS:", resultado);
+    console.log("📡 Resposta COMPLETA do GAS:", resultado);
+    console.log("📡 Sucesso?", resultado.success);
+    console.log("📡 Tem userId?", resultado.userId);
+    console.log("📡 Tem nome?", resultado.nome);
+    console.log("📡 Tem telefone?", resultado.telefone);
     
     if (resultado.success) {
-      // SALVAR NO localStorage
-      const usuarioData = {
-        nome: nome,
-        telefone: telefone,
+      // ============================================
+      // CORREÇÃO AQUI - VERIFICAR DADOS
+      // ============================================
+      console.log("✅ Cadastro bem-sucedido!");
+      
+      // Usar os dados que VÊM do GAS (não os do formulário)
+      const usuarioSalvo = {
+        nome: resultado.nome || nome, // Preferir o que vem do GAS
+        telefone: resultado.telefone || telefone,
         userId: resultado.userId || criarIdUsuario(nome, telefone)
       };
       
-      localStorage.setItem("usuario", JSON.stringify(usuarioData));
+      console.log("💾 Salvando no localStorage:", usuarioSalvo);
       
-      currentUser = criarIdUsuario(nome, telefone);
-      console.log("✅ Usuário cadastrado e salvo:", currentUser);
+      localStorage.setItem("usuario", JSON.stringify(usuarioSalvo));
+      localStorage.setItem('cfm_linha_atual', 'bm'); // Linha padrão
+      
+      // Atualizar variável global
+      currentUser = usuarioSalvo.userId;
+      
+      console.log("📱 localStorage após salvar:", localStorage.getItem("usuario"));
+      
+      // ============================================
+      // IR DIRETAMENTE PARA SELEÇÃO DE LINHA
+      // ============================================
+      document.getElementById("capa").classList.add("hidden");
       
       // Carregar linhas disponíveis
-      const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-      const linhasData = await linhasResponse.json();
-      
-      if (linhasData.success) {
-        mostrarSelecaoLinha(linhasData.linhas);
-      } else {
-        // Fallback para linhas padrão
+      try {
+        const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
+        const linhasData = await linhasResponse.json();
+        console.log("📡 Linhas disponíveis:", linhasData);
+        
+        if (linhasData.success) {
+          mostrarSelecaoLinha(linhasData.linhas);
+        } else {
+          throw new Error("Erro ao carregar linhas");
+        }
+      } catch (linhaError) {
+        console.error("❌ Erro ao carregar linhas:", linhaError);
+        // Usar linhas padrão
         mostrarSelecaoLinha(Object.values(LINHAS));
       }
       
@@ -1264,8 +1288,8 @@ async function submeterCadastro() {
     }
     
   } catch (err) {
-    console.error("❌ Erro no cadastro:", err);
-    alert("Erro de conexão. Verifique sua internet e tente novamente.");
+    console.error("❌ Erro de conexão:", err);
+    alert("Erro de conexão. Verifique sua internet.");
     document.getElementById("btnEntrar").style.display = "block";
     document.getElementById("loader").style.display = "none";
   }
