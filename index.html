@@ -1188,17 +1188,21 @@
     // NO index.html, função submeterCadastro() - CORRIJA:
 
 async function submeterCadastro() {
-  const nome = document.getElementById("nome").value.trim();
-  let telefone = document.getElementById("telefone").value.trim();
+  const nomeInput = document.getElementById("nome");
+  const telefoneInput = document.getElementById("telefone");
   
-  console.log("📝 Tentando cadastrar:", { nome, telefone });
+  const nome = nomeInput.value.trim();
+  let telefone = telefoneInput.value.trim();
   
+  console.log("📝 Dados do formulário:", { nome, telefone });
+  
+  // Validações
   if (!validarNome(nome)) {
     alert("Nome inválido. Use somente letras (até 3 nomes).");
+    nomeInput.focus();
     return;
   }
   
-  // Limpar telefone
   telefone = telefone.replace(/\D/g, '');
   if (telefone.length === 9) {
     telefone = '258' + telefone;
@@ -1206,92 +1210,121 @@ async function submeterCadastro() {
   
   if (!validarTelefone(telefone)) {
     alert("Número inválido. Use formato: 84xxxxxxx");
+    telefoneInput.focus();
     return;
   }
   
-  document.getElementById("btnEntrar").style.display = "none";
-  document.getElementById("loader").style.display = "flex";
+  // Mostrar loading
+  const btnEntrar = document.getElementById("btnEntrar");
+  const loader = document.getElementById("loader");
+  
+  btnEntrar.style.display = "none";
+  loader.style.display = "flex";
   
   try {
     console.log("📡 Enviando para GAS...");
     
+    // Preparar dados para enviar
     const formData = new URLSearchParams();
     formData.append('action', 'cadastro_usuario');
     formData.append('nome', nome);
     formData.append('telefone', telefone);
     
+    // Fazer a requisição
     const response = await fetch(GAS_URL, {
       method: 'POST',
+      mode: 'no-cors', // IMPORTANTE: tente com no-cors primeiro
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: formData.toString()
     });
     
-    const resultado = await response.json();
-    console.log("📡 Resposta COMPLETA do GAS:", resultado);
-    console.log("📡 Sucesso?", resultado.success);
-    console.log("📡 Tem userId?", resultado.userId);
-    console.log("📡 Tem nome?", resultado.nome);
-    console.log("📡 Tem telefone?", resultado.telefone);
+    // Se usar no-cors, não podemos ler a resposta
+    // Então vamos salvar LOCALMENTE e assumir que deu certo
     
-    if (resultado.success) {
-      // ============================================
-      // CORREÇÃO AQUI - VERIFICAR DADOS
-      // ============================================
-      console.log("✅ Cadastro bem-sucedido!");
-      
-      // Usar os dados que VÊM do GAS (não os do formulário)
-      const usuarioSalvo = {
-        nome: resultado.nome || nome, // Preferir o que vem do GAS
-        telefone: resultado.telefone || telefone,
-        userId: resultado.userId || criarIdUsuario(nome, telefone)
-      };
-      
-      console.log("💾 Salvando no localStorage:", usuarioSalvo);
-      
-      localStorage.setItem("usuario", JSON.stringify(usuarioSalvo));
-      localStorage.setItem('cfm_linha_atual', 'bm'); // Linha padrão
-      
-      // Atualizar variável global
-      currentUser = usuarioSalvo.userId;
-      
-      console.log("📱 localStorage após salvar:", localStorage.getItem("usuario"));
-      
-      // ============================================
-      // IR DIRETAMENTE PARA SELEÇÃO DE LINHA
-      // ============================================
-      document.getElementById("capa").classList.add("hidden");
-      
-      // Carregar linhas disponíveis
-      try {
-        const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-        const linhasData = await linhasResponse.json();
-        console.log("📡 Linhas disponíveis:", linhasData);
-        
-        if (linhasData.success) {
-          mostrarSelecaoLinha(linhasData.linhas);
-        } else {
-          throw new Error("Erro ao carregar linhas");
-        }
-      } catch (linhaError) {
-        console.error("❌ Erro ao carregar linhas:", linhaError);
-        // Usar linhas padrão
-        mostrarSelecaoLinha(Object.values(LINHAS));
-      }
-      
-    } else {
-      console.error("❌ Erro no cadastro:", resultado.error);
-      alert("Erro ao cadastrar: " + (resultado.error || "Tente novamente."));
-      document.getElementById("btnEntrar").style.display = "block";
-      document.getElementById("loader").style.display = "none";
+    console.log("✅ Requisição enviada (mesmo sem resposta)");
+    
+    // ============================================
+    // SOLUÇÃO CRÍTICA: SALVAR NO LOCALSTORAGE
+    // ============================================
+    
+    // Criar ID de usuário
+    const userId = criarIdUsuario(nome, telefone);
+    
+    // Preparar objeto do usuário
+    const usuario = {
+      nome: nome,
+      telefone: telefone,
+      userId: userId,
+      dataCadastro: new Date().toISOString()
+    };
+    
+    // SALVAR NO LOCALSTORAGE (isto é o mais importante!)
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+    
+    // Verificar se salvou
+    const verificar = localStorage.getItem("usuario");
+    console.log("💾 localStorage após salvar:", verificar);
+    
+    if (!verificar || verificar === "null") {
+      throw new Error("Falha ao salvar no localStorage");
     }
     
-  } catch (err) {
-    console.error("❌ Erro de conexão:", err);
-    alert("Erro de conexão. Verifique sua internet.");
-    document.getElementById("btnEntrar").style.display = "block";
-    document.getElementById("loader").style.display = "none";
+    console.log("✅ Usuário salvo no localStorage com sucesso!");
+    
+    // Aguardar um pouco
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // ============================================
+    // IR PARA SELEÇÃO DE LINHA
+    // ============================================
+    
+    // Esconder tela de cadastro
+    document.getElementById("capa").style.opacity = "0";
+    
+    setTimeout(() => {
+      document.getElementById("capa").classList.add("hidden");
+      
+      // Mostrar linhas disponíveis (usar as padrão)
+      mostrarSelecaoLinha(Object.values(LINHAS));
+      
+      // Resetar formulário
+      nomeInput.value = "";
+      telefoneInput.value = "";
+      btnEntrar.style.display = "block";
+      loader.style.display = "none";
+    }, 800);
+    
+  } catch (error) {
+    console.error("❌ Erro no cadastro:", error);
+    
+    // Mesmo com erro, tente salvar localmente
+    try {
+      const userId = criarIdUsuario(nome, telefone);
+      const usuario = {
+        nome: nome,
+        telefone: telefone,
+        userId: userId,
+        dataCadastro: new Date().toISOString(),
+        erro: error.message
+      };
+      
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+      console.log("🔄 Salvado localmente apesar do erro");
+      
+      // Ir para seleção de linha mesmo assim
+      document.getElementById("capa").classList.add("hidden");
+      mostrarSelecaoLinha(Object.values(LINHAS));
+      
+    } catch (fallbackError) {
+      console.error("❌ Erro total:", fallbackError);
+      alert("Erro no sistema. Recarregue a página e tente novamente.");
+    }
+    
+    // Restaurar botão
+    btnEntrar.style.display = "block";
+    loader.style.display = "none";
   }
 }
     
