@@ -1510,96 +1510,150 @@ async function submeterCadastro() {
     }
     
     async function carregarAtualizacoesLinha(showNotification = false) {
-        if (!currentLine) return;
-        
-        const container = document.getElementById('updates-content');
-        const loader = document.getElementById('updatesLoader');
-        loader.classList.add('visible');
-        
-        try {
-            const response = await fetch(`${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`);
-            const data = await response.json();
-            
-            if (data.success && data.updates) {
-                const updates = data.updates;
-                renderUpdates(updates, container);
-                updateStatsBadge(updates.length);
-                
-                if (showNotification && updates.length > lastUpdateCount) {
-                    showNewUpdateNotification(updates.length - lastUpdateCount);
-                }
-                lastUpdateCount = updates.length;
-                
-            } else {
-                container.innerHTML = `<p class="waiting">Nenhuma actualização para ${LINHAS[currentLine].nome}</p>`;
-            }
-            
-        } catch (e) {
-            console.error('Erro ao carregar actualizações:', e);
-            container.innerHTML = '<p class="waiting">Erro ao carregar actualizações</p>';
-        } finally {
-            loader.classList.remove('visible');
-            updateLastUpdateTime();
-        }
+  if (!currentLine) {
+    console.error("❌ Nenhuma linha selecionada");
+    return;
+  }
+  
+  console.log(`📡 Carregando atualizações para linha: ${currentLine}`);
+  
+  const container = document.getElementById('updates-content');
+  const loader = document.getElementById('updatesLoader');
+  
+  loader.classList.add('visible');
+  container.innerHTML = '<p class="waiting">A carregar actualizações...</p>';
+  
+  try {
+    // URL CORRETA para buscar atualizações
+    const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
+    console.log("🔗 URL:", url);
+    
+    const response = await fetch(url);
+    console.log("📡 Status:", response.status);
+    
+    const data = await response.json();
+    console.log("📦 Dados recebidos:", data);
+    
+    if (data.success && data.updates) {
+      console.log(`✅ ${data.updates.length} atualizações encontradas`);
+      renderUpdates(data.updates, container);
+      updateStatsBadge(data.updates.length);
+      
+      if (showNotification && data.updates.length > lastUpdateCount) {
+        showNewUpdateNotification(data.updates.length - lastUpdateCount);
+      }
+      lastUpdateCount = data.updates.length;
+      
+    } else {
+      console.warn("⚠️ Nenhuma atualização ou erro:", data.error);
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <i class="fas fa-train" style="font-size: 3rem; margin-bottom: 15px;"></i>
+          <h3>Nenhuma actualização disponível</h3>
+          <p>Ainda não há actualizações para a linha ${LINHAS[currentLine].nome}</p>
+          <p><small>As actualizações aparecerão aqui quando disponíveis</small></p>
+        </div>
+      `;
     }
     
+  } catch (e) {
+    console.error('❌ Erro ao carregar actualizações:', e);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #c62828;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+        <h3>Erro ao carregar actualizações</h3>
+        <p>${e.message}</p>
+        <button onclick="carregarAtualizacoesLinha()" style="margin-top: 15px; padding: 10px 20px; background: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          <i class="fas fa-redo"></i> Tentar Novamente
+        </button>
+      </div>
+    `;
+  } finally {
+    loader.classList.remove('visible');
+    updateLastUpdateTime();
+  }
+}
+    
     function renderUpdates(updates, container) {
-        const sortedUpdates = [...updates].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        const animationDelays = sortedUpdates.map((_, index) => `${index * 0.05}s`);
-        
-        const html = sortedUpdates.map((u, index) => {
-            let adminName = u.adminName || "Administração CFM";
-            if (!adminName.startsWith("🛡️ADM")) {
-                adminName = `🛡️ADM ${adminName}`;
-            }
-
-            const time = new Date(u.timestamp).toLocaleString('pt-MZ', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const textLower = u.textoOriginal.toLowerCase();
-            let icon = '📢';
-            if (textLower.includes('atraso') || textLower.includes('atrasado')) icon = '⏰';
-            if (textLower.includes('cancel') || textLower.includes('cancelado')) icon = '❌';
-            if (textLower.includes('importante') || textLower.includes('urgente')) icon = '⚠️';
-            if (textLower.includes('horário') || textLower.includes('hora')) icon = '🕒';
-            if (textLower.includes('partida') || textLower.includes('chegada')) icon = '🚂';
-
-            const isNew = (Date.now() - new Date(u.timestamp).getTime()) < 300000;
-
-            let formattedText = u.textoOriginal
-                .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
-
-            return `
-                <div class="update-card ${isNew ? 'new' : ''}" style="animation-delay: ${animationDelays[index]};">
-                    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
-                        <span style="font-size:1.5rem;flex-shrink:0;">${icon}</span>
-                        <div style="flex:1;">
-                            <div class="admin-info" style="margin:0;">
-                                <span class="admin-name">${adminName}</span>
-                                <span>${time}</span>
-                            </div>
-                            <div class="original-message">${formattedText}</div>
-                        </div>
-                    </div>
-                    <div class="update-actions">
-                        <button onclick="copyToClipboard(\`${escapeText(u.textoOriginal)}\`)" class="update-action-btn copy" title="Copiar">
-                            <i class="far fa-copy"></i> Copiar
-                        </button>
-                        <button onclick="shareUpdate(\`${escapeText(u.textoOriginal)}\`)" class="update-action-btn share" title="Partilhar">
-                            <i class="fas fa-share-alt"></i> Partilhar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        container.innerHTML = html;
+  console.log("🎨 Renderizando", updates.length, "atualizações");
+  
+  if (updates.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #666;">
+        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+        <h3>Nenhuma actualização ainda</h3>
+        <p>Seja o primeiro a receber actualizações!</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Ordenar por data (mais recente primeiro)
+  const sortedUpdates = [...updates].sort((a, b) => 
+    new Date(b.timestamp) - new Date(a.timestamp)
+  );
+  
+  const html = sortedUpdates.map((u, index) => {
+    // Formatar nome do admin
+    let adminName = u.adminName || "Administração CFM";
+    if (!adminName.includes("🛡️") && !adminName.includes("ADM")) {
+      adminName = `🛡️ADM ${adminName}`;
     }
+    
+    // Formatar data
+    const time = new Date(u.timestamp).toLocaleString('pt-MZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Escolher ícone baseado no conteúdo
+    const textLower = (u.textoOriginal || '').toLowerCase();
+    let icon = '📢';
+    if (textLower.includes('atraso') || textLower.includes('atrasado')) icon = '⏰';
+    if (textLower.includes('cancel') || textLower.includes('cancelado')) icon = '❌';
+    if (textLower.includes('importante') || textLower.includes('urgente')) icon = '⚠️';
+    if (textLower.includes('horário') || textLower.includes('hora')) icon = '🕒';
+    if (textLower.includes('partida') || textLower.includes('chegada')) icon = '🚂';
+    
+    // Verificar se é nova (últimas 5 horas)
+    const isNew = (Date.now() - new Date(u.timestamp).getTime()) < (5 * 60 * 60 * 1000);
+    
+    // Formatar texto (preservar quebras de linha)
+    let formattedText = (u.textoOriginal || '')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    
+    return `
+      <div class="update-card ${isNew ? 'new' : ''}" style="animation-delay: ${index * 0.05}s;">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <span style="font-size:1.5rem;flex-shrink:0;">${icon}</span>
+          <div style="flex:1;">
+            <div class="admin-info" style="margin:0;">
+              <span class="admin-name">${adminName}</span>
+              <span>${time}</span>
+            </div>
+            <div class="original-message">${formattedText}</div>
+          </div>
+        </div>
+        <div class="update-actions">
+          <button onclick="copyToClipboard(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn copy" title="Copiar">
+            <i class="far fa-copy"></i> Copiar
+          </button>
+          <button onclick="shareUpdate(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn share" title="Partilhar">
+            <i class="fas fa-share-alt"></i> Partilhar
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  container.innerHTML = html;
+  console.log("✅ Atualizações renderizadas com sucesso");
+}
     
     function escapeText(text) {
         return text.replace(/`/g, "\\`").replace(/\n/g, "\\n");
@@ -1753,149 +1807,189 @@ async function submeterCadastro() {
     }
     
     async function loadChatMessages() {
-        if (!currentLine) {
-            showToast("Selecione uma linha primeiro", "warning");
-            document.getElementById('chatScreen').style.display = 'none';
-            return;
-        }
+  if (!currentLine) {
+    showToast("Selecione uma linha primeiro", "warning");
+    document.getElementById('chatScreen').style.display = 'none';
+    return;
+  }
+  
+  const el = document.getElementById('chat-messages');
+  el.innerHTML = '<div class="waiting">Carregando mensagens...</div>';
+  
+  console.log(`💬 Carregando chat para linha: ${currentLine}`);
+  
+  try {
+    // URL para buscar chat
+    const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
+    console.log("🔗 Chat URL:", url);
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    console.log("📦 Dados do chat:", data);
+    
+    if (data.success && data.chat && data.chat.length > 0) {
+      const chat = data.chat;
+      
+      // Ordenar por data (mais antiga primeiro)
+      chat.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      
+      el.innerHTML = chat.map(m => {
+        const isCurrentUser = m.usuario === getChatUserId();
         
-        const el = document.getElementById('chat-messages');
-        try {
-            const response = await fetch(`${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`);
-            const data = await response.json();
-            
-            if (data.success && data.chat) {
-                const chat = data.chat;
-                chat.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-                if (chat.length === 0) {
-                    el.innerHTML = '<div class="waiting">Nenhuma mensagem ainda.</div>';
-                    return;
-                }
-
-                el.innerHTML = chat.map(m => {
-                    const isCurrentUser = m.usuario === getChatUserId();
-                    
-                    let filtered = m.mensagem.replace(
-                        /estúpida|estúpido|merda|caralho|foder|vagina|porra|puta|puto|cacete|buceta|pênis|pau|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|otário|babaca|canalha|safado|vagabundo|nojento|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta|http:|https|www.|.com|.net|.org|bit.ly|t.co|tinyurl|goo.gl|instagram.com|facebook.com|whatsapp.com|telegram.me/gi,
-                        ''
-                    );
-
-                    return `
-                        <div class="message-container">
-                            <div class="message ${isCurrentUser ? 'sent' : 'received'}">
-                                <div class="message-sender">${m.usuario}</div>
-                                <div class="message-text">${filtered}</div>
-                                <div class="message-info">
-                                    <span>${new Date(m.timestamp).toLocaleTimeString('pt-MZ', {hour:'2-digit',minute:'2-digit'})}</span>
-                                    ${isCurrentUser ? '<span><i class="fas fa-check"></i></span>' : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine].nome}`;
-
-                if (chat.length > 0) {
-                    const ultima = chat[chat.length - 1];
-                    ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
-                }
-
-                el.scrollTop = el.scrollHeight;
-                
-            } else {
-                el.innerHTML = '<div class="waiting">Nenhuma mensagem ainda.</div>';
-            }
-            
-        } catch (e) {
-            console.error('Erro ao carregar chat:', e);
-            el.innerHTML = '<div class="message received"><div class="message-text">Erro ao carregar chat.</div></div>';
-        }
+        // Filtrar palavras ofensivas
+        let mensagemFiltrada = (m.mensagem || '')
+          .replace(/estúpida|estúpido|merda|caralho|foder|vagina|porra|puta|puto|cacete|buceta|pênis|pau|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|otário|babaca|canalha|safado|vagabundo|nojento|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
+          .replace(/http:|https:|www\.|\.com|\.net|\.org|bit\.ly|t\.co|tinyurl|goo\.gl|instagram\.com|facebook\.com|whatsapp\.com|telegram\.me/gi, '');
+        
+        return `
+          <div class="message-container">
+            <div class="message ${isCurrentUser ? 'sent' : 'received'}">
+              <div class="message-sender">${m.usuario || 'Passageiro'}</div>
+              <div class="message-text">${mensagemFiltrada}</div>
+              <div class="message-info">
+                <span>${new Date(m.timestamp).toLocaleTimeString('pt-MZ', {hour:'2-digit',minute:'2-digit'})}</span>
+                ${isCurrentUser ? '<span><i class="fas fa-check"></i></span>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Atualizar título
+      document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine].nome}`;
+      
+      // Atualizar timestamp da última mensagem
+      if (chat.length > 0) {
+        const ultima = chat[chat.length - 1];
+        ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
+      }
+      
+      // Rolar para baixo
+      el.scrollTop = el.scrollHeight;
+      
+      console.log(`✅ ${chat.length} mensagens carregadas`);
+      
+    } else {
+      el.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px;"></i>
+          <h3>Nenhuma mensagem ainda</h3>
+          <p>Seja o primeiro a enviar uma mensagem!</p>
+        </div>
+      `;
     }
+    
+  } catch (e) {
+    console.error('❌ Erro ao carregar chat:', e);
+    el.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #c62828;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+        <h3>Erro ao carregar chat</h3>
+        <p>${e.message}</p>
+      </div>
+    `;
+  }
+}
     
     async function sendChatMessage() {
-        if (!currentLine) {
-            showToast("Selecione uma linha primeiro", "warning");
-            return;
-        }
-        
-        const input = document.getElementById('chat-text');
-        const btn = document.getElementById('chat-send');
-        const msg = input.value.trim();
+  if (!currentLine) {
+    showToast("Selecione uma linha primeiro", "warning");
+    return;
+  }
+  
+  const input = document.getElementById('chat-text');
+  const btn = document.getElementById('chat-send');
+  const msg = input.value.trim();
 
-        if (!msg) return;
+  if (!msg) {
+    showToast("Digite uma mensagem", "warning");
+    return;
+  }
+  
+  if (msg.length > 280) {
+    showToast("Mensagem muito longa (máx. 280 caracteres)", "warning");
+    return;
+  }
 
-        btn.classList.add('loading');
-        btn.disabled = true;
-        const textoOriginal = input.value;
-        input.value = '';
+  // Salvar texto original
+  const textoOriginal = input.value;
+  
+  // Desabilitar botão e mostrar loading
+  btn.classList.add('loading');
+  btn.disabled = true;
+  input.disabled = true;
+  
+  // Limpar input imediatamente para melhor UX
+  input.value = '';
 
-        try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'chat');
-            formData.append('msg', msg);
-            formData.append('userId', getChatUserId());
-            formData.append('linha', currentLine);
+  try {
+    console.log(`💬 Enviando mensagem para linha ${currentLine}:`, msg);
+    
+    const formData = new URLSearchParams();
+    formData.append('action', 'chat');
+    formData.append('msg', msg);
+    formData.append('userId', getChatUserId());
+    formData.append('linha', currentLine);
 
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                body: formData
-            });
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      },
+      body: formData.toString()
+    });
 
-            const result = await response.json();
-            
-            if (result.success) {
-                setTimeout(async () => {
-                    await loadChatMessages();
-                }, 1000);
-                
-                showToast("Mensagem enviada!", "success");
-                
-            } else {
-                throw new Error(result.error || 'Falha no servidor');
-            }
-            
-        } catch (e) {
-            console.error('Erro ao enviar:', e);
-            showToast("Erro ao enviar mensagem", "error");
-            input.value = textoOriginal;
-        } finally {
-            btn.classList.remove('loading');
-            btn.disabled = false;
-        }
+    const result = await response.json();
+    console.log("📡 Resposta do envio:", result);
+    
+    if (result.success) {
+      // Mostrar mensagem localmente imediatamente
+      const chatContainer = document.getElementById('chat-messages');
+      const novaMensagemHTML = `
+        <div class="message-container">
+          <div class="message sent">
+            <div class="message-sender">${getChatUserId()}</div>
+            <div class="message-text">${msg.replace(/[<>]/g, '')}</div>
+            <div class="message-info">
+              <span>Agora</span>
+              <span><i class="fas fa-check"></i></span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Adicionar ao final
+      chatContainer.innerHTML += novaMensagemHTML;
+      
+      // Rolar para baixo
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      
+      showToast("Mensagem enviada!", "success");
+      
+      // Atualizar timestamp
+      ultimaVerificacaoChat = Date.now();
+      
+    } else {
+      throw new Error(result.error || 'Falha ao enviar mensagem');
     }
     
-    document.getElementById('openChat').addEventListener('click', () => {
-        if (!currentLine) {
-            showToast("Selecione uma linha primeiro", "warning");
-            return;
-        }
-        
-        document.getElementById('chatScreen').style.display = 'flex';
-        loadChatMessages();
-        iniciarPollingChat();
-        
-        const badge = document.getElementById('chatBadge');
-        badge.textContent = '0';
-        badge.style.display = 'none';
-    });
+  } catch (e) {
+    console.error('❌ Erro ao enviar:', e);
     
-    document.getElementById('closeChat').addEventListener('click', () => {
-        document.getElementById('chatScreen').style.display = 'none';
-        if (pollingInterval) {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
-        }
-    });
+    // Restaurar mensagem no input
+    input.value = textoOriginal;
     
-    document.getElementById('chat-send').addEventListener('click', sendChatMessage);
-    document.getElementById('chat-text').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendChatMessage();
-        }
-    });
+    showToast("Erro ao enviar mensagem: " + e.message, "error");
+    
+  } finally {
+    // Restaurar botão
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
     
     function iniciarPollingChat() {
         if (pollingInterval) clearInterval(pollingInterval);
