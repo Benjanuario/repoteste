@@ -1137,7 +1137,7 @@
 
   <script>
     // ============================================
-    // CONFIGURAÇÕES PRINCIPAIS - ATUALIZADO
+    // CONFIGURAÇÕES PRINCIPAIS
     // ============================================
     // ⚠️ SUBSTITUA COM SEU URL DO GOOGLE APPS SCRIPT ⚠️
     const GAS_URL = "https://script.google.com/macros/s/AKfycby1SgFGXMyKhivC7n86ScN7jWNXMRVsoefO3lbZBTh40WKBluzeq1LXJlxYqy1Ey6xR/exec";
@@ -1178,7 +1178,7 @@
     let userPermittedLines = [];
     
     // ============================================
-    // FUNÇÕES DE UTILIDADE (MANTIDAS)
+    // FUNÇÕES DE UTILIDADE
     // ============================================
     function showLoader() {
       document.getElementById('loaderOverlay').style.display = 'flex';
@@ -1266,218 +1266,179 @@
     }
 
     // ============================================
-    // FUNÇÕES DE API - CORRIGIDAS PARA LOGIN
+    // FUNÇÕES DE API - SIMPLIFICADAS
     // ============================================
     async function apiCall(action, data = {}, method = 'POST') {
-  console.log(`📡 API Call → ${action}`, data);
-
-  const url = GAS_URL;
-  const params = new URLSearchParams();
-
-  params.append('action', action);
-
-  // Token automático (exceto login)
-  if (currentToken && action !== 'login' && !data.token) {
-    params.append('token', currentToken);
-  }
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      params.append(key, value.toString());
-    }
-  });
-
-  try {
-    let response;
-
-    if (method === 'GET') {
-      response = await fetch(`${url}?${params.toString()}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
+      console.log(`📡 API Call → ${action}`, data);
+      
+      const url = GAS_URL;
+      const params = new URLSearchParams();
+      
+      params.append('action', action);
+      
+      // Adicionar token se existir (exceto para login)
+      if (currentToken && action !== 'login') {
+        params.append('token', currentToken);
+      }
+      
+      // Adicionar dados
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
       });
-    } else {
-      response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-        },
-        body: params.toString()
-      });
+      
+      try {
+        let response;
+        
+        if (method === 'GET') {
+          response = await fetch(`${url}?${params.toString()}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+          });
+        } else {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+            body: params.toString()
+          });
+        }
+        
+        console.log('HTTP Status:', response.status);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Erro HTTP ${response.status}: ${text.substring(0, 100)}`);
+        }
+        
+        const text = await response.text();
+        
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw new Error('Resposta inválida do servidor');
+        }
+        
+      } catch (error) {
+        console.error('❌ API Error:', error);
+        showToast('Erro de Comunicação', error.message, 'error');
+        return { success: false, error: error.message };
+      }
     }
-
-    console.log('HTTP Status:', response.status);
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Erro HTTP ${response.status}: ${text.substring(0, 100)}`);
-    }
-
-    const text = await response.text();
-    console.log('Raw response:', text);
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error('Resposta inválida do servidor (JSON esperado)');
-    }
-
-  } catch (error) {
-    console.error('❌ API Error:', error);
-
-    showToast(
-      'Erro de Comunicação',
-      'Não foi possível comunicar com o servidor.',
-      'error'
-    );
-
-    return { success: false, error: error.message };
-  }
-}
 
     // ============================================
-// API VIA JSONP (SEM CORS - GAS)
-// ============================================
-function apiCallJSONP(action, data = {}) {
-  return new Promise((resolve, reject) => {
-    const callbackName = 'jsonp_cb_' + Date.now();
-
-    window[callbackName] = (response) => {
-      delete window[callbackName];
-      script.remove();
-      resolve(response);
-    };
-
-    const params = new URLSearchParams({
-      action,
-      callback: callbackName,
-      ...data
-    });
-
-    const script = document.createElement('script');
-    script.src = `${GAS_URL}?${params.toString()}`;
-    script.onerror = () => {
-      delete window[callbackName];
-      reject(new Error('Erro JSONP'));
-    };
-
-    document.body.appendChild(script);
-  });
-}
-
-
-    // ============================================
-    // SISTEMA DE AUTENTICAÇÃO - CORRIGIDO
+    // SISTEMA DE AUTENTICAÇÃO
     // ============================================
     async function login(identifier, password) {
-  console.log('🔐 Login iniciado');
-
-  if (!identifier || !password) {
-    showToast('Erro', 'Preencha todos os campos', 'error');
-    return;
-  }
-
-  showLoader();
-
-  try {
-    const result = await apiCallJSONP('login', {
-  identifier,
-  password
-});
-    if (!result || !result.success) {
-      throw new Error(result?.error || 'Credenciais inválidas');
+      console.log('🔐 Tentando login com:', identifier);
+      
+      if (!identifier || !password) {
+        showToast('Erro', 'Preencha todos os campos', 'error');
+        return;
+      }
+      
+      showLoader();
+      
+      try {
+        const result = await apiCall('login', { identifier, password });
+        
+        if (result.success) {
+          currentUser = result.user;
+          currentToken = result.token;
+          
+          // Processar linhas permitidas
+          userPermittedLines = result.user.linhas_permitidas 
+            ? result.user.linhas_permitidas.split(',').map(l => l.trim())
+            : Object.keys(LINHAS);
+          
+          // Salvar sessão
+          localStorage.setItem('cfm_admin_token', currentToken);
+          localStorage.setItem('cfm_admin_user', JSON.stringify(currentUser));
+          localStorage.setItem('cfm_admin_lines', JSON.stringify(userPermittedLines));
+          
+          showToast('Login bem-sucedido', `Bem-vindo, ${result.user.fullName}!`, 'success');
+          
+          // Mostrar painel
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'flex';
+          
+          // Inicializar
+          loadUserInfo();
+          loadDashboard();
+          startPolling();
+          
+        } else {
+          showToast('Erro no login', result.error || 'Credenciais inválidas', 'error');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showToast('Erro', 'Falha na comunicação com o servidor', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    async function validateSession() {
+      const token = localStorage.getItem('cfm_admin_token');
+      const user = JSON.parse(localStorage.getItem('cfm_admin_user') || 'null');
+      const lines = JSON.parse(localStorage.getItem('cfm_admin_lines') || '[]');
+      
+      if (!token || !user) {
+        return false;
+      }
+      
+      showLoader();
+      try {
+        const result = await apiCall('validate_session', { token });
+        
+        if (result.success) {
+          currentUser = user;
+          currentToken = token;
+          userPermittedLines = lines || [];
+          
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'flex';
+          
+          loadUserInfo();
+          loadDashboard();
+          startPolling();
+          
+          return true;
+        }
+      } catch (error) {
+        console.error('Session validation failed:', error);
+      } finally {
+        hideLoader();
+      }
+      
+      return false;
+    }
+    
+    function logout() {
+      if (confirm('Tem certeza que deseja sair?')) {
+        localStorage.removeItem('cfm_admin_token');
+        localStorage.removeItem('cfm_admin_user');
+        localStorage.removeItem('cfm_admin_lines');
+        
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+        }
+        
+        currentUser = null;
+        currentToken = null;
+        userPermittedLines = [];
+        
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('adminPanel').style.display = 'none';
+        
+        showToast('Logout', 'Sessão encerrada com sucesso', 'info');
+      }
     }
 
-    // Sessão
-    currentUser = result.user;
-    currentToken = result.token;
-
-    userPermittedLines = result.user?.linhas_permitidas
-      ? result.user.linhas_permitidas.split(',').map(l => l.trim())
-      : Object.keys(LINHAS);
-
-    // Persistência
-    localStorage.setItem('cfm_admin_token', currentToken);
-    localStorage.setItem('cfm_admin_user', JSON.stringify(currentUser));
-    localStorage.setItem('cfm_admin_lines', JSON.stringify(userPermittedLines));
-
-    showToast(
-      'Login bem-sucedido',
-      `Bem-vindo, ${currentUser.fullName}!`,
-      'success'
-    );
-
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'flex';
-
-    loadUserInfo();
-    loadDashboard();
-    startPolling();
-
-  } catch (error) {
-    console.error('❌ Login error:', error);
-    showToast('Erro no login', error.message, 'error');
-  } finally {
-    hideLoader();
-  }
-}
-
-    function logout() {
-  if (!confirm('Tem certeza que deseja sair?')) return;
-
-  localStorage.clear();
-
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-  }
-
-  currentUser = null;
-  currentToken = null;
-  userPermittedLines = [];
-
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('adminPanel').style.display = 'none';
-
-  showToast('Logout', 'Sessão encerrada com sucesso', 'info');
-}
-
-async function validateSession() {
-  const token = localStorage.getItem('cfm_admin_token');
-  const user = JSON.parse(localStorage.getItem('cfm_admin_user') || 'null');
-  const lines = JSON.parse(localStorage.getItem('cfm_admin_lines') || '[]');
-
-  if (!token || !user) return false;
-
-  showLoader();
-
-  try {
-    const result = await apiCall('validate_session', { token });
-
-    if (!result?.success) return false;
-
-    currentToken = token;
-    currentUser = user;
-    userPermittedLines = lines;
-
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'flex';
-
-    loadUserInfo();
-    loadDashboard();
-    startPolling();
-
-    return true;
-
-  } catch (error) {
-    console.error('Sessão inválida:', error);
-    return false;
-  } finally {
-    hideLoader();
-  }
-}
-
     // ============================================
-    // FUNÇÕES DE INTERFACE (MANTIDAS)
+    // FUNÇÕES DE INTERFACE
     // ============================================
     function loadUserInfo() {
       if (!currentUser) return;
@@ -1574,7 +1535,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // CARREGAMENTO DE SEÇÕES (MANTIDAS)
+    // CARREGAMENTO DE SEÇÕES
     // ============================================
     async function loadSection(section) {
       const container = document.getElementById('sectionsContainer');
@@ -1607,7 +1568,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // DASHBOARD (MANTIDA)
+    // DASHBOARD
     // ============================================
     async function loadDashboard() {
       const container = document.getElementById('sectionsContainer');
@@ -2022,7 +1983,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // CRIAÇÃO DE ADMINISTRADORES (MANTIDA)
+    // CRIAÇÃO DE ADMINISTRADORES
     // ============================================
     function openNewAdminModal() {
       const modalHtml = `
@@ -2386,7 +2347,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // OUTRAS SEÇÕES (MANTIDAS)
+    // OUTRAS SEÇÕES
     // ============================================
     async function loadUpdatesSection() {
       const container = document.getElementById('sectionsContainer');
@@ -2777,7 +2738,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // FUNÇÕES AUXILIARES (MANTIDAS)
+    // FUNÇÕES AUXILIARES
     // ============================================
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -2788,7 +2749,7 @@ async function validateSession() {
     }
 
     // ============================================
-    // POLLING E ATUALIZAÇÃO AUTOMÁTICA (MANTIDA)
+    // POLLING E ATUALIZAÇÃO AUTOMÁTICA
     // ============================================
     function startPolling() {
       if (pollingInterval) {
@@ -2838,7 +2799,33 @@ async function validateSession() {
     }
 
     // ============================================
-    // INICIALIZAÇÃO - CORRIGIDA
+    // TESTE DE CONEXÃO
+    // ============================================
+    async function testConnection() {
+      console.log('🔗 Testando conexão com GAS...');
+      
+      try {
+        const response = await fetch(GAS_URL + '?action=test&_=' + Date.now());
+        const text = await response.text();
+        
+        console.log('Status:', response.status);
+        console.log('Response:', text.substring(0, 200));
+        
+        if (response.ok) {
+          console.log('✅ Conexão OK');
+          return true;
+        } else {
+          console.warn('⚠️ Conexão problema:', response.status);
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ Erro de conexão:', error);
+        return false;
+      }
+    }
+
+    // ============================================
+    // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
       console.log('=== SISTEMA ADMIN CFM INICIANDO ===');
@@ -2868,19 +2855,7 @@ async function validateSession() {
       });
       
       // Testar conexão com o servidor
-      setTimeout(() => {
-        console.log('Testando conexão com servidor...');
-        fetch(GAS_URL + '?action=test&_=' + Date.now())
-          .then(response => {
-            console.log('Conexão status:', response.status);
-            if (!response.ok) {
-              console.warn('Servidor pode não estar respondendo corretamente');
-            }
-          })
-          .catch(error => {
-            console.error('Erro de conexão:', error);
-          });
-      }, 1000);
+      setTimeout(testConnection, 1000);
       
       // Tentar validar sessão existente
       validateSession().then(valid => {
