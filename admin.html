@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🛡️ Admin CFM - Multi-linhas</title>
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* ============================================
@@ -918,24 +916,76 @@
     }
 
     /* ============================================
-       ADMIN STATUS
+       TELA DE PRIMEIRO ACESSO
        ============================================ */
-    .admin-status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 500;
-      margin-left: 8px;
+    .primeiro-acesso-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.5s ease;
     }
 
-    .status-active { background: #e8f5e9; color: var(--success); }
-    .status-suspended { background: #ffebee; color: var(--danger); }
+    .primeiro-acesso-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      animation: fadeIn 0.6s ease;
+    }
+
+    .primeiro-acesso-card h2 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .primeiro-acesso-card p {
+      color: var(--gray);
+      text-align: center;
+      margin-bottom: 30px;
+    }
   </style>
 </head>
 <body>
-  <!-- PAINEL ADMIN (SEM TELA DE LOGIN) -->
-  <div class="container">
+  <!-- TELA DE PRIMEIRO ACESSO -->
+  <div class="primeiro-acesso-overlay" id="primeiroAcessoScreen">
+    <div class="primeiro-acesso-card">
+      <h2><i class="fas fa-user-shield"></i> Primeiro Acesso Admin</h2>
+      <p>Insira seus dados para criar a conta de administrador</p>
+      
+      <div class="form-group">
+        <label for="adminNome">Nome Completo</label>
+        <input type="text" id="adminNome" class="form-control" 
+          placeholder="Seu nome completo" maxlength="50">
+      </div>
+      
+      <div class="form-group">
+        <label for="adminTelefone">Telefone</label>
+        <input type="tel" id="adminTelefone" class="form-control" 
+          placeholder="84xxxxxxx" pattern="[0-9]{9}" maxlength="9"
+          oninput="this.value = this.value.replace(/\D/g, '')">
+        <small style="color: var(--gray);">9 dígitos sem código do país</small>
+      </div>
+      
+      <button class="btn btn-primary" style="width:100%; margin-top:20px;" 
+        onclick="registrarPrimeiroAcesso()">
+        <i class="fas fa-user-plus"></i> Criar Conta Admin
+      </button>
+    </div>
+  </div>
+
+  <!-- PAINEL ADMIN -->
+  <div class="container" style="display: none;" id="adminContainer">
     <button class="menu-toggle" id="menuToggle">
       <i class="fas fa-bars"></i>
     </button>
@@ -953,9 +1003,9 @@
       </div>
       
       <div class="user-info" id="userInfo">
-        <h3>Administrador CFM</h3>
-        <p id="userEmail">sistema@cfm.co.mz</p>
-        <span class="user-role" id="userRole">Super Admin</span>
+        <h3 id="adminFullName">Administrador CFM</h3>
+        <p id="adminEmail">admin@cfm.co.mz</p>
+        <span class="user-role" id="adminRole">Admin</span>
       </div>
       
       <div class="menu">
@@ -1031,7 +1081,7 @@
         </button>
       </div>
       
-      <!-- SEÇÕES (serão carregadas dinamicamente) -->
+      <!-- SEÇÕES -->
       <div id="sectionsContainer">
         <!-- Dashboard será carregada aqui inicialmente -->
       </div>
@@ -1055,48 +1105,31 @@
     // ============================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxturjlQ6DBjP5kcT9kDdOiJG8sBRXiAfmDh3Pfc4k32nvXBsO2oxbIhf5PlogeIrcI/exec";
     
-    // Configuração das Linhas (SINCRONIZADO COM CODIGO.GS)
     const LINHAS = {
       'bm': {
         id: 'bm',
         nome: 'Beira - Moatize',
         emoji: '🚂',
-        color: '#0d47a1',
-        updates_sheet: 'updates_bm',
-        chat_sheet: 'chat_bm'
+        color: '#0d47a1'
       },
       'bmar': {
         id: 'bmar',
         nome: 'Beira - Marromeu',
         emoji: '🚆',
-        color: '#2e7d32',
-        updates_sheet: 'updates_bmar',
-        chat_sheet: 'chat_bmar'
+        color: '#2e7d32'
       },
       'bc': {
         id: 'bc',
         nome: 'Beira - Chimoio',
         emoji: '🚄',
-        color: '#6a1b9a',
-        updates_sheet: 'updates_bc',
-        chat_sheet: 'chat_bc'
+        color: '#6a1b9a'
       }
     };
     
     // Variáveis globais
-    let currentUser = {
-      id: 'admin-default-id',
-      fullName: 'Administrador CFM',
-      email: 'sistema@cfm.co.mz',
-      role: 'superadmin',
-      linhas_permitidas: 'bm,bmar,bc',
-      phone: '258848960732'
-    };
-    
-    let currentToken = 'admin-token-' + Date.now();
+    let currentAdmin = null;
     let currentSection = 'dashboard';
     let pollingInterval = null;
-    let userPermittedLines = ['bm', 'bmar', 'bc'];
     
     // ============================================
     // FUNÇÕES DE UTILIDADE
@@ -1136,7 +1169,6 @@
       
       container.appendChild(toast);
       
-      // Auto-remove após 5 segundos
       setTimeout(() => {
         if (toast.parentNode) {
           toast.remove();
@@ -1187,7 +1219,7 @@
     }
     
     // ============================================
-    // FUNÇÕES DE API (SIMPLIFICADAS - SEM LOGIN)
+    // FUNÇÕES DE API
     // ============================================
     async function apiCall(action, data = {}, method = 'POST') {
       console.log(`📡 API Call: ${action}`, data);
@@ -1198,12 +1230,6 @@
         
         params.append('action', action);
         
-        // Para ações que requerem autenticação, usar token fixo
-        if (action !== 'login' && action !== 'chat' && action !== 'updates' && action !== 'stats') {
-          params.append('token', currentToken);
-        }
-        
-        // Adicionar outros parâmetros
         Object.keys(data).forEach(key => {
           if (data[key] !== undefined && data[key] !== null) {
             params.append(key, data[key].toString());
@@ -1245,41 +1271,140 @@
     }
     
     // ============================================
-    // FUNÇÕES DE INTERFACE
+    // PRIMEIRO ACESSO - REGISTRO
     // ============================================
-    function loadUserInfo() {
-      const userInfo = document.getElementById('userInfo');
-      const userEmail = document.getElementById('userEmail');
-      const userRole = document.getElementById('userRole');
+    async function verificarAdminExistente() {
+      const adminSalvo = localStorage.getItem('cfm_admin');
       
-      userInfo.innerHTML = `
-        <h3>${currentUser.fullName}</h3>
-        <p>${currentUser.email}</p>
-        <span class="user-role" id="userRole">${currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span>
-      `;
-      
-      userEmail.textContent = currentUser.email;
-      userRole.textContent = currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin';
+      if (adminSalvo) {
+        try {
+          currentAdmin = JSON.parse(adminSalvo);
+          console.log('✅ Admin encontrado no localStorage:', currentAdmin);
+          
+          const resultado = await apiCall('verificar_admin', {
+            telefone: currentAdmin.phone.replace('258', '')
+          });
+          
+          if (resultado.success && resultado.exists) {
+            iniciarPainelAdmin();
+          } else {
+            localStorage.removeItem('cfm_admin');
+            mostrarTelaPrimeiroAcesso();
+          }
+        } catch (e) {
+          localStorage.removeItem('cfm_admin');
+          mostrarTelaPrimeiroAcesso();
+        }
+      } else {
+        mostrarTelaPrimeiroAcesso();
+      }
     }
     
+    function mostrarTelaPrimeiroAcesso() {
+      document.getElementById('primeiroAcessoScreen').style.display = 'flex';
+      document.getElementById('adminContainer').style.display = 'none';
+    }
+    
+    async function registrarPrimeiroAcesso() {
+      const nome = document.getElementById('adminNome').value.trim();
+      const telefone = document.getElementById('adminTelefone').value.trim();
+      
+      if (!nome || !telefone) {
+        showToast('Erro', 'Preencha todos os campos', 'error');
+        return;
+      }
+      
+      if (telefone.length !== 9 || !/^\d+$/.test(telefone)) {
+        showToast('Erro', 'Telefone deve ter 9 dígitos', 'error');
+        return;
+      }
+      
+      showLoader();
+      
+      try {
+        const resultado = await apiCall('primeiro_acesso_admin', {
+          nome: nome,
+          telefone: '258' + telefone
+        });
+        
+        if (resultado.success) {
+          currentAdmin = resultado.user;
+          localStorage.setItem('cfm_admin', JSON.stringify(currentAdmin));
+          showToast('Sucesso', 'Conta admin criada com sucesso!', 'success');
+          
+          setTimeout(() => {
+            document.getElementById('primeiroAcessoScreen').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'flex';
+            iniciarPainelAdmin();
+          }, 1000);
+          
+        } else {
+          showToast('Erro', resultado.error || 'Falha ao criar conta', 'error');
+        }
+      } catch (error) {
+        showToast('Erro', 'Falha na comunicação com servidor', 'error');
+      } finally {
+        hideLoader();
+      }
+    }
+    
+    // ============================================
+    // INICIALIZAÇÃO DO PAINEL ADMIN
+    // ============================================
+    function iniciarPainelAdmin() {
+      if (!currentAdmin) {
+        console.error('❌ Admin não encontrado');
+        return;
+      }
+      
+      console.log('=== PAINEL ADMIN INICIADO ===');
+      console.log('Admin:', currentAdmin.fullName);
+      
+      atualizarInfoUsuario();
+      setupMenu();
+      loadDashboard();
+      startPolling();
+      
+      setTimeout(() => {
+        apiCall('test', {}, 'GET')
+          .then(result => {
+            if (result.success) {
+              showToast('Conectado', 'Sistema operacional e conectado', 'success');
+            }
+          })
+          .catch(() => {
+            showToast('Aviso', 'Verifique conexão com servidor', 'warning');
+          });
+      }, 2000);
+    }
+    
+    function atualizarInfoUsuario() {
+      if (!currentAdmin) return;
+      
+      const userInfo = document.getElementById('userInfo');
+      userInfo.innerHTML = `
+        <h3>${currentAdmin.fullName}</h3>
+        <p>${currentAdmin.email || 'admin@cfm.co.mz'}</p>
+        <span class="user-role" id="userRole">${currentAdmin.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span>
+      `;
+    }
+    
+    // ============================================
+    // SETUP DO MENU
+    // ============================================
     function setupMenu() {
-      // Menu toggle mobile
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('active');
       });
       
-      // Menu items
       document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
-          // Remover active de todos
           document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-          // Adicionar ao clicado
           item.classList.add('active');
           
           const section = item.dataset.section;
           currentSection = section;
           
-          // Atualizar título
           const titles = {
             dashboard: { title: 'Dashboard', icon: 'fas fa-tachometer-alt' },
             updates: { title: 'Actualizações', icon: 'fas fa-bullhorn' },
@@ -1296,30 +1421,25 @@
           `;
           document.getElementById('pageSubtitle').textContent = getSectionSubtitle(section);
           
-          // Carregar seção
           loadSection(section);
           
-          // Fechar sidebar no mobile
           if (window.innerWidth < 992) {
             document.getElementById('sidebar').classList.remove('active');
           }
         });
       });
       
-      // Logout button (agora apenas recarrega a página)
       document.getElementById('logoutBtn').addEventListener('click', () => {
         if (confirm('Recarregar o painel administrativo?')) {
           window.location.reload();
         }
       });
       
-      // Refresh button
       document.getElementById('refreshBtn').addEventListener('click', () => {
         refreshCurrentSection();
         showToast('Atualizado', 'Dados atualizados com sucesso', 'success');
       });
       
-      // Quick send update button
       document.getElementById('quickSendUpdate').addEventListener('click', () => {
         openSendUpdateModal();
       });
@@ -1377,7 +1497,6 @@
       const container = document.getElementById('sectionsContainer');
       
       try {
-        // Construir dashboard
         let html = `
           <div class="section">
             <div class="section-header">
@@ -1390,12 +1509,12 @@
             <div class="lines-grid">
         `;
         
-        // Cards para todas as linhas
-        for (const linhaId of userPermittedLines) {
+        const linhasPermitidas = ['bm', 'bmar', 'bc'];
+        
+        for (const linhaId of linhasPermitidas) {
           const linha = LINHAS[linhaId];
           if (!linha) continue;
           
-          // Buscar estatísticas da linha
           const stats = await getLineStats(linhaId);
           
           html += `
@@ -1473,8 +1592,6 @@
         `;
         
         container.innerHTML = html;
-        
-        // Carregar atualizações recentes
         await loadRecentUpdates();
         
       } catch (error) {
@@ -1510,9 +1627,9 @@
       
       try {
         let allUpdates = [];
+        const linhasPermitidas = ['bm', 'bmar', 'bc'];
         
-        // Buscar atualizações de todas as linhas
-        for (const linhaId of userPermittedLines) {
+        for (const linhaId of linhasPermitidas) {
           const result = await apiCall('get_history', { linha: linhaId });
           if (result.success && result.updates) {
             const linhaUpdates = result.updates.slice(0, 3).map(update => ({
@@ -1525,10 +1642,7 @@
           }
         }
         
-        // Ordenar por data
         allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Pegar as 10 mais recentes
         const recentUpdates = allUpdates.slice(0, 10);
         
         if (recentUpdates.length === 0) {
@@ -1573,12 +1687,12 @@
     }
     
     // ============================================
-    // MODAL: ENVIAR ACTUALIZAÇÃO COM WHATSAPP
+    // MODAL: ENVIAR ACTUALIZAÇÃO
     // ============================================
     function openSendUpdateModal(linhaId = null) {
-      // Se não especificar linha, usar a primeira
-      if (!linhaId && userPermittedLines.length > 0) {
-        linhaId = userPermittedLines[0];
+      const linhasPermitidas = ['bm', 'bmar', 'bc'];
+      if (!linhaId && linhasPermitidas.length > 0) {
+        linhaId = linhasPermitidas[0];
       }
       
       const modalHtml = `
@@ -1599,7 +1713,7 @@
                 <div class="form-group">
                   <label for="updateLinha">Linha</label>
                   <select id="updateLinha" class="select-control" required>
-                    ${userPermittedLines.map(id => `
+                    ${linhasPermitidas.map(id => `
                       <option value="${id}" ${id === linhaId ? 'selected' : ''}>
                         ${LINHAS[id].emoji} ${LINHAS[id].nome}
                       </option>
@@ -1629,7 +1743,7 @@
                     type="text" 
                     id="updateAdminName" 
                     class="form-control" 
-                    value="${currentUser.fullName}" 
+                    value="${currentAdmin ? currentAdmin.fullName : 'Administrador'}" 
                     placeholder="Seu nome"
                     required
                     maxlength="50"
@@ -1662,7 +1776,6 @@
       
       document.getElementById('modalsContainer').innerHTML = modalHtml;
       
-      // Contador de caracteres
       const textarea = document.getElementById('updateMessage');
       const charCount = document.getElementById('charCount');
       
@@ -1681,7 +1794,6 @@
       const sendBtn = document.getElementById('sendUpdateBtn');
       const successDiv = document.getElementById('successMessage');
       
-      // Validar entrada
       const sanitizedMessage = sanitizeInput(message, 500);
       const sanitizedAdminName = sanitizeInput(adminName, 50);
       
@@ -1703,7 +1815,6 @@
         });
         
         if (result.success) {
-          // Mostrar mensagem de sucesso com botão WhatsApp
           successDiv.innerHTML = `
             <div class="success-message">
               <div class="success-message-header">
@@ -1726,15 +1837,12 @@
           `;
           successDiv.style.display = 'block';
           
-          // Resetar formulário mas manter valores
           document.getElementById('updateMessage').value = sanitizedMessage;
           document.getElementById('updateAdminName').value = sanitizedAdminName;
           document.getElementById('charCount').textContent = sanitizedMessage.length;
           
-          // Mostrar notificação
           showToast('Sucesso', 'Actualização enviada com sucesso!', 'success');
           
-          // Atualizar dashboard
           setTimeout(() => {
             refreshCurrentSection();
           }, 1000);
@@ -1752,15 +1860,9 @@
     }
     
     function shareOnWhatsApp(message, linhaNome) {
-      // Formatar mensagem para WhatsApp
       const whatsappMessage = `${message}\n\n---\n📢 Actualização ${linhaNome}\nEnviado via Painel Administrativo CFM`;
-      
-      // URL para WhatsApp Web
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
-      
-      // Abrir em nova aba
       window.open(whatsappUrl, '_blank');
-      
       showToast('Partilhado', 'Mensagem pronta para partilhar no WhatsApp', 'success');
     }
     
@@ -1772,466 +1874,77 @@
     }
     
     // ============================================
-    // CRIAÇÃO DE ADMINISTRADORES
+    // OUTRAS FUNÇÕES (simplificadas)
     // ============================================
-    function openNewAdminModal() {
-      const modalHtml = `
-        <div class="modal-overlay" id="newAdminModal">
-          <div class="modal modal-lg">
-            <div class="modal-header">
-              <h2 class="modal-title">
-                <i class="fas fa-user-plus"></i>
-                Criar Novo Administrador
-              </h2>
-              <button class="modal-close" onclick="closeModal('newAdminModal')">
-                <i class="fas fa-times"></i>
+    function startPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      
+      pollingInterval = setInterval(async () => {
+        await updateBadges();
+      }, 30000);
+      
+      updateBadges();
+    }
+    
+    async function updateBadges() {
+      try {
+        let totalUpdatesToday = 0;
+        let totalChatToday = 0;
+        const linhasPermitidas = ['bm', 'bmar', 'bc'];
+        
+        for (const linhaId of linhasPermitidas) {
+          const stats = await getLineStats(linhaId);
+          totalUpdatesToday += stats.today || 0;
+          totalChatToday += stats.chat_today || 0;
+        }
+        
+        const updatesBadge = document.getElementById('updatesBadge');
+        if (updatesBadge) {
+          updatesBadge.textContent = totalUpdatesToday;
+          updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
+        }
+        
+        const chatBadge = document.getElementById('chatBadge');
+        if (chatBadge) {
+          chatBadge.textContent = totalChatToday;
+          chatBadge.style.display = totalChatToday > 0 ? 'inline' : 'none';
+        }
+        
+      } catch (error) {
+        console.error('Error updating badges:', error);
+      }
+    }
+    
+    // Funções simplificadas para outras seções
+    async function loadUpdatesSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-bullhorn"></i>
+              Todas as Actualizações
+            </h2>
+            <div class="section-actions">
+              <button class="btn btn-primary" onclick="openSendUpdateModal()">
+                <i class="fas fa-plus"></i>
+                Nova Actualização
+              </button>
+              <button class="btn btn-outline" onclick="loadUpdatesSection()">
+                <i class="fas fa-sync-alt"></i>
+                Atualizar
               </button>
             </div>
-            
-            <div class="modal-body">
-              <form id="newAdminForm">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="adminFullName">Nome Completo *</label>
-                    <input type="text" id="adminFullName" class="form-control" 
-                      placeholder="João da Silva" required maxlength="50" 
-                      oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '')">
-                    <small style="color: var(--gray);">Apenas letras e espaços (max 50)</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="adminNickname">Apelido (opcional)</label>
-                    <input type="text" id="adminNickname" class="form-control" 
-                      placeholder="joao_silva" maxlength="20"
-                      oninput="this.value = this.value.replace(/[^A-Za-z0-9_]/g, '')">
-                    <small style="color: var(--gray);">Letras, números e underscore (max 20)</small>
-                  </div>
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="adminPhone">Telefone *</label>
-                    <input type="tel" id="adminPhone" class="form-control" 
-                      placeholder="848960732" pattern="[0-9]{9}" required maxlength="9"
-                      oninput="this.value = this.value.replace(/\D/g, '')">
-                    <small style="color: var(--gray);">9 dígitos sem código do país</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="adminEmail">Email *</label>
-                    <input type="email" id="adminEmail" class="form-control" 
-                      placeholder="admin@cfm.com" required maxlength="100">
-                    <small style="color: var(--gray);">Email válido (max 100)</small>
-                  </div>
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="adminPassword">Senha Temporária *</label>
-                    <input type="password" id="adminPassword" class="form-control" 
-                      placeholder="••••••••" required minlength="6" maxlength="20">
-                    <small style="color: var(--gray);">6-20 caracteres</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="adminRole">Nível de Acesso *</label>
-                    <select id="adminRole" class="select-control" required onchange="toggleLinePermissions()">
-                      <option value="superadmin">Super Admin</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    <small style="color: var(--gray);">
-                      Super Admin: acesso total | Admin: acesso restrito às linhas selecionadas
-                    </small>
-                  </div>
-                </div>
-                
-                <div class="form-group" id="linePermissions" style="display: block;">
-                  <label>Linhas Permitidas *</label>
-                  <small style="color: var(--gray); display: block; margin-bottom: 10px;">
-                    Selecione as linhas que este administrador poderá gerir
-                  </small>
-                  <div class="checkbox-group">
-                    ${userPermittedLines.map(linhaId => `
-                      <label class="checkbox-label">
-                        <input type="checkbox" name="adminLines" value="${linhaId}" checked>
-                        ${LINHAS[linhaId].emoji} ${LINHAS[linhaId].nome}
-                      </label>
-                    `).join('')}
-                  </div>
-                </div>
-              </form>
-            </div>
-            
-            <div class="modal-footer">
-              <button class="btn btn-outline" onclick="closeModal('newAdminModal')">
-                Cancelar
-              </button>
-              <button class="btn btn-success" onclick="createNewAdmin()">
-                <i class="fas fa-user-plus"></i>
-                Criar Administrador
-              </button>
-            </div>
+          </div>
+          <div style="text-align: center; padding: 40px; color: var(--info);">
+            <i class="fas fa-info-circle" style="font-size: 2rem;"></i>
+            <h3>Seção em Desenvolvimento</h3>
+            <p>Lista completa de atualizações será implementada em breve.</p>
           </div>
         </div>
       `;
-      
-      document.getElementById('modalsContainer').innerHTML = modalHtml;
-    }
-    
-    function toggleLinePermissions() {
-      const role = document.getElementById('adminRole').value;
-      const permissionsDiv = document.getElementById('linePermissions');
-      permissionsDiv.style.display = role === 'admin' ? 'block' : 'none';
-    }
-    
-    async function createNewAdmin() {
-      const fullName = document.getElementById('adminFullName').value.trim();
-      const nickname = document.getElementById('adminNickname').value.trim();
-      const phone = document.getElementById('adminPhone').value.trim();
-      const email = document.getElementById('adminEmail').value.trim();
-      const password = document.getElementById('adminPassword').value;
-      const role = document.getElementById('adminRole').value;
-      
-      // Validar campos
-      if (!fullName || !phone || !email || !password) {
-        showToast('Erro', 'Preencha todos os campos obrigatórios', 'error');
-        return;
-      }
-      
-      // Validar email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        showToast('Erro', 'Email inválido', 'error');
-        return;
-      }
-      
-      // Validar telefone
-      if (phone.length !== 9 || !/^\d+$/.test(phone)) {
-        showToast('Erro', 'Telefone deve ter 9 dígitos', 'error');
-        return;
-      }
-      
-      // Validar senha
-      if (password.length < 6 || password.length > 20) {
-        showToast('Erro', 'Senha deve ter entre 6 e 20 caracteres', 'error');
-        return;
-      }
-      
-      // Coletar linhas permitidas se for admin
-      let linhas_permitidas = '';
-      if (role === 'admin') {
-        const lineCheckboxes = document.querySelectorAll('input[name="adminLines"]:checked');
-        const selectedLines = Array.from(lineCheckboxes).map(cb => cb.value);
-        
-        if (selectedLines.length === 0) {
-          showToast('Erro', 'Selecione pelo menos uma linha', 'error');
-          return;
-        }
-        
-        linhas_permitidas = selectedLines.join(',');
-      } else if (role === 'superadmin') {
-        // Super admin tem acesso a todas as linhas
-        linhas_permitidas = Object.keys(LINHAS).join(',');
-      }
-      
-      showLoader();
-      
-      try {
-        const result = await apiCall('create_user', {
-          phone: '258' + phone,
-          fullName,
-          nickname,
-          email,
-          password,
-          role,
-          linhas_permitidas
-        });
-        
-        if (result.success) {
-          showToast('Sucesso', 'Administrador criado com sucesso!', 'success');
-          
-          // Fechar modal e atualizar lista
-          closeModal('newAdminModal');
-          if (currentSection === 'admins') {
-            loadAdminsSection();
-          }
-          
-        } else {
-          showToast('Erro', result.error || 'Falha ao criar administrador', 'error');
-        }
-      } catch (error) {
-        showToast('Erro', 'Falha na comunicação com o servidor', 'error');
-      } finally {
-        hideLoader();
-      }
-    }
-    
-    // ============================================
-    // GESTÃO DE ADMINISTRADORES (SUPER ADMIN)
-    // ============================================
-    async function loadAdminsSection() {
-      const container = document.getElementById('sectionsContainer');
-      
-      try {
-        const result = await apiCall('get_users');
-        
-        let html = `
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <i class="fas fa-user-shield"></i>
-                Gestão de Administradores
-              </h2>
-              <div class="section-actions">
-                <button class="btn btn-primary" onclick="openNewAdminModal()">
-                  <i class="fas fa-plus"></i>
-                  Novo Admin
-                </button>
-                <button class="btn btn-outline" onclick="loadAdminsSection()">
-                  <i class="fas fa-sync-alt"></i>
-                  Atualizar
-                </button>
-              </div>
-            </div>
-        `;
-        
-        if (result.success && result.users) {
-          const admins = result.users.filter(user => user.role === 'admin' || user.role === 'superadmin');
-          
-          if (admins.length === 0) {
-            html += `
-              <div style="text-align: center; padding: 40px;">
-                <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
-                <h3>Nenhum administrador encontrado</h3>
-                <p>Clique em "Novo Admin" para adicionar o primeiro.</p>
-              </div>
-            `;
-          } else {
-            html += `
-              <div class="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Email</th>
-                      <th>Telefone</th>
-                      <th>Nível</th>
-                      <th>Linhas</th>
-                      <th>Estado</th>
-                      <th>Último Login</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${admins.map(admin => `
-                      <tr>
-                        <td>
-                          <strong>${admin.fullName || 'Sem nome'}</strong>
-                          ${admin.nickname ? `<br><small>@${admin.nickname}</small>` : ''}
-                        </td>
-                        <td>${admin.email || 'Sem email'}</td>
-                        <td>${admin.phone ? admin.phone.replace('258', '') : ''}</td>
-                        <td>
-                          <span class="badge ${admin.role === 'superadmin' ? 'badge-danger' : 'badge-primary'}">
-                            ${admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                          </span>
-                        </td>
-                        <td>
-                          ${admin.linhas_permitidas ? 
-                            admin.linhas_permitidas.split(',').map(l => `
-                              <span class="badge badge-info" style="margin: 2px;">
-                                ${LINHAS[l] ? LINHAS[l].emoji : l}
-                              </span>
-                            `).join('') : 
-                            '<span class="badge badge-warning">Todas</span>'
-                          }
-                        </td>
-                        <td>
-                          <span class="admin-status-badge status-active">
-                            <i class="fas fa-circle"></i> Ativo
-                          </span>
-                        </td>
-                        <td>${admin.lastLogin ? formatTimeAgo(admin.lastLogin) : 'Nunca'}</td>
-                        <td class="actions-cell">
-                          ${admin.id !== currentUser.id ? `
-                            <button class="action-btn suspend" onclick="suspendAdmin('${admin.id}')" title="Suspender">
-                              <i class="fas fa-user-slash"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteAdmin('${admin.id}')" title="Remover">
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          ` : ''}
-                        </td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            `;
-          }
-        } else {
-          html += `
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar administradores</h3>
-              <p>${result.error || 'Falha na comunicação'}</p>
-            </div>
-          `;
-        }
-        
-        html += `</div>`;
-        container.innerHTML = html;
-        
-      } catch (error) {
-        container.innerHTML = `
-          <div class="section">
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar administradores</h3>
-              <p>${error.message}</p>
-            </div>
-          </div>
-        `;
-      }
-    }
-    
-    async function suspendAdmin(adminId) {
-      if (confirm('Tem certeza que deseja suspender este administrador?\nEle não poderá aceder ao sistema até ser reativado.')) {
-        showLoader();
-        try {
-          showToast('Informação', 'Funcionalidade de suspensão será implementada', 'info');
-          loadAdminsSection();
-        } catch (error) {
-          showToast('Erro', 'Falha ao suspender administrador', 'error');
-        } finally {
-          hideLoader();
-        }
-      }
-    }
-    
-    async function deleteAdmin(adminId) {
-      if (confirm('Tem certeza que deseja remover este administrador?\nEsta ação não pode ser desfeita.')) {
-        showLoader();
-        try {
-          showToast('Informação', 'Funcionalidade de remoção será implementada', 'info');
-          loadAdminsSection();
-        } catch (error) {
-          showToast('Erro', 'Falha ao remover administrador', 'error');
-        } finally {
-          hideLoader();
-        }
-      }
-    }
-    
-    // ============================================
-    // OUTRAS SEÇÕES
-    // ============================================
-    async function loadUpdatesSection() {
-      const container = document.getElementById('sectionsContainer');
-      
-      try {
-        let allUpdates = [];
-        
-        // Buscar todas as atualizações das linhas permitidas
-        for (const linhaId of userPermittedLines) {
-          const result = await apiCall('get_history', { linha: linhaId });
-          if (result.success && result.updates) {
-            const linhaUpdates = result.updates.map(update => ({
-              ...update,
-              linha: linhaId,
-              linha_nome: LINHAS[linhaId].nome,
-              linha_emoji: LINHAS[linhaId].emoji
-            }));
-            allUpdates = [...allUpdates, ...linhaUpdates];
-          }
-        }
-        
-        // Ordenar por data (mais recente primeiro)
-        allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        let html = `
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <i class="fas fa-bullhorn"></i>
-                Todas as Actualizações
-              </h2>
-              <div class="section-actions">
-                <button class="btn btn-primary" onclick="openSendUpdateModal()">
-                  <i class="fas fa-plus"></i>
-                  Nova Actualização
-                </button>
-                <button class="btn btn-outline" onclick="loadUpdatesSection()">
-                  <i class="fas fa-sync-alt"></i>
-                  Atualizar
-                </button>
-              </div>
-            </div>
-        `;
-        
-        if (allUpdates.length === 0) {
-          html += `
-            <div style="text-align: center; padding: 40px;">
-              <i class="fas fa-bullhorn" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
-              <h3>Nenhuma actualização encontrada</h3>
-              <p>Clique em "Nova Actualização" para criar a primeira</p>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Linha</th>
-                    <th>Mensagem</th>
-                    <th>Administrador</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${allUpdates.map(update => `
-                    <tr>
-                      <td>${formatDate(update.timestamp)}</td>
-                      <td>
-                        <span class="badge badge-primary">
-                          ${update.linha_emoji} ${update.linha_nome}
-                        </span>
-                      </td>
-                      <td>
-                        <div style="max-width: 300px;">
-                          ${(update.textoOriginal || '').replace(/\n/g, '<br>')}
-                        </div>
-                      </td>
-                      <td>${update.adminName || 'Administrador'}</td>
-                      <td class="actions-cell">
-                        <button class="action-btn copy" onclick="copyToClipboard('${(update.textoOriginal || '').replace(/'/g, "\\'")}')" title="Copiar">
-                          <i class="fas fa-copy"></i>
-                        </button>
-                        <button class="btn btn-whatsapp" style="padding: 5px 10px; font-size: 0.8rem;" onclick="shareOnWhatsApp('${(update.textoOriginal || '').replace(/'/g, "\\'")}', '${update.linha_nome}')" title="Partilhar WhatsApp">
-                          <i class="fab fa-whatsapp"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-        
-        html += `</div>`;
-        container.innerHTML = html;
-        
-      } catch (error) {
-        container.innerHTML = `
-          <div class="section">
-            <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <i class="fas fa-exclamation-circle"></i>
-              <h3>Erro ao carregar actualizações</h3>
-              <p>${error.message}</p>
-            </div>
-          </div>
-        `;
-      }
     }
     
     async function loadChatSection() {
@@ -2243,164 +1956,42 @@
               <i class="fas fa-comments"></i>
               Chat dos Passageiros
             </h2>
-            <div class="section-actions">
-              <button class="btn btn-outline" onclick="loadChatSection()">
-                <i class="fas fa-sync-alt"></i>
-                Atualizar
-              </button>
-            </div>
           </div>
-          
-          <div class="lines-grid">
-            ${userPermittedLines.map(linhaId => `
-              <div class="line-card">
-                <div class="line-header ${linhaId}">
-                  <div class="line-emoji">${LINHAS[linhaId].emoji}</div>
-                  <div class="line-info">
-                    <h3>${LINHAS[linhaId].nome}</h3>
-                    <p>Chat em tempo real</p>
-                  </div>
-                </div>
-                <div class="line-body">
-                  <div id="chat-${linhaId}" style="height: 200px; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px; background: var(--light);">
-                    <div style="text-align: center; padding: 20px;">
-                      <div class="loader"></div>
-                      <p>Carregando mensagens...</p>
-                    </div>
-                  </div>
-                  <button class="btn btn-primary" style="width: 100%;" onclick="openChatModal('${linhaId}')">
-                    <i class="fas fa-eye"></i>
-                    Ver Chat Completo
-                  </button>
-                </div>
-              </div>
-            `).join('')}
+          <div style="text-align: center; padding: 40px; color: var(--info);">
+            <i class="fas fa-comments" style="font-size: 2rem;"></i>
+            <h3>Monitoramento de Chat</h3>
+            <p>Visualização do chat por linha será implementada em breve.</p>
           </div>
         </div>
       `;
-      
-      // Carregar mensagens para cada linha permitida
-      for (const linhaId of userPermittedLines) {
-        await loadLineChat(linhaId);
-      }
     }
     
-    async function loadLineChat(linhaId) {
-      const container = document.getElementById(`chat-${linhaId}`);
-      if (!container) return;
-      
-      try {
-        const result = await apiCall('chat', { linha: linhaId }, 'GET');
-        
-        if (result.success && result.chat && result.chat.length > 0) {
-          const lastMessages = result.chat.slice(-5);
-          
-          container.innerHTML = lastMessages.map(msg => `
-            <div style="margin-bottom: 10px; padding: 8px; background: white; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong style="color: var(--primary); font-size: 0.9rem;">${msg.usuario || 'Passageiro'}</strong>
-                <small style="color: var(--gray);">${formatTimeAgo(msg.timestamp)}</small>
-              </div>
-              <div style="font-size: 0.9rem;">${msg.mensagem || ''}</div>
-            </div>
-          `).join('');
-        } else {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 30px; color: var(--gray);">
-              <i class="fas fa-comment-slash"></i>
-              <p>Nenhuma mensagem</p>
-            </div>
-          `;
-        }
-      } catch (error) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 20px; color: var(--danger);">
-            <i class="fas fa-exclamation-circle"></i>
-            <p>Erro ao carregar</p>
+    async function loadAdminsSection() {
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = `
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-user-shield"></i>
+              Gestão de Administradores
+            </h2>
           </div>
-        `;
-      }
-    }
-    
-    function openChatModal(linhaId) {
-      const linha = LINHAS[linhaId];
-      const modalHtml = `
-        <div class="modal-overlay" id="chatModal">
-          <div class="modal modal-lg">
-            <div class="modal-header">
-              <h2 class="modal-title">
-                ${linha.emoji} Chat - ${linha.nome}
-              </h2>
-              <button class="modal-close" onclick="closeModal('chatModal')">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            
-            <div class="modal-body">
-              <div id="chatMessages" style="height: 400px; overflow-y: auto; margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: var(--radius-sm);">
-                <div style="text-align: center; padding: 40px;">
-                  <div class="loader"></div>
-                  <p>Carregando mensagens...</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="modal-footer">
-              <button class="btn btn-outline" onclick="closeModal('chatModal')">
-                Fechar
-              </button>
-            </div>
+          <div style="text-align: center; padding: 40px; color: var(--info);">
+            <i class="fas fa-user-shield" style="font-size: 2rem;"></i>
+            <h3>Gestão de Administradores</h3>
+            <p>Funcionalidade para criar e gerir administradores será implementada em breve.</p>
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="showToast('Info', 'Funcionalidade em desenvolvimento', 'info')">
+              <i class="fas fa-plus"></i> Criar Novo Admin
+            </button>
           </div>
         </div>
       `;
-      
-      document.getElementById('modalsContainer').innerHTML = modalHtml;
-      loadChatMessages(linhaId);
-    }
-    
-    async function loadChatMessages(linhaId) {
-      const container = document.getElementById('chatMessages');
-      if (!container) return;
-      
-      try {
-        const result = await apiCall('chat', { linha: linhaId }, 'GET');
-        
-        if (result.success && result.chat && result.chat.length > 0) {
-          container.innerHTML = result.chat.map(msg => `
-            <div class="chat-message" style="margin-bottom: 15px; padding: 12px; background: white; border-radius: var(--radius-sm); border-left: 4px solid var(--primary);">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <div>
-                  <strong style="color: var(--primary);">${msg.usuario || 'Passageiro'}</strong>
-                  <small style="color: var(--gray); margin-left: 10px;">${formatDate(msg.timestamp)}</small>
-                </div>
-              </div>
-              <div>${msg.mensagem || ''}</div>
-            </div>
-          `).join('');
-          
-          container.scrollTop = container.scrollHeight;
-        } else {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--gray);">
-              <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 15px;"></i>
-              <h4>Nenhuma mensagem no chat</h4>
-              <p>Os passageiros ainda não enviaram mensagens.</p>
-            </div>
-          `;
-        }
-      } catch (error) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: var(--danger);">
-            <i class="fas fa-exclamation-circle"></i>
-            <h4>Erro ao carregar mensagens</h4>
-            <p>${error.message}</p>
-          </div>
-        `;
-      }
     }
     
     async function loadLinesSection() {
       const container = document.getElementById('sectionsContainer');
+      const linhasPermitidas = ['bm', 'bmar', 'bc'];
+      
       container.innerHTML = `
         <div class="section">
           <div class="section-header">
@@ -2411,7 +2002,7 @@
           </div>
           
           <div class="lines-grid">
-            ${userPermittedLines.map(linhaId => {
+            ${linhasPermitidas.map(linhaId => {
               const linha = LINHAS[linhaId];
               return `
                 <div class="line-card">
@@ -2423,36 +2014,16 @@
                     </div>
                   </div>
                   <div class="line-body">
-                    <div style="margin-bottom: 15px;">
-                      <strong style="display: block; margin-bottom: 5px; color: var(--primary);">Configuração:</strong>
-                      <div style="font-size: 0.9rem;">
-                        <div><strong>Aba Updates:</strong> ${linha.updates_sheet}</div>
-                        <div><strong>Aba Chat:</strong> ${linha.chat_sheet}</div>
-                      </div>
-                    </div>
                     <div class="line-actions">
                       <button class="btn btn-primary" style="flex: 1;" onclick="openSendUpdateModal('${linhaId}')">
                         <i class="fas fa-bullhorn"></i>
                         Nova Actualização
-                      </button>
-                      <button class="btn btn-outline" onclick="openChatModal('${linhaId}')">
-                        <i class="fas fa-comments"></i>
                       </button>
                     </div>
                   </div>
                 </div>
               `;
             }).join('')}
-          </div>
-          
-          <div style="margin-top: 30px; padding: 20px; background: var(--primary-light); border-radius: var(--radius-sm);">
-            <h4 style="color: var(--primary); margin-bottom: 10px;">
-              <i class="fas fa-info-circle"></i>
-              Sobre as Linhas
-            </h4>
-            <p style="font-size: 0.9rem;">
-              Você tem acesso a ${userPermittedLines.length} linha(s). Cada linha tem suas próprias abas no Google Sheets para actualizações e chat.
-            </p>
           </div>
         </div>
       `;
@@ -2469,144 +2040,46 @@
             </h2>
           </div>
           
-          <div class="form-group">
-            <label for="systemName">Nome do Sistema</label>
-            <input type="text" id="systemName" class="form-control" value="CFM Multi-linhas" disabled>
-          </div>
-          
-          <div class="form-group">
-            <label for="gasUrl">URL do Google Apps Script</label>
-            <input type="text" id="gasUrl" class="form-control" value="${GAS_URL}" disabled>
-            <small style="color: var(--gray);">URL do backend</small>
-          </div>
-          
-          <div class="form-group">
-            <label>Suas Linhas Permitidas</label>
-            <div style="background: var(--light); padding: 15px; border-radius: var(--radius-sm);">
-              ${userPermittedLines.map(linhaId => `
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-light);">
-                  <span style="font-size: 1.5rem;">${LINHAS[linhaId].emoji}</span>
-                  <div style="flex: 1;">
-                    <strong>${LINHAS[linhaId].nome}</strong><br>
-                    <small style="color: var(--gray);">ID: ${linhaId}</small>
-                  </div>
-                </div>
-              `).join('')}
+          <div style="padding: 20px;">
+            <div class="form-group">
+              <label>Nome do Sistema</label>
+              <input type="text" class="form-control" value="CFM Multi-linhas" disabled>
             </div>
-          </div>
-          
-          <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: var(--radius-sm);">
-            <h4 style="margin-bottom: 10px;">
-              <i class="fas fa-info-circle"></i>
-              Suas Informações
-            </h4>
-            <div style="font-size: 0.9rem;">
-              <div><strong>Nome:</strong> ${currentUser.fullName}</div>
-              <div><strong>Email:</strong> ${currentUser.email}</div>
-              <div><strong>Nível:</strong> ${currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}</div>
-              <div><strong>Linhas:</strong> ${userPermittedLines.length}</div>
+            
+            <div class="form-group">
+              <label>URL do Google Apps Script</label>
+              <input type="text" class="form-control" value="${GAS_URL}" disabled>
+              <small style="color: var(--gray);">URL do backend</small>
             </div>
+            
+            ${currentAdmin ? `
+            <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: var(--radius-sm);">
+              <h4 style="margin-bottom: 10px;">
+                <i class="fas fa-info-circle"></i>
+                Suas Informações
+              </h4>
+              <div style="font-size: 0.9rem;">
+                <div><strong>Nome:</strong> ${currentAdmin.fullName}</div>
+                <div><strong>Telefone:</strong> ${currentAdmin.phone ? currentAdmin.phone.replace('258', '') : ''}</div>
+                <div><strong>Nível:</strong> ${currentAdmin.role === 'superadmin' ? 'Super Admin' : 'Admin'}</div>
+              </div>
+            </div>
+            ` : ''}
           </div>
         </div>
       `;
     }
     
-    // ============================================
-    // FUNÇÕES AUXILIARES
-    // ============================================
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Copiado', 'Texto copiado para a área de transferência', 'success');
-      }).catch(() => {
-        showToast('Erro', 'Não foi possível copiar o texto', 'error');
-      });
+    function openChatModal(linhaId) {
+      showToast('Info', 'Funcionalidade de chat será implementada em breve', 'info');
     }
     
     // ============================================
-    // POLLING E ATUALIZAÇÃO AUTOMÁTICA
-    // ============================================
-    function startPolling() {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-      
-      // Atualizar a cada 30 segundos
-      pollingInterval = setInterval(async () => {
-        await updateBadges();
-      }, 30000);
-      
-      // Primeira atualização
-      updateBadges();
-    }
-    
-    async function updateBadges() {
-      try {
-        // Atualizar contador de updates
-        let totalUpdatesToday = 0;
-        for (const linhaId of userPermittedLines) {
-          const stats = await getLineStats(linhaId);
-          totalUpdatesToday += stats.today || 0;
-        }
-        
-        const updatesBadge = document.getElementById('updatesBadge');
-        if (updatesBadge) {
-          updatesBadge.textContent = totalUpdatesToday;
-          updatesBadge.style.display = totalUpdatesToday > 0 ? 'inline' : 'none';
-        }
-        
-        // Atualizar contador de chat
-        let totalChatToday = 0;
-        for (const linhaId of userPermittedLines) {
-          const stats = await getLineStats(linhaId);
-          totalChatToday += stats.chat_today || 0;
-        }
-        
-        const chatBadge = document.getElementById('chatBadge');
-        if (chatBadge) {
-          chatBadge.textContent = totalChatToday;
-          chatBadge.style.display = totalChatToday > 0 ? 'inline' : 'none';
-        }
-        
-      } catch (error) {
-        console.error('Error updating badges:', error);
-      }
-    }
-    
-    // ============================================
-    // INICIALIZAÇÃO DIRETA (SEM LOGIN)
+    // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('=== PAINEL ADMIN CFM INICIADO ===');
-      console.log('Modo: Sem login (acesso direto)');
-      console.log('Usuário:', currentUser.fullName);
-      console.log('Linhas permitidas:', userPermittedLines);
-      
-      // Carregar informações do usuário
-      loadUserInfo();
-      
-      // Carregar dashboard inicial
-      loadDashboard();
-      
-      // Configurar menu
-      setupMenu();
-      
-      // Iniciar polling
-      startPolling();
-      
-      // Testar conexão com o servidor
-      setTimeout(() => {
-        console.log('Testando conexão com servidor...');
-        fetch(GAS_URL + '?action=test&_=' + Date.now())
-          .then(response => response.text())
-          .then(text => {
-            console.log('Resposta do servidor:', text.substring(0, 200));
-            showToast('Conectado', 'Sistema operacional e conectado ao servidor', 'success');
-          })
-          .catch(error => {
-            console.error('Erro de conexão:', error);
-            showToast('Aviso', 'Verifique a conexão com o servidor GAS', 'warning');
-          });
-      }, 2000);
+      console.log('=== ADMIN CFM INICIANDO ===');
+      verificarAdminExistente();
     });
   </script>
 </body>
