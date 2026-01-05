@@ -1335,6 +1335,37 @@
 }
 
     // ============================================
+// API VIA JSONP (SEM CORS - GAS)
+// ============================================
+function apiCallJSONP(action, data = {}) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonp_cb_' + Date.now();
+
+    window[callbackName] = (response) => {
+      delete window[callbackName];
+      script.remove();
+      resolve(response);
+    };
+
+    const params = new URLSearchParams({
+      action,
+      callback: callbackName,
+      ...data
+    });
+
+    const script = document.createElement('script');
+    script.src = `${GAS_URL}?${params.toString()}`;
+    script.onerror = () => {
+      delete window[callbackName];
+      reject(new Error('Erro JSONP'));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+
+    // ============================================
     // SISTEMA DE AUTENTICAÇÃO - CORRIGIDO
     // ============================================
     async function login(identifier, password) {
@@ -1348,8 +1379,10 @@
   showLoader();
 
   try {
-    const result = await apiCall('login', { identifier, password });
-
+    const result = await apiCallJSONP('login', {
+  identifier,
+  password
+});
     if (!result || !result.success) {
       throw new Error(result?.error || 'Credenciais inválidas');
     }
