@@ -1373,41 +1373,57 @@ async function submeterCadastro() {
     // VERIFICAÇÃO INICIAL
     // ============================================
     async function verificarUsuarioExistente() {
-        const usuario = JSON.parse(localStorage.getItem("usuario"));
+  console.log("🔍 Verificando usuário existente...");
+  
+  const usuarioRaw = localStorage.getItem("usuario");
+  console.log("📦 localStorage raw:", usuarioRaw);
+  
+  if (usuarioRaw) {
+    try {
+      const usuario = JSON.parse(usuarioRaw);
+      console.log("✅ Usuário encontrado no localStorage:", usuario);
+      
+      if (usuario.nome && usuario.telefone && usuario.userId) {
+        currentUser = criarIdUsuario(usuario.nome, usuario.telefone);
+        console.log("✅ Usuário válido:", currentUser);
         
-        if (usuario && usuario.nome && usuario.telefone) {
-            currentUser = criarIdUsuario(usuario.nome, usuario.telefone);
-            console.log("✅ Usuário já cadastrado:", currentUser);
-            
-            const linhaSalva = localStorage.getItem('cfm_linha_atual');
-            
-            if (linhaSalva && LINHAS[linhaSalva]) {
-                currentLine = linhaSalva;
-                document.getElementById("capa").classList.add("hidden");
-                inicializarSistemaPrincipal();
-            } else {
-                try {
-                    const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-                    const linhasData = await linhasResponse.json();
-                    
-                    if (linhasData.success) {
-                        mostrarSelecaoLinha(linhasData.linhas);
-                    } else {
-                        mostrarSelecaoLinha(Object.values(LINHAS));
-                    }
-                } catch (error) {
-                    console.error("Erro ao carregar linhas:", error);
-                    mostrarSelecaoLinha(Object.values(LINHAS));
-                }
-            }
+        const linhaSalva = localStorage.getItem('cfm_linha_atual');
+        console.log("Linha salva:", linhaSalva);
+        
+        if (linhaSalva && LINHAS[linhaSalva]) {
+          currentLine = linhaSalva;
+          console.log("✅ Linha encontrada:", currentLine);
+          document.getElementById("capa").classList.add("hidden");
+          inicializarSistemaPrincipal();
         } else {
-            console.log("⚠️ Usuário não cadastrado");
+          console.log("⚠️ Nenhuma linha salva, mostrando seleção");
+          
+          try {
+            const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
+            const linhasData = await linhasResponse.json();
+            
+            if (linhasData.success) {
+              mostrarSelecaoLinha(linhasData.linhas);
+            } else {
+              mostrarSelecaoLinha(Object.values(LINHAS));
+            }
+          } catch (error) {
+            console.error("Erro ao carregar linhas:", error);
+            mostrarSelecaoLinha(Object.values(LINHAS));
+          }
         }
+      } else {
+        console.log("❌ Usuário incompleto no localStorage");
+        localStorage.removeItem("usuario");
+      }
+    } catch (e) {
+      console.error("❌ Erro ao parsear usuário:", e);
+      localStorage.removeItem("usuario");
     }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        verificarUsuarioExistente();
-    });
+  } else {
+    console.log("⚠️ Nenhum usuário no localStorage");
+  }
+}
     
     // ============================================
     // INICIALIZAÇÃO DO SISTEMA PRINCIPAL
