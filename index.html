@@ -1183,150 +1183,126 @@
     }
     
     // ============================================
-    // CADASTRO DE USUÁRIO
+    // CADASTRO DE USUÁRIO - VERSÃO SIMPLIFICADA
     // ============================================
-    // NO index.html, função submeterCadastro() - CORRIJA:
-
-async function submeterCadastro() {
-  const nomeInput = document.getElementById("nome");
-  const telefoneInput = document.getElementById("telefone");
-  
-  const nome = nomeInput.value.trim();
-  let telefone = telefoneInput.value.trim();
-  
-  console.log("📝 Dados do formulário:", { nome, telefone });
-  
-  // Validações
-  if (!validarNome(nome)) {
-    alert("Nome inválido. Use somente letras (até 3 nomes).");
-    nomeInput.focus();
-    return;
-  }
-  
-  telefone = telefone.replace(/\D/g, '');
-  if (telefone.length === 9) {
-    telefone = '258' + telefone;
-  }
-  
-  if (!validarTelefone(telefone)) {
-    alert("Número inválido. Use formato: 84xxxxxxx");
-    telefoneInput.focus();
-    return;
-  }
-  
-  // Mostrar loading
-  const btnEntrar = document.getElementById("btnEntrar");
-  const loader = document.getElementById("loader");
-  
-  btnEntrar.style.display = "none";
-  loader.style.display = "flex";
-  
-  try {
-    console.log("📡 Enviando para GAS...");
-    
-    // Preparar dados para enviar
-    const formData = new URLSearchParams();
-    formData.append('action', 'cadastro_usuario');
-    formData.append('nome', nome);
-    formData.append('telefone', telefone);
-    
-    // Fazer a requisição
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors', // IMPORTANTE: tente com no-cors primeiro
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formData.toString()
-    });
-    
-    // Se usar no-cors, não podemos ler a resposta
-    // Então vamos salvar LOCALMENTE e assumir que deu certo
-    
-    console.log("✅ Requisição enviada (mesmo sem resposta)");
-    
-    // ============================================
-    // SOLUÇÃO CRÍTICA: SALVAR NO LOCALSTORAGE
-    // ============================================
-    
-    // Criar ID de usuário
-    const userId = criarIdUsuario(nome, telefone);
-    
-    // Preparar objeto do usuário
-    const usuario = {
-      nome: nome,
-      telefone: telefone,
-      userId: userId,
-      dataCadastro: new Date().toISOString()
-    };
-    
-    // SALVAR NO LOCALSTORAGE (isto é o mais importante!)
-    localStorage.setItem("usuario", JSON.stringify(usuario));
-    
-    // Verificar se salvou
-    const verificar = localStorage.getItem("usuario");
-    console.log("💾 localStorage após salvar:", verificar);
-    
-    if (!verificar || verificar === "null") {
-      throw new Error("Falha ao salvar no localStorage");
+    async function submeterCadastro() {
+        const nomeInput = document.getElementById("nome");
+        const telefoneInput = document.getElementById("telefone");
+        
+        const nome = nomeInput.value.trim();
+        let telefone = telefoneInput.value.trim();
+        
+        console.log("📝 Dados do formulário:", { nome, telefone });
+        
+        // Validações
+        if (!validarNome(nome)) {
+            alert("Nome inválido. Use somente letras (até 3 nomes).");
+            nomeInput.focus();
+            return;
+        }
+        
+        telefone = telefone.replace(/\D/g, '');
+        if (telefone.length === 9) {
+            telefone = '258' + telefone;
+        }
+        
+        if (!validarTelefone(telefone)) {
+            alert("Número inválido. Use formato: 84xxxxxxx");
+            telefoneInput.focus();
+            return;
+        }
+        
+        // Mostrar loading
+        const btnEntrar = document.getElementById("btnEntrar");
+        const loader = document.getElementById("loader");
+        
+        btnEntrar.style.display = "none";
+        loader.style.display = "flex";
+        
+        try {
+            console.log("📡 Enviando para GAS...");
+            
+            // Preparar dados para enviar
+            const formData = new URLSearchParams();
+            formData.append('action', 'cadastro_usuario');
+            formData.append('nome', nome);
+            formData.append('telefone', telefone);
+            
+            // Fazer a requisição
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: formData.toString()
+            });
+            
+            const resultado = await response.json();
+            console.log("📡 Resposta do GAS:", resultado);
+            
+            if (resultado.success) {
+                // Criar ID de usuário
+                const userId = resultado.userId || criarIdUsuario(nome, telefone);
+                
+                // Preparar objeto do usuário
+                const usuario = {
+                    nome: nome,
+                    telefone: telefone,
+                    userId: userId,
+                    dataCadastro: new Date().toISOString()
+                };
+                
+                // SALVAR NO LOCALSTORAGE
+                localStorage.setItem("usuario", JSON.stringify(usuario));
+                
+                console.log("✅ Usuário salvo no localStorage:", usuario);
+                
+                // Aguardar um pouco
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Carregar linhas disponíveis do GAS
+                try {
+                    const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
+                    const linhasData = await linhasResponse.json();
+                    
+                    if (linhasData.success) {
+                        mostrarSelecaoLinha(linhasData.linhas);
+                    } else {
+                        mostrarSelecaoLinha(Object.values(LINHAS));
+                    }
+                } catch (linhaError) {
+                    console.error("Erro ao carregar linhas:", linhaError);
+                    mostrarSelecaoLinha(Object.values(LINHAS));
+                }
+                
+            } else {
+                throw new Error(resultado.error || "Erro ao cadastrar");
+            }
+            
+        } catch (error) {
+            console.error("❌ Erro no cadastro:", error);
+            
+            // Salvar localmente mesmo com erro
+            const userId = criarIdUsuario(nome, telefone);
+            const usuario = {
+                nome: nome,
+                telefone: telefone,
+                userId: userId,
+                dataCadastro: new Date().toISOString()
+            };
+            
+            localStorage.setItem("usuario", JSON.stringify(usuario));
+            console.log("🔄 Usuário salvo localmente");
+            
+            // Mostrar seleção de linha
+            mostrarSelecaoLinha(Object.values(LINHAS));
+            
+        } finally {
+            // Restaurar botão
+            btnEntrar.style.display = "block";
+            loader.style.display = "none";
+        }
     }
-    
-    console.log("✅ Usuário salvo no localStorage com sucesso!");
-    
-    // Aguardar um pouco
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // ============================================
-    // IR PARA SELEÇÃO DE LINHA
-    // ============================================
-    
-    // Esconder tela de cadastro
-    document.getElementById("capa").style.opacity = "0";
-    
-    setTimeout(() => {
-      document.getElementById("capa").classList.add("hidden");
-      
-      // Mostrar linhas disponíveis (usar as padrão)
-      mostrarSelecaoLinha(Object.values(LINHAS));
-      
-      // Resetar formulário
-      nomeInput.value = "";
-      telefoneInput.value = "";
-      btnEntrar.style.display = "block";
-      loader.style.display = "none";
-    }, 800);
-    
-  } catch (error) {
-    console.error("❌ Erro no cadastro:", error);
-    
-    // Mesmo com erro, tente salvar localmente
-    try {
-      const userId = criarIdUsuario(nome, telefone);
-      const usuario = {
-        nome: nome,
-        telefone: telefone,
-        userId: userId,
-        dataCadastro: new Date().toISOString(),
-        erro: error.message
-      };
-      
-      localStorage.setItem("usuario", JSON.stringify(usuario));
-      console.log("🔄 Salvado localmente apesar do erro");
-      
-      // Ir para seleção de linha mesmo assim
-      document.getElementById("capa").classList.add("hidden");
-      mostrarSelecaoLinha(Object.values(LINHAS));
-      
-    } catch (fallbackError) {
-      console.error("❌ Erro total:", fallbackError);
-      alert("Erro no sistema. Recarregue a página e tente novamente.");
-    }
-    
-    // Restaurar botão
-    btnEntrar.style.display = "block";
-    loader.style.display = "none";
-  }
-}
     
     // ============================================
     // SELEÇÃO DE LINHA
@@ -1341,39 +1317,46 @@ async function submeterCadastro() {
             const container = document.getElementById("linhasContainer");
             container.innerHTML = "";
             
-            linhas.forEach(linha => {
+            // Garantir que 'linhas' é um array
+            const linhasArray = Array.isArray(linhas) ? linhas : Object.values(LINHAS);
+            
+            linhasArray.forEach(linha => {
                 const div = document.createElement("div");
                 div.className = "linha-option";
                 div.dataset.linha = linha.id;
-                div.onclick = () => selecionarLinha(linha.id);
+                div.onclick = () => {
+                    // Remover seleção de todos
+                    document.querySelectorAll('.linha-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Selecionar este
+                    div.classList.add('selected');
+                    currentLine = linha.id;
+                };
                 
                 div.innerHTML = `
-                    <div class="linha-emoji">${linha.emoji}</div>
+                    <div class="linha-emoji">${linha.emoji || '🚂'}</div>
                     <div class="linha-info">
-                        <h3>${linha.nome}</h3>
+                        <h3>${linha.nome || 'Linha'}</h3>
                         <p>Clique para selecionar</p>
                     </div>
                 `;
                 
                 container.appendChild(div);
             });
-        }, 800);
+            
+            // Selecionar a primeira linha por padrão
+            if (linhasArray.length > 0) {
+                currentLine = linhasArray[0].id;
+                setTimeout(() => {
+                    const firstOption = container.querySelector('.linha-option');
+                    if (firstOption) firstOption.classList.add('selected');
+                }, 100);
+            }
+        }, 500);
     }
     
-    function selecionarLinha(linhaId) {
-        document.querySelectorAll('.linha-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        
-        const selected = document.querySelector(`.linha-option[data-linha="${linhaId}"]`);
-        if (selected) {
-            selected.classList.add('selected');
-        }
-        
-        currentLine = linhaId;
-    }
-    
-    async function confirmarLinha() {
+    function confirmarLinha() {
         if (!currentLine) {
             alert('Por favor, selecione uma linha');
             return;
@@ -1381,6 +1364,7 @@ async function submeterCadastro() {
         
         localStorage.setItem('cfm_linha_atual', currentLine);
         
+        // Tentar salvar no servidor
         const usuario = JSON.parse(localStorage.getItem("usuario"));
         if (usuario && usuario.userId) {
             try {
@@ -1389,10 +1373,10 @@ async function submeterCadastro() {
                 formData.append('userId', usuario.userId);
                 formData.append('linha', currentLine);
                 
-                await fetch(GAS_URL, {
+                fetch(GAS_URL, {
                     method: 'POST',
                     body: formData
-                });
+                }).catch(error => console.log("Erro ao salvar linha:", error));
             } catch (error) {
                 console.log("Erro ao salvar linha:", error);
             }
@@ -1406,85 +1390,144 @@ async function submeterCadastro() {
     // VERIFICAÇÃO INICIAL
     // ============================================
     async function verificarUsuarioExistente() {
-  console.log("🔍 Verificando usuário existente...");
-  
-  const usuarioRaw = localStorage.getItem("usuario");
-  console.log("📦 localStorage raw:", usuarioRaw);
-  
-  if (usuarioRaw) {
-    try {
-      const usuario = JSON.parse(usuarioRaw);
-      console.log("✅ Usuário encontrado no localStorage:", usuario);
-      
-      if (usuario.nome && usuario.telefone && usuario.userId) {
-        currentUser = criarIdUsuario(usuario.nome, usuario.telefone);
-        console.log("✅ Usuário válido:", currentUser);
+        console.log("🔍 Verificando usuário existente...");
         
-        const linhaSalva = localStorage.getItem('cfm_linha_atual');
-        console.log("Linha salva:", linhaSalva);
+        const usuarioRaw = localStorage.getItem("usuario");
+        console.log("📦 localStorage raw:", usuarioRaw);
         
-        if (linhaSalva && LINHAS[linhaSalva]) {
-          currentLine = linhaSalva;
-          console.log("✅ Linha encontrada:", currentLine);
-          document.getElementById("capa").classList.add("hidden");
-          inicializarSistemaPrincipal();
-        } else {
-          console.log("⚠️ Nenhuma linha salva, mostrando seleção");
-          
-          try {
-            const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-            const linhasData = await linhasResponse.json();
-            
-            if (linhasData.success) {
-              mostrarSelecaoLinha(linhasData.linhas);
-            } else {
-              mostrarSelecaoLinha(Object.values(LINHAS));
+        if (usuarioRaw) {
+            try {
+                const usuario = JSON.parse(usuarioRaw);
+                console.log("✅ Usuário encontrado no localStorage:", usuario);
+                
+                if (usuario.nome && usuario.telefone && usuario.userId) {
+                    currentUser = criarIdUsuario(usuario.nome, usuario.telefone);
+                    console.log("✅ Usuário válido:", currentUser);
+                    
+                    const linhaSalva = localStorage.getItem('cfm_linha_atual');
+                    console.log("Linha salva:", linhaSalva);
+                    
+                    if (linhaSalva && LINHAS[linhaSalva]) {
+                        currentLine = linhaSalva;
+                        console.log("✅ Linha encontrada:", currentLine);
+                        
+                        // Esconder tela de cadastro e iniciar sistema
+                        setTimeout(() => {
+                            document.getElementById("capa").classList.add("hidden");
+                            inicializarSistemaPrincipal();
+                        }, 500);
+                        
+                    } else {
+                        console.log("⚠️ Nenhuma linha salva, mostrando seleção");
+                        
+                        // Carregar linhas do GAS
+                        try {
+                            const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
+                            const linhasData = await linhasResponse.json();
+                            
+                            if (linhasData.success) {
+                                mostrarSelecaoLinha(linhasData.linhas);
+                            } else {
+                                mostrarSelecaoLinha(Object.values(LINHAS));
+                            }
+                        } catch (error) {
+                            console.error("Erro ao carregar linhas:", error);
+                            mostrarSelecaoLinha(Object.values(LINHAS));
+                        }
+                    }
+                } else {
+                    console.log("❌ Usuário incompleto no localStorage");
+                    localStorage.removeItem("usuario");
+                }
+            } catch (e) {
+                console.error("❌ Erro ao parsear usuário:", e);
+                localStorage.removeItem("usuario");
             }
-          } catch (error) {
-            console.error("Erro ao carregar linhas:", error);
-            mostrarSelecaoLinha(Object.values(LINHAS));
-          }
+        } else {
+            console.log("⚠️ Nenhum usuário no localStorage");
+            // Manter tela de cadastro visível
         }
-      } else {
-        console.log("❌ Usuário incompleto no localStorage");
-        localStorage.removeItem("usuario");
-      }
-    } catch (e) {
-      console.error("❌ Erro ao parsear usuário:", e);
-      localStorage.removeItem("usuario");
     }
-  } else {
-    console.log("⚠️ Nenhum usuário no localStorage");
-  }
-}
     
     // ============================================
     // INICIALIZAÇÃO DO SISTEMA PRINCIPAL
     // ============================================
     function inicializarSistemaPrincipal() {
+        console.log("🚀 Inicializando sistema para linha:", currentLine);
+        
         if (!currentLine) {
             console.error("❌ Nenhuma linha selecionada");
             return;
         }
         
-        const linhaNome = LINHAS[currentLine].nome;
-        document.getElementById("pageTitle").innerHTML = `
-            Actualizações ${linhaNome}
-            <div class="last-update" id="lastUpdateTime">
-                <i class="fas fa-clock"></i>
-                <span>Última verificação: --:--</span>
-            </div>
-        `;
+        // Atualizar título da página
+        const linhaInfo = LINHAS[currentLine];
+        if (linhaInfo) {
+            document.getElementById("pageTitle").innerHTML = `
+                Actualizações ${linhaInfo.nome}
+                <div class="last-update" id="lastUpdateTime">
+                    <i class="fas fa-clock"></i>
+                    <span>Última verificação: --:--</span>
+                </div>
+            `;
+        }
         
+        // Mostrar conteúdo principal
         document.getElementById("mainContent").classList.add("active");
+        
+        // Configurar menu
         setupMenu();
+        
+        // Configurar scroll
         setupScrollDetection();
         
+        // Carregar atualizações imediatamente
         carregarAtualizacoesLinha();
+        
+        // Auto-atualização a cada 30 segundos
         setInterval(() => carregarAtualizacoesLinha(true), 30000);
         
-        iniciarPollingChat();
+        // Configurar botões
+        document.getElementById('manualRefresh').addEventListener('click', () => {
+            const btn = document.getElementById('manualRefresh');
+            btn.classList.add('spinning');
+            carregarAtualizacoesLinha(false).finally(() => {
+                setTimeout(() => btn.classList.remove('spinning'), 1000);
+            });
+        });
+        
+        // Configurar chat
+        document.getElementById('openChat').addEventListener('click', () => {
+            if (!currentLine) {
+                showToast("Selecione uma linha primeiro", "warning");
+                return;
+            }
+            
+            document.getElementById('chatScreen').style.display = 'flex';
+            loadChatMessages();
+            iniciarPollingChat();
+        });
+        
+        document.getElementById('closeChat').addEventListener('click', () => {
+            document.getElementById('chatScreen').style.display = 'none';
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        });
+        
+        document.getElementById('chat-send').addEventListener('click', sendChatMessage);
+        document.getElementById('chat-text').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        
+        // Criar botão de pânico
         criarBotaoPanico();
+        
+        // Atualizar status online
         updateOnlineStatus();
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
@@ -1498,6 +1541,11 @@ async function submeterCadastro() {
         const overlay = document.getElementById('overlay');
         const menuToggle = document.getElementById('menuToggle');
         
+        if (!menuToggle || !menu || !overlay) {
+            console.error("❌ Elementos do menu não encontrados");
+            return;
+        }
+        
         menuToggle.addEventListener('click', () => {
             menu.classList.add('open');
             overlay.classList.add('active');
@@ -1509,151 +1557,160 @@ async function submeterCadastro() {
         });
     }
     
+    // ============================================
+    // SISTEMA DE ATUALIZAÇÕES
+    // ============================================
     async function carregarAtualizacoesLinha(showNotification = false) {
-  if (!currentLine) {
-    console.error("❌ Nenhuma linha selecionada");
-    return;
-  }
-  
-  console.log(`📡 Carregando atualizações para linha: ${currentLine}`);
-  
-  const container = document.getElementById('updates-content');
-  const loader = document.getElementById('updatesLoader');
-  
-  loader.classList.add('visible');
-  container.innerHTML = '<p class="waiting">A carregar actualizações...</p>';
-  
-  try {
-    // URL CORRETA para buscar atualizações
-    const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
-    console.log("🔗 URL:", url);
-    
-    const response = await fetch(url);
-    console.log("📡 Status:", response.status);
-    
-    const data = await response.json();
-    console.log("📦 Dados recebidos:", data);
-    
-    if (data.success && data.updates) {
-      console.log(`✅ ${data.updates.length} atualizações encontradas`);
-      renderUpdates(data.updates, container);
-      updateStatsBadge(data.updates.length);
-      
-      if (showNotification && data.updates.length > lastUpdateCount) {
-        showNewUpdateNotification(data.updates.length - lastUpdateCount);
-      }
-      lastUpdateCount = data.updates.length;
-      
-    } else {
-      console.warn("⚠️ Nenhuma atualização ou erro:", data.error);
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <i class="fas fa-train" style="font-size: 3rem; margin-bottom: 15px;"></i>
-          <h3>Nenhuma actualização disponível</h3>
-          <p>Ainda não há actualizações para a linha ${LINHAS[currentLine].nome}</p>
-          <p><small>As actualizações aparecerão aqui quando disponíveis</small></p>
-        </div>
-      `;
+        if (!currentLine) {
+            console.error("❌ Nenhuma linha selecionada");
+            return;
+        }
+        
+        console.log(`📡 Carregando atualizações para linha: ${currentLine}`);
+        
+        const container = document.getElementById('updates-content');
+        const loader = document.getElementById('updatesLoader');
+        
+        loader.classList.add('visible');
+        
+        try {
+            // URL para buscar atualizações
+            const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
+            console.log("🔗 URL:", url);
+            
+            const response = await fetch(url);
+            console.log("📡 Status:", response.status, response.statusText);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("📦 Dados recebidos:", data);
+            
+            if (data.success && data.updates) {
+                console.log(`✅ ${data.updates.length} atualizações encontradas`);
+                renderUpdates(data.updates, container);
+                updateStatsBadge(data.updates.length);
+                
+                if (showNotification && data.updates.length > lastUpdateCount) {
+                    showNewUpdateNotification(data.updates.length - lastUpdateCount);
+                }
+                lastUpdateCount = data.updates.length;
+                
+            } else {
+                console.warn("⚠️ Nenhuma atualização ou erro:", data.error);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-train" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3>Nenhuma actualização disponível</h3>
+                        <p>Ainda não há actualizações para a linha ${LINHAS[currentLine].nome}</p>
+                        <p><small>As actualizações aparecerão aqui quando disponíveis</small></p>
+                    </div>
+                `;
+            }
+            
+        } catch (e) {
+            console.error('❌ Erro ao carregar actualizações:', e);
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #c62828;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3>Erro ao carregar actualizações</h3>
+                    <p>${e.message}</p>
+                    <button onclick="carregarAtualizacoesLinha()" style="margin-top: 15px; padding: 10px 20px; background: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        <i class="fas fa-redo"></i> Tentar Novamente
+                    </button>
+                </div>
+            `;
+        } finally {
+            loader.classList.remove('visible');
+            updateLastUpdateTime();
+        }
     }
-    
-  } catch (e) {
-    console.error('❌ Erro ao carregar actualizações:', e);
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #c62828;">
-        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
-        <h3>Erro ao carregar actualizações</h3>
-        <p>${e.message}</p>
-        <button onclick="carregarAtualizacoesLinha()" style="margin-top: 15px; padding: 10px 20px; background: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer;">
-          <i class="fas fa-redo"></i> Tentar Novamente
-        </button>
-      </div>
-    `;
-  } finally {
-    loader.classList.remove('visible');
-    updateLastUpdateTime();
-  }
-}
     
     function renderUpdates(updates, container) {
-  console.log("🎨 Renderizando", updates.length, "atualizações");
-  
-  if (updates.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #666;">
-        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
-        <h3>Nenhuma actualização ainda</h3>
-        <p>Seja o primeiro a receber actualizações!</p>
-      </div>
-    `;
-    return;
-  }
-  
-  // Ordenar por data (mais recente primeiro)
-  const sortedUpdates = [...updates].sort((a, b) => 
-    new Date(b.timestamp) - new Date(a.timestamp)
-  );
-  
-  const html = sortedUpdates.map((u, index) => {
-    // Formatar nome do admin
-    let adminName = u.adminName || "Administração CFM";
-    if (!adminName.includes("🛡️") && !adminName.includes("ADM")) {
-      adminName = `🛡️ADM ${adminName}`;
+        console.log("🎨 Renderizando", updates.length, "atualizações");
+        
+        if (!updates || updates.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3>Nenhuma actualização ainda</h3>
+                    <p>Seja o primeiro a receber actualizações!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordenar por data (mais recente primeiro)
+        const sortedUpdates = [...updates].sort((a, b) => 
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        
+        const html = sortedUpdates.map((u, index) => {
+            // Formatar nome do admin
+            let adminName = u.adminName || "Administração CFM";
+            if (!adminName.includes("🛡️") && !adminName.includes("ADM")) {
+                adminName = `🛡️ADM ${adminName}`;
+            }
+            
+            // Formatar data
+            const time = new Date(u.timestamp).toLocaleString('pt-MZ', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Escolher ícone baseado no conteúdo
+            const textLower = (u.textoOriginal || '').toLowerCase();
+            let icon = '📢';
+            if (textLower.includes('atraso') || textLower.includes('atrasado')) icon = '⏰';
+            if (textLower.includes('cancel') || textLower.includes('cancelado')) icon = '❌';
+            if (textLower.includes('importante') || textLower.includes('urgente')) icon = '⚠️';
+            if (textLower.includes('horário') || textLower.includes('hora')) icon = '🕒';
+            if (textLower.includes('partida') || textLower.includes('chegada')) icon = '🚂';
+            
+            // Verificar se é nova (últimas 5 horas)
+            const isNew = (Date.now() - new Date(u.timestamp).getTime()) < (5 * 60 * 60 * 1000);
+            
+            // Formatar texto (preservar quebras de linha)
+            let formattedText = (u.textoOriginal || '')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            return `
+                <div class="update-card ${isNew ? 'new' : ''}" style="animation-delay: ${index * 0.05}s;">
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+                        <span style="font-size:1.5rem;flex-shrink:0;">${icon}</span>
+                        <div style="flex:1;">
+                            <div class="admin-info" style="margin:0;">
+                                <span class="admin-name">${adminName}</span>
+                                <span>${time}</span>
+                            </div>
+                            <div class="original-message">${formattedText}</div>
+                        </div>
+                    </div>
+                    <div class="update-actions">
+                        <button onclick="copyToClipboard(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn copy" title="Copiar">
+                            <i class="far fa-copy"></i> Copiar
+                        </button>
+                        <button onclick="shareUpdate(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn share" title="Partilhar">
+                            <i class="fas fa-share-alt"></i> Partilhar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+        console.log("✅ Atualizações renderizadas com sucesso");
+        
+        // Rolar para as atualizações mais recentes
+        scrollToLatestUpdate(true);
     }
-    
-    // Formatar data
-    const time = new Date(u.timestamp).toLocaleString('pt-MZ', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    // Escolher ícone baseado no conteúdo
-    const textLower = (u.textoOriginal || '').toLowerCase();
-    let icon = '📢';
-    if (textLower.includes('atraso') || textLower.includes('atrasado')) icon = '⏰';
-    if (textLower.includes('cancel') || textLower.includes('cancelado')) icon = '❌';
-    if (textLower.includes('importante') || textLower.includes('urgente')) icon = '⚠️';
-    if (textLower.includes('horário') || textLower.includes('hora')) icon = '🕒';
-    if (textLower.includes('partida') || textLower.includes('chegada')) icon = '🚂';
-    
-    // Verificar se é nova (últimas 5 horas)
-    const isNew = (Date.now() - new Date(u.timestamp).getTime()) < (5 * 60 * 60 * 1000);
-    
-    // Formatar texto (preservar quebras de linha)
-    let formattedText = (u.textoOriginal || '')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
-    
-    return `
-      <div class="update-card ${isNew ? 'new' : ''}" style="animation-delay: ${index * 0.05}s;">
-        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
-          <span style="font-size:1.5rem;flex-shrink:0;">${icon}</span>
-          <div style="flex:1;">
-            <div class="admin-info" style="margin:0;">
-              <span class="admin-name">${adminName}</span>
-              <span>${time}</span>
-            </div>
-            <div class="original-message">${formattedText}</div>
-          </div>
-        </div>
-        <div class="update-actions">
-          <button onclick="copyToClipboard(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn copy" title="Copiar">
-            <i class="far fa-copy"></i> Copiar
-          </button>
-          <button onclick="shareUpdate(\`${escapeText(u.textoOriginal || '')}\`)" class="update-action-btn share" title="Partilhar">
-            <i class="fas fa-share-alt"></i> Partilhar
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  container.innerHTML = html;
-  console.log("✅ Atualizações renderizadas com sucesso");
-}
     
     function escapeText(text) {
         return text.replace(/`/g, "\\`").replace(/\n/g, "\\n");
@@ -1682,8 +1739,10 @@ async function submeterCadastro() {
         
         const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
         if (forceScroll || isNearBottom) {
-            container.scrollTo({ top: container.scrollHeight, behavior: forceScroll ? 'instant' : 'smooth' });
-            if (scrollToBottomBtn) scrollToBottomBtn.classList.remove('visible');
+            setTimeout(() => {
+                container.scrollTo({ top: container.scrollHeight, behavior: forceScroll ? 'instant' : 'smooth' });
+                if (scrollToBottomBtn) scrollToBottomBtn.classList.remove('visible');
+            }, 100);
         } else {
             if (scrollToBottomBtn) scrollToBottomBtn.classList.add('visible');
         }
@@ -1763,20 +1822,14 @@ async function submeterCadastro() {
     function updateOnlineStatus() {
         const status = document.getElementById('onlineStatus');
         if (status) {
-            status.querySelector('span').textContent = navigator.onLine ? 'Online' : 'Offline';
+            const isOnline = navigator.onLine;
+            status.querySelector('span').textContent = isOnline ? 'Online' : 'Offline';
+            status.querySelector('.online-dot').style.background = isOnline ? '#4caf50' : '#f44336';
         }
     }
     
-    document.getElementById('manualRefresh').addEventListener('click', () => {
-        const btn = document.getElementById('manualRefresh');
-        btn.classList.add('spinning');
-        carregarAtualizacoesLinha(false).finally(() => {
-            setTimeout(() => btn.classList.remove('spinning'), 1000);
-        });
-    });
-    
     // ============================================
-    // SISTEMA DE CHAT
+    // SISTEMA DE CHAT - CONTINUAÇÃO DA FUNÇÃO CORTADA
     // ============================================
     function getChatUserId() {
         const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -1807,189 +1860,199 @@ async function submeterCadastro() {
     }
     
     async function loadChatMessages() {
-  if (!currentLine) {
-    showToast("Selecione uma linha primeiro", "warning");
-    document.getElementById('chatScreen').style.display = 'none';
-    return;
-  }
-  
-  const el = document.getElementById('chat-messages');
-  el.innerHTML = '<div class="waiting">Carregando mensagens...</div>';
-  
-  console.log(`💬 Carregando chat para linha: ${currentLine}`);
-  
-  try {
-    // URL para buscar chat
-    const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
-    console.log("🔗 Chat URL:", url);
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    console.log("📦 Dados do chat:", data);
-    
-    if (data.success && data.chat && data.chat.length > 0) {
-      const chat = data.chat;
-      
-      // Ordenar por data (mais antiga primeiro)
-      chat.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      
-      el.innerHTML = chat.map(m => {
-        const isCurrentUser = m.usuario === getChatUserId();
+        if (!currentLine) {
+            showToast("Selecione uma linha primeiro", "warning");
+            document.getElementById('chatScreen').style.display = 'none';
+            return;
+        }
         
-        // Filtrar palavras ofensivas
-        let mensagemFiltrada = (m.mensagem || '')
-          .replace(/estúpida|estúpido|merda|caralho|foder|vagina|porra|puta|puto|cacete|buceta|pênis|pau|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|otário|babaca|canalha|safado|vagabundo|nojento|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
-          .replace(/http:|https:|www\.|\.com|\.net|\.org|bit\.ly|t\.co|tinyurl|goo\.gl|instagram\.com|facebook\.com|whatsapp\.com|telegram\.me/gi, '');
+        const el = document.getElementById('chat-messages');
+        el.innerHTML = '<div class="waiting">Carregando mensagens...</div>';
         
-        return `
-          <div class="message-container">
-            <div class="message ${isCurrentUser ? 'sent' : 'received'}">
-              <div class="message-sender">${m.usuario || 'Passageiro'}</div>
-              <div class="message-text">${mensagemFiltrada}</div>
-              <div class="message-info">
-                <span>${new Date(m.timestamp).toLocaleTimeString('pt-MZ', {hour:'2-digit',minute:'2-digit'})}</span>
-                ${isCurrentUser ? '<span><i class="fas fa-check"></i></span>' : ''}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      // Atualizar título
-      document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine].nome}`;
-      
-      // Atualizar timestamp da última mensagem
-      if (chat.length > 0) {
-        const ultima = chat[chat.length - 1];
-        ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
-      }
-      
-      // Rolar para baixo
-      el.scrollTop = el.scrollHeight;
-      
-      console.log(`✅ ${chat.length} mensagens carregadas`);
-      
-    } else {
-      el.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px;"></i>
-          <h3>Nenhuma mensagem ainda</h3>
-          <p>Seja o primeiro a enviar uma mensagem!</p>
-        </div>
-      `;
+        console.log(`💬 Carregando chat para linha: ${currentLine}`);
+        
+        try {
+            // URL para buscar chat
+            const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
+            console.log("🔗 Chat URL:", url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log("📦 Dados do chat:", data);
+            
+            if (data.success && data.chat && data.chat.length > 0) {
+                const chat = data.chat;
+                
+                // Ordenar por data (mais antiga primeiro)
+                chat.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                
+                el.innerHTML = chat.map(m => {
+                    const isCurrentUser = m.usuario === getChatUserId();
+                    
+                    // Filtrar palavras ofensivas
+                    let mensagemFiltrada = (m.mensagem || '')
+                        .replace(/estúpida|estúpido|merda|caralho|foder|vagina|porra|puta|puto|cacete|buceta|pênis|pau|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|otário|babaca|canalha|safado|vagabundo|nojento|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
+                        .replace(/http:|https:|www\.|\.com|\.net|\.org|bit\.ly|t\.co|tinyurl|goo\.gl|instagram\.com|facebook\.com|whatsapp\.com|telegram\.me/gi, '');
+                    
+                    return `
+                        <div class="message-container">
+                            <div class="message ${isCurrentUser ? 'sent' : 'received'}">
+                                <div class="message-sender">${m.usuario || 'Passageiro'}</div>
+                                <div class="message-text">${mensagemFiltrada}</div>
+                                <div class="message-info">
+                                    <span>${new Date(m.timestamp).toLocaleTimeString('pt-MZ', {hour:'2-digit',minute:'2-digit'})}</span>
+                                    ${isCurrentUser ? '<span><i class="fas fa-check"></i></span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Atualizar título
+                document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine].nome}`;
+                
+                // Atualizar timestamp da última mensagem
+                if (chat.length > 0) {
+                    const ultima = chat[chat.length - 1];
+                    ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
+                }
+                
+                // Rolar para baixo
+                setTimeout(() => {
+                    el.scrollTop = el.scrollHeight;
+                }, 100);
+                
+                console.log(`✅ ${chat.length} mensagens carregadas`);
+                
+            } else {
+                el.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <h3>Nenhuma mensagem ainda</h3>
+                        <p>Seja o primeiro a enviar uma mensagem!</p>
+                    </div>
+                `;
+            }
+            
+        } catch (e) {
+            console.error('❌ Erro ao carregar chat:', e);
+            el.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #c62828;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <h3>Erro ao carregar chat</h3>
+                    <p>${e.message}</p>
+                </div>
+            `;
+        }
     }
-    
-  } catch (e) {
-    console.error('❌ Erro ao carregar chat:', e);
-    el.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #c62828;">
-        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
-        <h3>Erro ao carregar chat</h3>
-        <p>${e.message}</p>
-      </div>
-    `;
-  }
-}
     
     async function sendChatMessage() {
-  if (!currentLine) {
-    showToast("Selecione uma linha primeiro", "warning");
-    return;
-  }
-  
-  const input = document.getElementById('chat-text');
-  const btn = document.getElementById('chat-send');
-  const msg = input.value.trim();
+        if (!currentLine) {
+            showToast("Selecione uma linha primeiro", "warning");
+            return;
+        }
+        
+        const input = document.getElementById('chat-text');
+        const btn = document.getElementById('chat-send');
+        const msg = input.value.trim();
 
-  if (!msg) {
-    showToast("Digite uma mensagem", "warning");
-    return;
-  }
-  
-  if (msg.length > 280) {
-    showToast("Mensagem muito longa (máx. 280 caracteres)", "warning");
-    return;
-  }
+        if (!msg) {
+            showToast("Digite uma mensagem", "warning");
+            return;
+        }
+        
+        if (msg.length > 280) {
+            showToast("Mensagem muito longa (máx. 280 caracteres)", "warning");
+            return;
+        }
 
-  // Salvar texto original
-  const textoOriginal = input.value;
-  
-  // Desabilitar botão e mostrar loading
-  btn.classList.add('loading');
-  btn.disabled = true;
-  input.disabled = true;
-  
-  // Limpar input imediatamente para melhor UX
-  input.value = '';
+        // Salvar texto original
+        const textoOriginal = input.value;
+        
+        // Desabilitar botão e mostrar loading
+        btn.classList.add('loading');
+        btn.disabled = true;
+        input.disabled = true;
+        
+        // Limpar input imediatamente para melhor UX
+        input.value = '';
 
-  try {
-    console.log(`💬 Enviando mensagem para linha ${currentLine}:`, msg);
-    
-    const formData = new URLSearchParams();
-    formData.append('action', 'chat');
-    formData.append('msg', msg);
-    formData.append('userId', getChatUserId());
-    formData.append('linha', currentLine);
+        try {
+            console.log(`💬 Enviando mensagem para linha ${currentLine}:`, msg);
+            
+            const formData = new URLSearchParams();
+            formData.append('action', 'chat');
+            formData.append('msg', msg);
+            formData.append('userId', getChatUserId());
+            formData.append('linha', currentLine);
 
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-      },
-      body: formData.toString()
-    });
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: formData.toString()
+            });
 
-    const result = await response.json();
-    console.log("📡 Resposta do envio:", result);
-    
-    if (result.success) {
-      // Mostrar mensagem localmente imediatamente
-      const chatContainer = document.getElementById('chat-messages');
-      const novaMensagemHTML = `
-        <div class="message-container">
-          <div class="message sent">
-            <div class="message-sender">${getChatUserId()}</div>
-            <div class="message-text">${msg.replace(/[<>]/g, '')}</div>
-            <div class="message-info">
-              <span>Agora</span>
-              <span><i class="fas fa-check"></i></span>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Adicionar ao final
-      chatContainer.innerHTML += novaMensagemHTML;
-      
-      // Rolar para baixo
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      
-      showToast("Mensagem enviada!", "success");
-      
-      // Atualizar timestamp
-      ultimaVerificacaoChat = Date.now();
-      
-    } else {
-      throw new Error(result.error || 'Falha ao enviar mensagem');
+            const result = await response.json();
+            console.log("📡 Resposta do envio:", result);
+            
+            if (result.success) {
+                // Mostrar mensagem localmente imediatamente
+                const chatContainer = document.getElementById('chat-messages');
+                const horaAtual = new Date().toLocaleTimeString('pt-MZ', {hour:'2-digit', minute:'2-digit'});
+                
+                const novaMensagemHTML = `
+                    <div class="message-container">
+                        <div class="message sent">
+                            <div class="message-sender">${getChatUserId()}</div>
+                            <div class="message-text">${msg.replace(/[<>]/g, '')}</div>
+                            <div class="message-info">
+                                <span>${horaAtual}</span>
+                                <span><i class="fas fa-check"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Se não houver mensagens, limpar e adicionar
+                if (chatContainer.innerHTML.includes('Nenhuma mensagem')) {
+                    chatContainer.innerHTML = novaMensagemHTML;
+                } else {
+                    chatContainer.innerHTML += novaMensagemHTML;
+                }
+                
+                // Rolar para baixo
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+                
+                showToast("Mensagem enviada!", "success");
+                
+                // Atualizar timestamp
+                ultimaVerificacaoChat = Date.now();
+                
+            } else {
+                throw new Error(result.error || 'Falha ao enviar mensagem');
+            }
+            
+        } catch (e) {
+            console.error('❌ Erro ao enviar:', e);
+            
+            // Restaurar mensagem no input
+            input.value = textoOriginal;
+            
+            showToast("Erro ao enviar mensagem: " + e.message, "error");
+            
+        } finally {
+            // Restaurar botão
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }
     }
-    
-  } catch (e) {
-    console.error('❌ Erro ao enviar:', e);
-    
-    // Restaurar mensagem no input
-    input.value = textoOriginal;
-    
-    showToast("Erro ao enviar mensagem: " + e.message, "error");
-    
-  } finally {
-    // Restaurar botão
-    btn.classList.remove('loading');
-    btn.disabled = false;
-    input.disabled = false;
-    input.focus();
-  }
-}
     
     function iniciarPollingChat() {
         if (pollingInterval) clearInterval(pollingInterval);
@@ -2083,10 +2146,19 @@ async function submeterCadastro() {
         }
     }
     
-    window.addEventListener('visibilitychange', () => {
-        if (!document.hidden && currentLine) {
-            carregarAtualizacoesLinha(true);
-        }
+    // ============================================
+    // INICIALIZAÇÃO DA PÁGINA
+    // ============================================
+    window.addEventListener('DOMContentLoaded', () => {
+        // Verificar se já existe usuário
+        verificarUsuarioExistente();
+        
+        // Configurar evento de visibilidade
+        window.addEventListener('visibilitychange', () => {
+            if (!document.hidden && currentLine) {
+                carregarAtualizacoesLinha(true);
+            }
+        });
     });
   </script>
 </body>
