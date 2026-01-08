@@ -3,15 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#4CAF50">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
   <title>CFM Actualizações - Comboio Beira</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="apple-touch-icon" href="./icon-192.png">
   <style>
     /* ============================================
        ESTILOS DA PÁGINA DE CADASTRO
@@ -1164,10 +1159,101 @@
     let currentLine = null;
     let pollingInterval = null;
     let ultimaVerificacaoChat = 0;
-    let networkController = null;
     
     // ============================================
-    // FUNÇÃO TOAST MELHORADA
+    // FUNÇÃO PARA REQUISIÇÕES AJAX (SOLUÇÃO CORS)
+    // ============================================
+    function fazerRequisicao(url, method = 'GET', data = null) {
+        return new Promise((resolve, reject) => {
+            console.log(`🌐 ${method} para: ${url}`);
+            
+            // SOLUÇÃO: Usar XmlHttpRequest que funciona melhor com CORS no GAS
+            const xhr = new XMLHttpRequest();
+            
+            // Para GET, adicionar timestamp para evitar cache
+            const requestUrl = method === 'GET' ? `${url}&_=${Date.now()}` : url;
+            
+            xhr.open(method, requestUrl, true);
+            
+            // Configurar headers
+            if (method === 'POST') {
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            }
+            
+            xhr.timeout = 15000; // 15 segundos timeout
+            
+            xhr.onload = function() {
+                console.log(`📡 Status: ${xhr.status}, Tipo: ${xhr.getResponseHeader('Content-Type')}`);
+                
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        // Tentar parsear como JSON
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } catch (e) {
+                        console.error('❌ Erro ao parsear JSON:', xhr.responseText.substring(0, 200));
+                        reject(new Error('Resposta inválida do servidor'));
+                    }
+                } else {
+                    reject(new Error(`HTTP error ${xhr.status}: ${xhr.statusText}`));
+                }
+            };
+            
+            xhr.onerror = function() {
+                reject(new Error('Erro de rede ao fazer requisição'));
+            };
+            
+            xhr.ontimeout = function() {
+                reject(new Error('Timeout na requisição'));
+            };
+            
+            // Enviar requisição
+            if (method === 'POST' && data) {
+                xhr.send(data);
+            } else {
+                xhr.send();
+            }
+        });
+    }
+    
+    // Função específica para POST com dados de formulário
+    function fazerPost(url, formData) {
+        return new Promise((resolve, reject) => {
+            console.log(`📨 POST para: ${url}`);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.timeout = 15000;
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } catch (e) {
+                        console.error('❌ POST - Erro ao parsear JSON:', xhr.responseText.substring(0, 200));
+                        reject(new Error('Resposta inválida do servidor'));
+                    }
+                } else {
+                    reject(new Error(`HTTP error ${xhr.status}`));
+                }
+            };
+            
+            xhr.onerror = function() {
+                reject(new Error('Erro de rede no POST'));
+            };
+            
+            xhr.ontimeout = function() {
+                reject(new Error('Timeout no POST'));
+            };
+            
+            xhr.send(formData.toString());
+        });
+    }
+    
+    // ============================================
+    // FUNÇÃO TOAST
     // ============================================
     function showToast(message, type = 'info') {
         console.log(`📢 Toast [${type}]:`, message);
@@ -1212,7 +1298,7 @@
     }
     
     // ============================================
-    // CADASTRO DE USUÁRIO - VERSÃO MELHORADA
+    // CADASTRO DE USUÁRIO
     // ============================================
     async function submeterCadastro() {
         const nomeInput = document.getElementById("nome");
@@ -1257,33 +1343,7 @@
             formData.append('nome', nome);
             formData.append('telefone', telefone);
             
-            // Fazer a requisição com timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString(),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            // Verificar se a resposta é JSON válido
-            const responseText = await response.text();
-            console.log("📡 Resposta bruta:", responseText.substring(0, 200));
-            
-            let resultado;
-            try {
-                resultado = JSON.parse(responseText);
-            } catch (jsonError) {
-                console.error("❌ Resposta não é JSON válido:", responseText);
-                throw new Error("Resposta inválida do servidor");
-            }
-            
+            const resultado = await fazerPost(GAS_URL, formData);
             console.log("📡 Resposta do GAS:", resultado);
             
             if (resultado.success) {
@@ -1309,16 +1369,7 @@
                 
                 // Carregar linhas disponíveis do GAS
                 try {
-                    const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-                    const linhasText = await linhasResponse.text();
-                    
-                    let linhasData;
-                    try {
-                        linhasData = JSON.parse(linhasText);
-                    } catch (e) {
-                        console.warn("Resposta não é JSON, usando fallback");
-                        linhasData = { success: false };
-                    }
+                    const linhasData = await fazerRequisicao(`${GAS_URL}?action=linhas_disponiveis`);
                     
                     if (linhasData.success) {
                         mostrarSelecaoLinha(linhasData.linhas);
@@ -1339,7 +1390,7 @@
             
             // Mostrar erro específico
             let errorMessage = "Erro ao cadastrar";
-            if (error.name === 'AbortError') {
+            if (error.message.includes("Timeout")) {
                 errorMessage = "Tempo de conexão excedido. Verifique sua internet.";
             } else if (error.message.includes("Resposta inválida")) {
                 errorMessage = "Problema no servidor. Tente novamente.";
@@ -1452,14 +1503,7 @@
                 formData.append('userId', usuario.userId);
                 formData.append('linha', currentLine);
                 
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(), 10000);
-                
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal
-                });
+                await fazerPost(GAS_URL, formData);
                 console.log("✅ Linha salva no servidor");
             } catch (error) {
                 console.log("⚠️ Linha não salva no servidor (modo offline):", error);
@@ -1506,16 +1550,7 @@
                         
                         // Carregar linhas do GAS
                         try {
-                            const linhasResponse = await fetch(`${GAS_URL}?action=linhas_disponiveis&t=${Date.now()}`);
-                            const linhasText = await linhasResponse.text();
-                            
-                            let linhasData;
-                            try {
-                                linhasData = JSON.parse(linhasText);
-                            } catch (e) {
-                                console.warn("Resposta não é JSON, usando fallback");
-                                linhasData = { success: false };
-                            }
+                            const linhasData = await fazerRequisicao(`${GAS_URL}?action=linhas_disponiveis`);
                             
                             if (linhasData.success) {
                                 mostrarSelecaoLinha(linhasData.linhas);
@@ -1655,7 +1690,7 @@
     }
     
     // ============================================
-    // SISTEMA DE ATUALIZAÇÕES CORRIGIDO
+    // SISTEMA DE ATUALIZAÇÕES
     // ============================================
     async function carregarAtualizacoesLinha(showNotification = false) {
         if (!currentLine) {
@@ -1672,36 +1707,10 @@
         
         try {
             // URL para buscar atualizações
-            const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
+            const url = `${GAS_URL}?action=updates&linha=${currentLine}`;
             console.log("🔗 URL:", url);
             
-            // Configurar timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            const response = await fetch(url, {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            console.log("📡 Status:", response.status, response.statusText);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // Ler resposta como texto primeiro
-            const responseText = await response.text();
-            console.log("📦 Resposta bruta (primeiros 500 chars):", responseText.substring(0, 500));
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (jsonError) {
-                console.error("❌ Resposta não é JSON válido:", responseText);
-                throw new Error("Resposta inválida do servidor");
-            }
+            const data = await fazerRequisicao(url);
             
             console.log("📦 Dados recebidos:", { 
                 success: data.success, 
@@ -1738,7 +1747,7 @@
             console.error('❌ Erro ao carregar actualizações:', e);
             
             let errorMessage = "Erro ao carregar actualizações";
-            if (e.name === 'AbortError') {
+            if (e.message.includes("Timeout")) {
                 errorMessage = "Tempo de conexão excedido. Verifique sua internet.";
             }
             
@@ -1842,9 +1851,6 @@
                     .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
                     .replace(/\n/g, '<br>');
                 
-                // Escapar para evitar problemas no template literal
-                const safeText = formattedText.replace(/`/g, "\\`").replace(/\$/g, "\\$");
-                
                 return `
                     <div class="update-card ${isNew ? 'new' : ''}" style="animation-delay: ${index * 0.05}s;">
                         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -1854,7 +1860,7 @@
                                     <span class="admin-name">${adminName}</span>
                                     <span>${time}</span>
                                 </div>
-                                <div class="original-message">${safeText}</div>
+                                <div class="original-message">${formattedText}</div>
                             </div>
                         </div>
                         <div class="update-actions">
@@ -2010,7 +2016,7 @@
     }
     
     // ============================================
-    // SISTEMA DE CHAT CORRIGIDO
+    // SISTEMA DE CHAT
     // ============================================
     function getChatUserId() {
         try {
@@ -2054,29 +2060,10 @@
         
         try {
             // URL para buscar chat
-            const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
+            const url = `${GAS_URL}?action=chat&linha=${currentLine}`;
             console.log("🔗 Chat URL:", url);
             
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            const response = await fetch(url, {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            // Ler como texto primeiro
-            const responseText = await response.text();
-            console.log("📦 Resposta chat (primeiros 500 chars):", responseText.substring(0, 500));
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (jsonError) {
-                console.error("❌ Resposta chat não é JSON válido:", responseText);
-                throw new Error("Resposta inválida do servidor");
-            }
+            const data = await fazerRequisicao(url);
             
             console.log("📦 Dados do chat:", { 
                 success: data.success, 
@@ -2187,7 +2174,7 @@
             console.error('❌ Erro ao carregar chat:', e);
             
             let errorMessage = "Erro ao carregar chat";
-            if (e.name === 'AbortError') {
+            if (e.message.includes("Timeout")) {
                 errorMessage = "Tempo de conexão excedido";
             }
             
@@ -2246,33 +2233,7 @@
             formData.append('userId', getChatUserId());
             formData.append('linha', currentLine);
 
-            // Configurar timeout
-            const controller = new AbortController();
-            networkController = controller;
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString(),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            // Ler resposta como texto primeiro
-            const responseText = await response.text();
-            console.log("📡 Resposta bruta do envio:", responseText.substring(0, 200));
-            
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (jsonError) {
-                console.error("❌ Resposta não é JSON válido:", responseText);
-                throw new Error("Resposta inválida do servidor");
-            }
+            const result = await fazerPost(GAS_URL, formData);
             
             console.log("📡 Resposta do envio:", result);
             
@@ -2331,7 +2292,7 @@
             input.value = textoOriginal;
             
             let errorMessage = "Erro ao enviar mensagem";
-            if (e.name === 'AbortError') {
+            if (e.message.includes("Timeout")) {
                 errorMessage = "Tempo de conexão excedido. A mensagem pode ter sido enviada.";
             }
             
@@ -2343,7 +2304,6 @@
             btn.disabled = false;
             input.disabled = false;
             input.focus();
-            networkController = null;
         }
     }
     
@@ -2358,27 +2318,12 @@
                     console.log('Erro no polling chat:', e);
                 }
             }
-        }, 5000); // Aumentado para 5 segundos
+        }, 5000);
     }
     
     async function verificarNovasMensagens() {
         try {
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), 8000);
-            
-            const response = await fetch(`${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`, {
-                signal: controller.signal
-            });
-            
-            const responseText = await response.text();
-            let data;
-            
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                console.warn("Resposta polling não é JSON:", responseText.substring(0, 100));
-                return;
-            }
+            const data = await fazerRequisicao(`${GAS_URL}?action=chat&linha=${currentLine}`);
             
             if (data.success && data.chat && data.chat.length > 0) {
                 const ultimaMsg = data.chat[data.chat.length - 1];
@@ -2441,11 +2386,6 @@
             localStorage.removeItem('cfm_linha_atual');
             localStorage.removeItem("chatUserId");
             
-            // Cancelar requisições pendentes
-            if (networkController) {
-                networkController.abort();
-            }
-            
             showToast("Sessão encerrada", "info");
             setTimeout(() => location.reload(), 1000);
         }
@@ -2487,10 +2427,29 @@
     }
     
     // ============================================
+    // TESTE DE CONEXÃO COM SERVIDOR
+    // ============================================
+    async function testarConexaoServidor() {
+        try {
+            console.log("🔗 Testando conexão com servidor...");
+            const response = await fazerRequisicao(`${GAS_URL}?action=test`);
+            console.log("✅ Conexão OK:", response);
+            return true;
+        } catch (error) {
+            console.error("❌ Falha na conexão:", error);
+            showToast("Não foi possível conectar ao servidor", "warning");
+            return false;
+        }
+    }
+    
+    // ============================================
     // INICIALIZAÇÃO DA PÁGINA
     // ============================================
     window.addEventListener('DOMContentLoaded', () => {
         console.log("🚀 Página carregada - Iniciando verificação...");
+        
+        // Testar conexão primeiro
+        testarConexaoServidor();
         
         // Verificar se já existe usuário
         verificarUsuarioExistente();
@@ -2503,34 +2462,12 @@
             }
         });
         
-        // Configurar beforeunload para limpar recursos
-        window.addEventListener('beforeunload', () => {
-            if (networkController) {
-                networkController.abort();
+        // Testar periodicamente a conexão
+        setInterval(() => {
+            if (navigator.onLine && currentLine) {
+                testarConexaoServidor();
             }
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-            }
-        });
-        
-        // Testar conexão com servidor
-        setTimeout(() => {
-            if (navigator.onLine) {
-                fetch(`${GAS_URL}?action=test&t=${Date.now()}`)
-                    .then(res => res.text())
-                    .then(text => {
-                        try {
-                            const data = JSON.parse(text);
-                            if (data.success) {
-                                console.log("✅ Conexão com servidor: OK");
-                            }
-                        } catch (e) {
-                            console.log("⚠️ Servidor respondeu mas não em JSON");
-                        }
-                    })
-                    .catch(e => console.log("⚠️ Não foi possível testar servidor:", e.message));
-            }
-        }, 1000);
+        }, 60000); // A cada 1 minuto
     });
   </script>
 </body>
