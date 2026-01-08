@@ -1561,72 +1561,80 @@
     // SISTEMA DE ATUALIZAÇÕES
     // ============================================
     async function carregarAtualizacoesLinha(showNotification = false) {
-        if (!currentLine) {
-            console.error("❌ Nenhuma linha selecionada");
-            return;
+    if (!currentLine) {
+        console.error("❌ Nenhuma linha selecionada");
+        return;
+    }
+    
+    console.log(`📡 Carregando atualizações para linha: ${currentLine}`);
+    
+    const container = document.getElementById('updates-content');
+    const loader = document.getElementById('updatesLoader');
+    
+    loader.classList.add('visible');
+    
+    try {
+        // URL para buscar atualizações
+        const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
+        console.log("🔗 URL:", url);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        console.log(`📡 Carregando atualizações para linha: ${currentLine}`);
+        const text = await response.text();
+        console.log("📦 Texto recebido:", text.substring(0, 200));
         
-        const container = document.getElementById('updates-content');
-        const loader = document.getElementById('updatesLoader');
-        
-        loader.classList.add('visible');
-        
+        let data;
         try {
-            // URL para buscar atualizações
-            const url = `${GAS_URL}?action=updates&linha=${currentLine}&t=${Date.now()}`;
-            console.log("🔗 URL:", url);
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error("❌ Erro ao parsear JSON:", parseError, "Texto:", text);
+            throw new Error("Resposta inválida do servidor");
+        }
+        
+        console.log("📊 Dados parseados:", data);
+        
+        if (data.success && Array.isArray(data.updates)) {
+            console.log(`✅ ${data.updates.length} atualizações encontradas`);
+            renderUpdates(data.updates, container);
+            updateStatsBadge(data.updates.length);
             
-            const response = await fetch(url);
-            console.log("📡 Status:", response.status, response.statusText);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (showNotification && data.updates.length > lastUpdateCount) {
+                showNewUpdateNotification(data.updates.length - lastUpdateCount);
             }
+            lastUpdateCount = data.updates.length;
             
-            const data = await response.json();
-            console.log("📦 Dados recebidos:", data);
-            
-            if (data.success && data.updates) {
-                console.log(`✅ ${data.updates.length} atualizações encontradas`);
-                renderUpdates(data.updates, container);
-                updateStatsBadge(data.updates.length);
-                
-                if (showNotification && data.updates.length > lastUpdateCount) {
-                    showNewUpdateNotification(data.updates.length - lastUpdateCount);
-                }
-                lastUpdateCount = data.updates.length;
-                
-            } else {
-                console.warn("⚠️ Nenhuma atualização ou erro:", data.error);
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <i class="fas fa-train" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                        <h3>Nenhuma actualização disponível</h3>
-                        <p>Ainda não há actualizações para a linha ${LINHAS[currentLine].nome}</p>
-                        <p><small>As actualizações aparecerão aqui quando disponíveis</small></p>
-                    </div>
-                `;
-            }
-            
-        } catch (e) {
-            console.error('❌ Erro ao carregar actualizações:', e);
+        } else {
+            console.warn("⚠️ Nenhuma atualização ou erro:", data.error);
             container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #c62828;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                    <h3>Erro ao carregar actualizações</h3>
-                    <p>${e.message}</p>
-                    <button onclick="carregarAtualizacoesLinha()" style="margin-top: 15px; padding: 10px 20px; background: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        <i class="fas fa-redo"></i> Tentar Novamente
-                    </button>
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-train" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3>Nenhuma actualização disponível</h3>
+                    <p>Ainda não há actualizações para a linha ${LINHAS[currentLine]?.nome || 'selecionada'}</p>
                 </div>
             `;
-        } finally {
-            loader.classList.remove('visible');
-            updateLastUpdateTime();
         }
+        
+    } catch (e) {
+        console.error('❌ Erro ao carregar actualizações:', e);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-wifi-slash" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <h3>Erro de conexão</h3>
+                <p>Não foi possível carregar as actualizações</p>
+                <button onclick="carregarAtualizacoesLinha()" style="margin-top: 15px; padding: 10px 20px; background: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-redo"></i> Tentar Novamente
+                </button>
+            </div>
+        `;
+    } finally {
+        loader.classList.remove('visible');
+        updateLastUpdateTime();
     }
+}
     
     function renderUpdates(updates, container) {
         console.log("🎨 Renderizando", updates.length, "atualizações");
