@@ -1892,7 +1892,7 @@
                     
                     // Filtrar palavras ofensivas
                     let mensagemFiltrada = (m.mensagem || '')
-                        .replace(/estúpida|estúpido|merda|caralho|foder|vagina|porra|puta|puto|cacete|buceta|pênis|pau|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|otário|babaca|canalha|safado|vagabundo|nojento|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
+                        .replace(/estúpida|estúpido|merda|foder|vagina|porra|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|babaca|canalha|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
                         .replace(/http:|https:|www\.|\.com|\.net|\.org|bit\.ly|t\.co|tinyurl|goo\.gl|instagram\.com|facebook\.com|whatsapp\.com|telegram\.me/gi, '');
                     
                     return `
