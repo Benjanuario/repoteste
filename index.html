@@ -1868,46 +1868,51 @@
     }
     
     async function loadChatMessages() {
-        if (!currentLine) {
-            showToast("Selecione uma linha primeiro", "warning");
-            document.getElementById('chatScreen').style.display = 'none';
-            return;
+    if (!currentLine) {
+        showToast("Selecione uma linha primeiro", "warning");
+        document.getElementById('chatScreen').style.display = 'none';
+        return;
+    }
+    
+    const el = document.getElementById('chat-messages');
+    el.innerHTML = '<div class="waiting">Carregando mensagens...</div>';
+    
+    console.log(`💬 Carregando chat para linha: ${currentLine}`);
+    
+    try {
+        // URL para buscar chat
+        const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
+        console.log("🔗 Chat URL:", url);
+        
+        const response = await fetch(url);
+        const text = await response.text();
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error("❌ Erro ao parsear JSON do chat:", parseError);
+            throw new Error("Resposta inválida do servidor");
         }
         
-        const el = document.getElementById('chat-messages');
-        el.innerHTML = '<div class="waiting">Carregando mensagens...</div>';
+        console.log("📦 Dados do chat:", data);
         
-        console.log(`💬 Carregando chat para linha: ${currentLine}`);
-        
-        try {
-            // URL para buscar chat
-            const url = `${GAS_URL}?action=chat&linha=${currentLine}&t=${Date.now()}`;
-            console.log("🔗 Chat URL:", url);
+        if (data.success && Array.isArray(data.chat)) {
+            const chat = data.chat;
             
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            console.log("📦 Dados do chat:", data);
-            
-            if (data.success && data.chat && data.chat.length > 0) {
-                const chat = data.chat;
-                
+            // Verificar se há mensagens
+            if (chat.length > 0) {
                 // Ordenar por data (mais antiga primeiro)
                 chat.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 
                 el.innerHTML = chat.map(m => {
                     const isCurrentUser = m.usuario === getChatUserId();
                     
-                    // Filtrar palavras ofensivas
-                    let mensagemFiltrada = (m.mensagem || '')
-                        .replace(/estúpida|estúpido|merda|foder|vagina|porra|bosta|desgraçado|inferno|cu|arrombado|imbecil|idiota|babaca|canalha|lixo|droga|merdinha|caralh|fd|pta|fdp|krl|kct|buc|puta/gi, '***')
-                        .replace(/http:|https:|www\.|\.com|\.net|\.org|bit\.ly|t\.co|tinyurl|goo\.gl|instagram\.com|facebook\.com|whatsapp\.com|telegram\.me/gi, '');
-                    
                     return `
                         <div class="message-container">
                             <div class="message ${isCurrentUser ? 'sent' : 'received'}">
                                 <div class="message-sender">${m.usuario || 'Passageiro'}</div>
-                                <div class="message-text">${mensagemFiltrada}</div>
+                                <div class="message-text">${(m.mensagem || '').replace(/[<>]/g, '')}</div>
                                 <div class="message-info">
                                     <span>${new Date(m.timestamp).toLocaleTimeString('pt-MZ', {hour:'2-digit',minute:'2-digit'})}</span>
                                     ${isCurrentUser ? '<span><i class="fas fa-check"></i></span>' : ''}
@@ -1917,22 +1922,7 @@
                     `;
                 }).join('');
                 
-                // Atualizar título
-                document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine].nome}`;
-                
-                // Atualizar timestamp da última mensagem
-                if (chat.length > 0) {
-                    const ultima = chat[chat.length - 1];
-                    ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
-                }
-                
-                // Rolar para baixo
-                setTimeout(() => {
-                    el.scrollTop = el.scrollHeight;
-                }, 100);
-                
                 console.log(`✅ ${chat.length} mensagens carregadas`);
-                
             } else {
                 el.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #666;">
@@ -1943,125 +1933,156 @@
                 `;
             }
             
-        } catch (e) {
-            console.error('❌ Erro ao carregar chat:', e);
+            // Atualizar título
+            document.getElementById('chatTitle').textContent = `Chat - ${LINHAS[currentLine]?.nome || 'Linha'}`;
+            
+            // Atualizar timestamp da última mensagem
+            if (chat.length > 0) {
+                const ultima = chat[chat.length - 1];
+                ultimaVerificacaoChat = new Date(ultima.timestamp).getTime();
+            }
+            
+            // Rolar para baixo
+            setTimeout(() => {
+                el.scrollTop = el.scrollHeight;
+            }, 100);
+            
+        } else {
             el.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #c62828;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                    <h3>Erro ao carregar chat</h3>
-                    <p>${e.message}</p>
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <h3>Nenhuma mensagem ainda</h3>
+                    <p>Seja o primeiro a enviar uma mensagem!</p>
                 </div>
             `;
         }
+        
+    } catch (e) {
+        console.error('❌ Erro ao carregar chat:', e);
+        el.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <h3>Erro ao carregar chat</h3>
+                <p>${e.message}</p>
+            </div>
+        `;
     }
+}
     
     async function sendChatMessage() {
-        if (!currentLine) {
-            showToast("Selecione uma linha primeiro", "warning");
-            return;
-        }
-        
-        const input = document.getElementById('chat-text');
-        const btn = document.getElementById('chat-send');
-        const msg = input.value.trim();
-
-        if (!msg) {
-            showToast("Digite uma mensagem", "warning");
-            return;
-        }
-        
-        if (msg.length > 280) {
-            showToast("Mensagem muito longa (máx. 280 caracteres)", "warning");
-            return;
-        }
-
-        // Salvar texto original
-        const textoOriginal = input.value;
-        
-        // Desabilitar botão e mostrar loading
-        btn.classList.add('loading');
-        btn.disabled = true;
-        input.disabled = true;
-        
-        // Limpar input imediatamente para melhor UX
-        input.value = '';
-
-        try {
-            console.log(`💬 Enviando mensagem para linha ${currentLine}:`, msg);
-            
-            const formData = new URLSearchParams();
-            formData.append('action', 'chat');
-            formData.append('msg', msg);
-            formData.append('userId', getChatUserId());
-            formData.append('linha', currentLine);
-
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                },
-                body: formData.toString()
-            });
-
-            const result = await response.json();
-            console.log("📡 Resposta do envio:", result);
-            
-            if (result.success) {
-                // Mostrar mensagem localmente imediatamente
-                const chatContainer = document.getElementById('chat-messages');
-                const horaAtual = new Date().toLocaleTimeString('pt-MZ', {hour:'2-digit', minute:'2-digit'});
-                
-                const novaMensagemHTML = `
-                    <div class="message-container">
-                        <div class="message sent">
-                            <div class="message-sender">${getChatUserId()}</div>
-                            <div class="message-text">${msg.replace(/[<>]/g, '')}</div>
-                            <div class="message-info">
-                                <span>${horaAtual}</span>
-                                <span><i class="fas fa-check"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Se não houver mensagens, limpar e adicionar
-                if (chatContainer.innerHTML.includes('Nenhuma mensagem')) {
-                    chatContainer.innerHTML = novaMensagemHTML;
-                } else {
-                    chatContainer.innerHTML += novaMensagemHTML;
-                }
-                
-                // Rolar para baixo
-                setTimeout(() => {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }, 100);
-                
-                showToast("Mensagem enviada!", "success");
-                
-                // Atualizar timestamp
-                ultimaVerificacaoChat = Date.now();
-                
-            } else {
-                throw new Error(result.error || 'Falha ao enviar mensagem');
-            }
-            
-        } catch (e) {
-            console.error('❌ Erro ao enviar:', e);
-            
-            // Restaurar mensagem no input
-            input.value = textoOriginal;
-            
-            showToast("Erro ao enviar mensagem: " + e.message, "error");
-            
-        } finally {
-            // Restaurar botão
-            btn.classList.remove('loading');
-            btn.disabled = false;
-            input.disabled = false;
-            input.focus();
-        }
+    if (!currentLine) {
+        showToast("Selecione uma linha primeiro", "warning");
+        return;
     }
     
+    const input = document.getElementById('chat-text');
+    const btn = document.getElementById('chat-send');
+    const msg = input.value.trim();
+
+    if (!msg) {
+        showToast("Digite uma mensagem", "warning");
+        return;
+    }
+    
+    if (msg.length > 280) {
+        showToast("Mensagem muito longa (máx. 280 caracteres)", "warning");
+        return;
+    }
+
+    // Salvar texto original
+    const textoOriginal = input.value;
+    
+    // Desabilitar botão e mostrar loading
+    btn.classList.add('loading');
+    btn.disabled = true;
+    input.disabled = true;
+    
+    // Limpar input imediatamente para melhor UX
+    input.value = '';
+
+    try {
+        console.log(`💬 Enviando mensagem para linha ${currentLine}:`, msg);
+        
+        const formData = new URLSearchParams();
+        formData.append('action', 'chat');
+        formData.append('msg', msg);
+        formData.append('userId', getChatUserId());
+        formData.append('linha', currentLine);
+
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: formData.toString()
+        });
+
+        const text = await response.text();
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (parseError) {
+            console.error("❌ Erro ao parsear resposta:", parseError);
+            throw new Error("Resposta inválida do servidor");
+        }
+        
+        console.log("📡 Resposta do envio:", result);
+        
+        if (result.success) {
+            // Mostrar mensagem localmente imediatamente
+            const chatContainer = document.getElementById('chat-messages');
+            const horaAtual = new Date().toLocaleTimeString('pt-MZ', {hour:'2-digit', minute:'2-digit'});
+            
+            const novaMensagemHTML = `
+                <div class="message-container">
+                    <div class="message sent">
+                        <div class="message-sender">${getChatUserId()}</div>
+                        <div class="message-text">${msg.replace(/[<>]/g, '')}</div>
+                        <div class="message-info">
+                            <span>${horaAtual}</span>
+                            <span><i class="fas fa-check"></i></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Se não houver mensagens, limpar e adicionar
+            if (chatContainer.innerHTML.includes('Nenhuma mensagem')) {
+                chatContainer.innerHTML = novaMensagemHTML;
+            } else {
+                chatContainer.innerHTML += novaMensagemHTML;
+            }
+            
+            // Rolar para baixo
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+            
+            showToast("Mensagem enviada!", "success");
+            
+            // Atualizar timestamp
+            ultimaVerificacaoChat = Date.now();
+            
+        } else {
+            throw new Error(result.error || 'Falha ao enviar mensagem');
+        }
+        
+    } catch (e) {
+        console.error('❌ Erro ao enviar:', e);
+        
+        // Restaurar mensagem no input
+        input.value = textoOriginal;
+        
+        showToast("Erro ao enviar mensagem: " + e.message, "error");
+        
+    } finally {
+        // Restaurar botão
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        input.disabled = false;
+        input.focus();
+    }
+}    
     function iniciarPollingChat() {
         if (pollingInterval) clearInterval(pollingInterval);
         
