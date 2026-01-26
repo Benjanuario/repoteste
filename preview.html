@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pré-visualização do Plano - Moçambique</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a5f23;
+            --primary-dark: #0d4d16;
+            --primary-light: #2e7d32;
+            --secondary: #d32f2f;
+            --accent: #ff9800;
+            --light: #f8f9fa;
+            --light-gray: #e9ecef;
+            --medium-gray: #6c757d;
+            --dark: #212529;
+            --success: #28a745;
+            --danger: #dc3545;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+            --radius: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Preview Container */
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .preview-container {
+                flex-direction: row;
+            }
+        }
+
+        /* Preview Sidebar */
+        .preview-sidebar {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .card-title i {
+            color: var(--accent);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--light-gray);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .info-value {
+            color: var(--medium-gray);
+            text-align: right;
+        }
+
+        .info-value.filled {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Preview Main */
+        .preview-main {
+            flex: 2;
+        }
+
+        .preview-window {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-tabs {
+            display: flex;
+            background: var(--light-gray);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: var(--medium-gray);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .tab:hover {
+            color: var(--dark);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            background: white;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .preview-content {
+            padding: 2rem;
+            min-height: 600px;
+            overflow: auto;
+        }
+
+        /* PDF Preview Styles */
+        .pdf-preview {
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: white;
+        }
+
+        .pdf-page {
+            background: white;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .pdf-page.portrait {
+            width: 595px;
+            height: 842px;
+        }
+
+        .pdf-page.landscape {
+            width: 842px;
+            height: 595px;
+        }
+
+        .pdf-content {
+            padding: 2.5rem;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Capa Styles */
+        .capa-content {
+            text-align: center;
+            padding: 3rem 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emblema-placeholder {
+            width: 120px;
+            height: 120px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            color: var(--medium-gray);
+        }
+
+        .capa-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .capa-subtitle {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .capa-line {
+            height: 3px;
+            width: 200px;
+            background: var(--primary);
+            margin: 1.5rem auto;
+        }
+
+        .capa-info {
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin: 0.75rem 0;
+            font-weight: 500;
+        }
+
+        .capa-footer {
+            position: absolute;
+            bottom: 2rem;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Plano Page Styles */
+        .plano-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .plano-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .preliminares {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .coluna h4 {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .campo {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .campo-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-right: 0.5rem;
+        }
+
+        .campo-value {
+            color: var(--medium-gray);
+        }
+
+        .campo-value.empty {
+            color: #adb5bd;
+            border-bottom: 1px dashed #adb5bd;
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        .objetivos {
+            margin: 1.5rem 0 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .objetivos-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .objetivos-lista {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+
+        .objetivos-lista li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 0.5rem;
+        }
+
+        .objetivos-lista li::before {
+            content: '•';
+            position: absolute;
+            left: -1rem;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .objetivo-item {
+            border-bottom: 1px dashed #dee2e6;
+            padding-bottom: 0.25rem;
+            color: #495057;
+        }
+
+        /* Tabela Styles */
+        .tabela-container {
+            margin-top: 1.5rem;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .tabela-plano {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .tabela-plano th {
+            background: #6c757d !important;
+            color: white !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            border: 1.5px solid #495057;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tabela-plano td {
+            padding: 0.75rem 0.5rem;
+            border: 1.5px solid #212529;
+            vertical-align: top;
+            min-height: 50px;
+        }
+
+        .tabela-plano .tempo {
+            width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .tabela-plano .funcao {
+            width: 140px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .tabela-plano .conteudo {
+            width: 180px;
+        }
+
+        .tabela-plano .atividade {
+            width: 150px;
+        }
+
+        .tabela-plano .metodo {
+            width: 100px;
+        }
+
+        .tabela-plano .meio {
+            width: 100px;
+        }
+
+        .celula-vazia {
+            color: #adb5bd;
+            min-height: 30px;
+            display: block;
+        }
+
+        /* Anexo Page Styles */
+        .anexo-content {
+            padding: 2rem;
+        }
+
+        .anexo-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .secao-anexo {
+            margin-bottom: 2rem;
+        }
+
+        .secao-titulo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .linha-texto {
+            height: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .linha-texto::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            height: 1px;
+            background: #f8f9fa;
+        }
+
+        .ponto-lista {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+
+        .ponto-lista li {
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .ponto-lista li::before {
+            content: '•';
+            position: absolute;
+            left: -1rem;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--light-gray);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex: 1;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--dark);
+            border: 2px solid var(--light-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 95, 35, 0.3);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff9800 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            background: linear-gradient(135deg, #e68900 0%, var(--accent) 100%);
+            transform: translateY(-2px);
+        }
+
+        /* Page Navigation */
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--light-gray);
+            background: white;
+            color: var(--dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .page-info {
+            font-weight: 600;
+            color: var(--dark);
+            margin: 0 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .preview-content { padding: 1rem; }
+            .pdf-page.portrait, 
+            .pdf-page.landscape {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1.414; /* A4 ratio */
+            }
+            .preliminares { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .header { padding: 1rem; }
+            h1 { font-size: 1.5rem; }
+            .preview-tabs { flex-wrap: wrap; }
+            .tab { flex: 1; min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div>
+                    <h1>Pré-visualização do Template</h1>
+                    <p class="subtitle">Revise o seu plano antes de gerar o PDF</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="preview-container">
+            <!-- Sidebar -->
+            <div class="preview-sidebar">
+                <div class="info-card">
+                    <h3 class="card-title"><i class="fas fa-info-circle"></i> Informações do Plano</h3>
+                    <div class="info-grid" id="info-grid">
+                        <!-- Info will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="card-title"><i class="fas fa-cog"></i> Configuração</h3>
+                    <div class="info-grid" id="config-grid">
+                        <!-- Config will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="card-title"><i class="fas fa-lightbulb"></i> Instruções</h3>
+                    <div style="font-size: 0.9rem; color: var(--medium-gray);">
+                        <p style="margin-bottom: 0.75rem;"><strong>1.</strong> Revise todas as informações ao lado</p>
+                        <p style="margin-bottom: 0.75rem;"><strong>2.</strong> Navegue pelas páginas usando os botões</p>
+                        <p style="margin-bottom: 0.75rem;"><strong>3.</strong> Verifique se os campos estão corretos</p>
+                        <p style="margin-bottom: 0.75rem;"><strong>4.</strong> Se precisar editar, clique em "Voltar ao Formulário"</p>
+                        <p><strong>5.</strong> Quando estiver satisfeito, clique em "Gerar e Baixar PDF"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Preview -->
+            <div class="preview-main">
+                <!-- Page Navigation -->
+                <div class="page-nav" id="page-nav">
+                    <!-- Pages will be generated by JavaScript -->
+                </div>
+
+                <!-- Preview Window -->
+                <div class="preview-window">
+                    <div class="preview-tabs">
+                        <button class="tab active" data-tab="preview">Visualização</button>
+                        <button class="tab" data-tab="specs">Especificações</button>
+                    </div>
+                    
+                    <div class="preview-content">
+                        <!-- Preview Tab -->
+                        <div id="preview-tab">
+                            <div id="pdf-preview-container">
+                                <!-- PDF preview will be generated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Specs Tab -->
+                        <div id="specs-tab" style="display: none;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.2rem;">
+                                <i class="fas fa-ruler"></i> Especificações do PDF
+                            </h3>
+                            
+                            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+                                <h4 style="color: var(--primary); margin-bottom: 0.75rem;">Formato do Documento:</h4>
+                                <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                                    <li><strong>Tamanho:</strong> A4 (210 × 297 mm)</li>
+                                    <li><strong>Orientação:</strong> Varia por página (conforme necessário)</li>
+                                    <li><strong>Margens:</strong> 0,7cm em todos os lados da tabela</li>
+                                    <li><strong>Fonte:</strong> Arial, 10-12pt</li>
+                                </ul>
+
+                                <h4 style="color: var(--primary); margin-bottom: 0.75rem;">Estrutura da Tabela:</h4>
+                                <ul style="padding-left: 1.5rem;">
+                                    <li><strong>Grade:</strong> Linhas completas pretas (1.5pt)</li>
+                                    <li><strong>Cabeçalho:</strong> Fundo cinza, texto maiúsculo</li>
+                                    <li><strong>Colunas:</strong> 7 colunas com larguras específicas</li>
+                                    <li><strong>Tempo:</strong> Em branco para preenchimento manual</li>
+                                </ul>
+                            </div>
+
+                            <h4 style="color: var(--primary-dark); margin-bottom: 0.75rem;">
+                                <i class="fas fa-check-circle"></i> Funcionalidades Incluídas:
+                            </h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Capa com emblema oficial</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">Fundo branco, letras grandes</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Preliminares em 3 colunas</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">Otimização de espaço</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Objetivos específicos</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">3 linhas com marcadores</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Tabela com grade completa</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">Margens 0,7cm, linhas pretas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                        <i class="fas fa-edit"></i> Voltar ao Formulário
+                    </button>
+                    <button class="btn btn-generate" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf"></i> Gerar e Baixar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        let config = null;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Elementos
+        const infoGrid = document.getElementById('info-grid');
+        const configGrid = document.getElementById('config-grid');
+        const previewContainer = document.getElementById('pdf-preview-container');
+        const pageNav = document.getElementById('page-nav');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = {
+            preview: document.getElementById('preview-tab'),
+            specs: document.getElementById('specs-tab')
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar configuração
+            const configData = localStorage.getItem('planoConfig');
+            if (!configData) {
+                alert('Nenhuma configuração encontrada. Redirecionando para o formulário...');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            config = JSON.parse(configData);
+            
+            // Calcular total de páginas
+            if (config.tipo === 'flexivel') {
+                totalPages = 2;
+            } else {
+                totalPages = (config.aulas * 2) + 1;
+            }
+
+            // Atualizar interface
+            updateInfoGrid();
+            updateConfigGrid();
+            updatePageNavigation();
+            renderCurrentPage();
+
+            // Configurar tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Atualizar tabs ativos
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mostrar conteúdo correto
+                    Object.values(tabContents).forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    tabContents[tabName].style.display = 'block';
+                });
+            });
+        });
+
+        function updateInfoGrid() {
+            let html = '';
+            
+            // Campos obrigatórios
+            html += `
+                <div class="info-item">
+                    <span class="info-label">Professor:</span>
+                    <span class="info-value filled">${config.dados.professor}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Escola:</span>
+                    <span class="info-value filled">${config.dados.escola}</span>
+                </div>
+            `;
+            
+            // Campos opcionais preenchidos
+            const campos = [
+                { label: 'Turma', value: config.dados.turma },
+                { label: 'Período', value: config.dados.periodo },
+                { label: 'Classe', value: config.dados.classe },
+                { label: 'Disciplina', value: config.dados.disciplina },
+                { label: 'Data', value: config.dados.data },
+                { label: 'Duração', value: config.dados.duracao },
+                { label: 'Tipo de Aula', value: config.dados.tipo_aula }
+            ];
+            
+            campos.forEach(campo => {
+                if (campo.value) {
+                    html += `
+                        <div class="info-item">
+                            <span class="info-label">${campo.label}:</span>
+                            <span class="info-value filled">${campo.value}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            infoGrid.innerHTML = html;
+        }
+
+        function updateConfigGrid() {
+            let html = '';
+            
+            html += `
+                <div class="info-item">
+                    <span class="info-label">Tipo de Plano:</span>
+                    <span class="info-value filled" style="color: ${config.tipo === 'flexivel' ? 'var(--primary)' : 'var(--secondary)'}">
+                        ${config.tipo === 'flexivel' ? 'Plano Flexível' : 'Bloco de Planificação'}
+                    </span>
+                </div>
+            `;
+            
+            if (config.tipo === 'flexivel') {
+                html += `
+                    <div class="info-item">
+                        <span class="info-label">Páginas:</span>
+                        <span class="info-value">2</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Aulas:</span>
+                        <span class="info-value">1</span>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="info-item">
+                        <span class="info-label">Aulas:</span>
+                        <span class="info-value">${config.aulas}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Páginas Totais:</span>
+                        <span class="info-value">${totalPages}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Capa:</span>
+                        <span class="info-value">Incluída</span>
+                    </div>
+                `;
+            }
+            
+            configGrid.innerHTML = html;
+        }
+
+        function updatePageNavigation() {
+            pageNav.innerHTML = '';
+            
+            // Botão anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.onclick = () => navigatePage(-1);
+            if (currentPage === 1) prevBtn.disabled = true;
+            pageNav.appendChild(prevBtn);
+            
+            // Botões de página
+            const maxButtons = 7;
+            const startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => goToPage(i);
+                pageNav.appendChild(pageBtn);
+            }
+            
+            // Informação da página
+            const pageInfo = document.createElement('div');
+            pageInfo.className = 'page-info';
+            
+            let pageLabel = '';
+            if (currentPage === 1 && config.tipo === 'bloco') {
+                pageLabel = 'Capa';
+            } else if (currentPage % 2 === 0 || (config.tipo === 'flexivel' && currentPage === 1)) {
+                pageLabel = `Plano Aula ${Math.ceil((currentPage - 1) / 2)}`;
+            } else {
+                pageLabel = `Anexo Aula ${Math.ceil((currentPage - 1) / 2)}`;
+            }
+            
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages} - ${pageLabel}`;
+            pageNav.appendChild(pageInfo);
+            
+            // Botão próximo
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.onclick = () => navigatePage(1);
+            if (currentPage === totalPages) nextBtn.disabled = true;
+            pageNav.appendChild(nextBtn);
+        }
+
+        function navigatePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                updatePageNavigation();
+                renderCurrentPage();
+            }
+        }
+
+        function goToPage(page) {
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                updatePageNavigation();
+                renderCurrentPage();
+            }
+        }
+
+        function renderCurrentPage() {
+            previewContainer.innerHTML = '';
+            
+            if (currentPage === 1 && config.tipo === 'bloco') {
+                renderCapaPage();
+            } else if (currentPage % 2 === 0 || (config.tipo === 'flexivel' && currentPage === 1)) {
+                renderPlanoPage();
+            } else {
+                renderAnexoPage();
+            }
+        }
+
+        function renderCapaPage() {
+            const page = document.createElement('div');
+            page.className = 'pdf-page portrait';
+            
+            page.innerHTML = `
+                <div class="pdf-content">
+                    <div class="capa-content">
+                        <div class="emblema-placeholder">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h1 class="capa-title">República de Moçambique</h1>
+                        <h2 class="capa-subtitle">Ministério da Educação</h2>
+                        
+                        <div class="capa-line"></div>
+                        
+                        <h3 style="font-size: 1.8rem; color: var(--primary-dark); margin: 1.5rem 0; font-weight: 700;">
+                            BLOCO DE PLANIFICAÇÃO
+                        </h3>
+                        
+                        <div style="margin: 2rem 0; width: 100%; max-width: 400px;">
+                            <div class="capa-info">ESCOLA: ${config.dados.escola || '__________________________'}</div>
+                            <div class="capa-info">PROFESSOR: ${config.dados.professor || '__________________________'}</div>
+                            ${config.dados.disciplina ? `<div class="capa-info">DISCIPLINA: ${config.dados.disciplina}</div>` : ''}
+                            ${config.dados.classe ? `<div class="capa-info">CLASSE: ${config.dados.classe}</div>` : ''}
+                            ${config.dados.ano ? `<div class="capa-info">ANO LECTIVO: ${config.dados.ano}</div>` : ''}
+                        </div>
+                        
+                        <div style="margin-top: 3rem; color: var(--medium-gray); font-size: 0.9rem;">
+                            Documento gerado automaticamente<br>
+                            Sistema de Planos de Aula - Ministério da Educação
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            previewContainer.appendChild(page);
+        }
+
+        function renderPlanoPage() {
+            const page = document.createElement('div');
+            page.className = 'pdf-page landscape';
+            
+            const aulaNum = config.tipo === 'flexivel' ? 1 : Math.ceil((currentPage - 1) / 2);
+            
+            page.innerHTML = `
+                <div class="pdf-content">
+                    <div class="plano-header">
+                        <h1 class="plano-title">PLANO DE AULA</h1>
+                    </div>
+                    
+                    <!-- Preliminares em 3 colunas -->
+                    <div class="preliminares">
+                        <!-- Coluna 1: Esquerda -->
+                        <div class="coluna">
+                            <h4>Dados do Professor</h4>
+                            <div class="campo">
+                                <span class="campo-label">Professor:</span>
+                                <span class="campo-value">${config.dados.professor}</span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Escola:</span>
+                                <span class="campo-value">${config.dados.escola}</span>
+                            </div>
+                            ${config.dados.turma ? `
+                            <div class="campo">
+                                <span class="campo-label">Turma:</span>
+                                <span class="campo-value">${config.dados.turma}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Coluna 2: Centro -->
+                        <div class="coluna">
+                            <h4>Dados da Aula</h4>
+                            <div class="campo">
+                                <span class="campo-label">Disciplina:</span>
+                                <span class="campo-value ${!config.dados.disciplina ? 'empty' : ''}">
+                                    ${config.dados.disciplina || '__________________________'}
+                                </span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Unid. Temática:</span>
+                                <span class="campo-value empty">__________________________</span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Tema:</span>
+                                <span class="campo-value empty">__________________________</span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Tipo de Aula:</span>
+                                <span class="campo-value ${!config.dados.tipo_aula ? 'empty' : ''}">
+                                    ${config.dados.tipo_aula || '__________________________'}
+                                </span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Data:</span>
+                                <span class="campo-value ${!config.dados.data ? 'empty' : ''}">
+                                    ${config.dados.data || '__________________________'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Coluna 3: Direita -->
+                        <div class="coluna">
+                            <h4>Dados Adicionais</h4>
+                            <div class="campo">
+                                <span class="campo-label">Classe:</span>
+                                <span class="campo-value ${!config.dados.classe ? 'empty' : ''}">
+                                    ${config.dados.classe || '__________________________'}
+                                </span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Lição nº:</span>
+                                <span class="campo-value empty">______</span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Duração:</span>
+                                <span class="campo-value ${!config.dados.duracao ? 'empty' : ''}">
+                                    ${config.dados.duracao || '__________________________'}
+                                </span>
+                            </div>
+                            <div class="campo">
+                                <span class="campo-label">Período:</span>
+                                <span class="campo-value ${!config.dados.periodo ? 'empty' : ''}">
+                                    ${config.dados.periodo || '__________________________'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Objetivos Específicos -->
+                    <div class="objetivos">
+                        <div class="objetivos-title">
+                            <i class="fas fa-bullseye"></i> Objectivos específicos:
+                        </div>
+                        <ul class="objetivos-lista">
+                            <li><span class="objetivo-item">__________________________________________________________</span></li>
+                            <li><span class="objetivo-item">__________________________________________________________</span></li>
+                            <li><span class="objetivo-item">__________________________________________________________</span></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Tabela do Plano -->
+                    <div class="tabela-container">
+                        <table class="tabela-plano">
+                            <thead>
+                                <tr>
+                                    <th>Tempo</th>
+                                    <th>Funções Didácticas</th>
+                                    <th>Conteúdos</th>
+                                    <th>Actividades do Professor</th>
+                                    <th>Actividades dos Alunos</th>
+                                    <th>Métodos de Ensino</th>
+                                    <th>Meios de Ensino</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="tempo"><span class="celula-vazia">_____</span></td>
+                                    <td class="funcao">Introdução e Motivação</td>
+                                    <td class="conteudo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="metodo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="meio"><span class="celula-vazia">__________________________</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="tempo"><span class="celula-vazia">_____</span></td>
+                                    <td class="funcao">Mediação e Assimilação</td>
+                                    <td class="conteudo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="metodo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="meio"><span class="celula-vazia">__________________________</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="tempo"><span class="celula-vazia">_____</span></td>
+                                    <td class="funcao">Domínio e Consolidação</td>
+                                    <td class="conteudo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="metodo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="meio"><span class="celula-vazia">__________________________</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="tempo"><span class="celula-vazia">_____</span></td>
+                                    <td class="funcao">Controlo e Avaliação</td>
+                                    <td class="conteudo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="atividade"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="metodo"><span class="celula-vazia">__________________________</span></td>
+                                    <td class="meio"><span class="celula-vazia">__________________________</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Rodapé da página -->
+                    <div style="position: absolute; bottom: 1rem; right: 1rem; color: var(--medium-gray); font-size: 0.8rem;">
+                        Aula ${aulaNum} - Página ${currentPage}
+                    </div>
+                </div>
+            `;
+            
+            previewContainer.appendChild(page);
+        }
+
+        function renderAnexoPage() {
+            const page = document.createElement('div');
+            page.className = 'pdf-page portrait';
+            
+            const aulaNum = config.tipo === 'flexivel' ? 1 : Math.ceil((currentPage - 1) / 2);
+            
+            page.innerHTML = `
+                <div class="pdf-content">
+                    <div class="anexo-content">
+                        <h1 class="anexo-title">ANEXO / APONTAMENTOS</h1>
+                        
+                        <div style="text-align: center; margin-bottom: 2rem; color: var(--medium-gray); font-style: italic;">
+                            Aula ${aulaNum} - Espaço para observações e notas adicionais
+                        </div>
+                        
+                        <!-- Seção 1: Conceito Principal -->
+                        <div class="secao-anexo">
+                            <h3 class="secao-titulo">
+                                <i class="fas fa-book"></i> 1. CONCEITO PRINCIPAL
+                            </h3>
+                            ${Array(6).fill().map(() => '<div class="linha-texto"></div>').join('')}
+                        </div>
+                        
+                        <!-- Seção 2: Pontos-Chave -->
+                        <div class="secao-anexo">
+                            <h3 class="secao-titulo">
+                                <i class="fas fa-key"></i> 2. PONTOS-CHAVE
+                            </h3>
+                            <ul class="ponto-lista">
+                                ${Array(5).fill().map(() => `
+                                    <li><span style="border-bottom: 1px dashed #dee2e6; display: inline-block; width: 100%; padding-bottom: 0.25rem;">
+                                        _________________________________________________________
+                                    </span></li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <!-- Seção 3: Exemplos Práticos -->
+                        <div class="secao-anexo">
+                            <h3 class="secao-titulo">
+                                <i class="fas fa-lightbulb"></i> 3. EXEMPLOS PRÁTICOS
+                            </h3>
+                            <ul class="ponto-lista">
+                                ${Array(3).fill().map(() => `
+                                    <li><span style="border-bottom: 1px dashed #dee2e6; display: inline-block; width: 100%; padding-bottom: 0.25rem;">
+                                        _________________________________________________________
+                                    </span></li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <!-- Seção 4: Dicas -->
+                        <div class="secao-anexo">
+                            <h3 class="secao-titulo">
+                                <i class="fas fa-tips"></i> 4. DICA / OBSERVAÇÕES
+                            </h3>
+                            ${Array(4).fill().map(() => '<div class="linha-texto"></div>').join('')}
+                        </div>
+                        
+                        <!-- Rodapé da página -->
+                        <div style="position: absolute; bottom: 1rem; right: 1rem; color: var(--medium-gray); font-size: 0.8rem;">
+                            Anexo Aula ${aulaNum} - Página ${currentPage}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            previewContainer.appendChild(page);
+        }
+
+        function generatePDF() {
+            // Salvar configuração e redirecionar para gerador de PDF
+            localStorage.setItem('planoConfig', JSON.stringify(config));
+            window.location.href = 'downloadtemplate.html';
+        }
+    </script>
+</body>
+</html>
