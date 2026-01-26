@@ -229,7 +229,7 @@
         const errorEl = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         
-        // Funções de progresso
+        // Funções de progresso (MANTIDAS)
         function updateProgress(percent, status, details) {
             progressBar.style.width = percent + '%';
             progressText.textContent = Math.round(percent) + '% concluído';
@@ -242,7 +242,7 @@
             errorEl.classList.add('show');
         }
         
-        // Função para carregar imagem da capa
+        // Função para carregar imagem da capa (MANTIDA)
         async function loadEmblemImage() {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -255,7 +255,7 @@
             });
         }
         
-        // Função para criar capa do bloco
+        // Função para criar capa do bloco (MANTIDA)
         async function createCapa(progress) {
             updateProgress(progress, 'Criando capa...', 'Preparando capa oficial com emblema');
             
@@ -343,164 +343,173 @@
             pdf.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, 297.64, 795, { align: 'center' });
         }
         
-        // Função para criar página horizontal de plano COM NOVA TABELA
-        function createPlanoPage(pageNum, aulaNum, progress) {
+        // NOVA FUNÇÃO: Criar página do plano COM ESTRUTURA DO 4º ARQUIVO
+        function createPlanoPage(pageNum, aulaNum, progress, isFirstPage = true) {
             updateProgress(progress, `Criando página ${pageNum}...`, `Preparando plano da aula ${aulaNum}`);
             
             // Adicionar nova página horizontal
             pdf.addPage([841.89, 595.28], 'landscape');
             
-            // Margens: 0,7cm = 19.84 pontos (1cm = 28.35 pontos)
-            const margin = 19.84;
-            const width = 841.89 - (margin * 2);
-            const height = 595.28 - (margin * 2);
+            // Configurar margens (0.7cm = 19.84 pontos)
+            const marginLeft = 19.84;
+            const marginRight = 19.84;
+            const marginTop = 19.84;
+            const marginBottom = 19.84;
             
-            // Cabeçalho
-            pdf.setFontSize(28);
+            const pageWidth = 841.89;
+            const pageHeight = 595.28;
+            const contentWidth = pageWidth - marginLeft - marginRight;
+            
+            // --- CABEÇALHO ---
+            pdf.setFontSize(16);
             pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(26, 95, 35);
-            pdf.text('PLANO DE AULA', margin + (width / 2), margin + 20, { align: 'center' });
+            pdf.setTextColor(26, 95, 35); // Verde escuro
+            pdf.text('PLANO DE AULA', marginLeft + (contentWidth / 2), marginTop + 10, { align: 'center' });
             
             // Linha abaixo do título
             pdf.setDrawColor(26, 95, 35);
-            pdf.setLineWidth(1.5);
-            pdf.line(margin + (width / 2) - 100, margin + 30, margin + (width / 2) + 100, margin + 30);
+            pdf.setLineWidth(1);
+            pdf.line(marginLeft + (contentWidth / 2) - 50, marginTop + 15, marginLeft + (contentWidth / 2) + 50, marginTop + 15);
             
-            // Preliminares em 3 colunas
-            const colWidth = width / 3;
-            const colGap = 20;
-            let y = margin + 60;
-            
-            // Coluna 1: Esquerda
-            pdf.setFontSize(11);
+            // --- PRELIMINARES EM 3 COLUNAS ---
+            pdf.setFontSize(12);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(0, 0, 0);
             
-            if (config.dados.professor) {
-                pdf.text(`Professor: ${config.dados.professor}`, margin, y);
-            } else {
-                pdf.text('Professor: __________________________', margin, y);
+            const colWidth = contentWidth / 3;
+            const colGap = 15;
+            let y = marginTop + 35;
+            
+            if (isFirstPage) {
+                // Coluna 1: Esquerda
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('DADOS DO PROFESSOR', marginLeft, y - 5);
+                pdf.setFont('helvetica', 'normal');
+                
+                if (config.dados.professor) {
+                    pdf.text(`Professor: ${config.dados.professor}`, marginLeft, y + 8);
+                } else {
+                    pdf.text('Professor: __________________________', marginLeft, y + 8);
+                }
+                
+                if (config.dados.escola) {
+                    pdf.text(`Escola: ${config.dados.escola}`, marginLeft, y + 18);
+                } else {
+                    pdf.text('Escola: __________________________', marginLeft, y + 18);
+                }
+                
+                if (config.dados.turma) {
+                    pdf.text(`Turma: ${config.dados.turma}`, marginLeft, y + 28);
+                } else {
+                    pdf.text('Turma: ______', marginLeft, y + 28);
+                }
+                
+                // Coluna 2: Centro
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('DADOS DA AULA', marginLeft + colWidth + colGap, y - 5);
+                pdf.setFont('helvetica', 'normal');
+                
+                pdf.text('Disciplina: __________________________', marginLeft + colWidth + colGap, y + 8);
+                pdf.text('Unid. Temática: ___________________', marginLeft + colWidth + colGap, y + 18);
+                pdf.text('Tema: _______________________________', marginLeft + colWidth + colGap, y + 28);
+                
+                if (config.dados.tipo_aula) {
+                    pdf.text(`Tipo de Aula: ${config.dados.tipo_aula}`, marginLeft + colWidth + colGap, y + 38);
+                } else {
+                    pdf.text('Tipo de Aula: ____________________', marginLeft + colWidth + colGap, y + 38);
+                }
+                
+                if (config.dados.data) {
+                    pdf.text(`Data: ${config.dados.data}`, marginLeft + colWidth + colGap, y + 48);
+                } else {
+                    pdf.text('Data: ____________________________', marginLeft + colWidth + colGap, y + 48);
+                }
+                
+                // Coluna 3: Direita
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('DADOS ADICIONAIS', marginLeft + (colWidth * 2) + (colGap * 2), y - 5);
+                pdf.setFont('helvetica', 'normal');
+                
+                if (config.dados.classe) {
+                    pdf.text(`Classe: ${config.dados.classe}`, marginLeft + (colWidth * 2) + (colGap * 2), y + 8);
+                } else {
+                    pdf.text('Classe: ______', marginLeft + (colWidth * 2) + (colGap * 2), y + 8);
+                }
+                
+                pdf.text('Lição nº: ______', marginLeft + (colWidth * 2) + (colGap * 2), y + 18);
+                
+                if (config.dados.duracao) {
+                    pdf.text(`Duração: ${config.dados.duracao}`, marginLeft + (colWidth * 2) + (colGap * 2), y + 28);
+                } else {
+                    pdf.text('Duração: _________________________', marginLeft + (colWidth * 2) + (colGap * 2), y + 28);
+                }
+                
+                if (config.dados.periodo) {
+                    pdf.text(`Período: ${config.dados.periodo}`, marginLeft + (colWidth * 2) + (colGap * 2), y + 38);
+                } else {
+                    pdf.text('Período: ______', marginLeft + (colWidth * 2) + (colGap * 2), y + 38);
+                }
+                
+                y += 70; // Ajuste para os objetivos
+                
+                // --- OBJETIVOS ESPECÍFICOS ---
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Objectivos específicos:', marginLeft, y);
+                
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'normal');
+                y += 8;
+                
+                pdf.text('• _________________________________________________________', marginLeft, y);
+                y += 8;
+                pdf.text('• _________________________________________________________', marginLeft, y);
+                y += 8;
+                pdf.text('• _________________________________________________________', marginLeft, y);
+                
+                y += 15; // Espaço antes da tabela
             }
-            y += 18;
             
-            if (config.dados.escola) {
-                pdf.text(`Escola: ${config.dados.escola}`, margin, y);
-            } else {
-                pdf.text('Escola: __________________________', margin, y);
-            }
-            y += 18;
-            
-            if (config.dados.turma) {
-                pdf.text(`Turma: ${config.dados.turma}`, margin, y);
-            } else {
-                pdf.text('Turma: ______', margin, y);
-            }
-            
-            // Coluna 2: Centro
-            y = margin + 60;
-            const centerX = margin + colWidth + colGap;
-            
-            pdf.text('Disciplina: __________________________', centerX, y);
-            y += 18;
-            pdf.text('Unidade Temática: ___________________', centerX, y);
-            y += 18;
-            pdf.text('Tema: _______________________________', centerX, y);
-            y += 18;
-            
-            if (config.dados.tipo_aula) {
-                pdf.text(`Tipo de Aula: ${config.dados.tipo_aula}`, centerX, y);
-            } else {
-                pdf.text('Tipo de Aula: ____________________', centerX, y);
-            }
-            y += 18;
-            
-            if (config.dados.data) {
-                pdf.text(`Data: ${config.dados.data}`, centerX, y);
-            } else {
-                pdf.text('Data: ____________________________', centerX, y);
-            }
-            
-            // Coluna 3: Direita
-            y = margin + 60;
-            const rightX = margin + (colWidth * 2) + (colGap * 2);
-            
-            if (config.dados.classe) {
-                pdf.text(`Classe: ${config.dados.classe}`, rightX, y);
-            } else {
-                pdf.text('Classe: ______', rightX, y);
-            }
-            y += 18;
-            
-            pdf.text('Lição nº: ______', rightX, y);
-            y += 18;
-            
-            if (config.dados.duracao) {
-                pdf.text(`Duração: ${config.dados.duracao}`, rightX, y);
-            } else {
-                pdf.text('Duração: _________________________', rightX, y);
-            }
-            y += 18;
-            
-            if (config.dados.periodo) {
-                pdf.text(`Período: ${config.dados.periodo}`, rightX, y);
-            } else {
-                pdf.text('Período: ______', rightX, y);
-            }
-            
-            // Objetivos Específicos
-            y += 30;
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Objectivos específicos:', margin, y);
-            
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            y += 15;
-            
-            // Primeiro objetivo na mesma linha
-            pdf.text('• _________________________________________________________', margin, y);
-            y += 15;
-            
-            // Segundo e terceiro objetivos em novas linhas
-            pdf.text('• _________________________________________________________', margin, y);
-            y += 15;
-            pdf.text('• _________________________________________________________', margin, y);
-            
-            // Tabela do plano COM DIMENSÕES DO SISTEMA MOÇAMBIQUE
-            const tableTop = y + 25;
-            
-            // Configurar cabeçalho da tabela
-            const headers = [
-                ['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIV. PROFESSOR', 'ACTIV. ALUNOS', 'MÉTODOS', 'MEIOS']
-            ];
-            
-            const functions = [
-                { funcao: 'Introdução e Motivação' },
-                { funcao: 'Mediação e Assimilação' },
-                { funcao: 'Domínio e Consolidação' },
-                { funcao: 'Controlo e Avaliação' }
-            ];
+            // --- TABELA COM 4 FUNÇÕES DIDÁTICAS ---
+            const tableStartY = isFirstPage ? y : marginTop + 30;
             
             // Preparar dados da tabela
-            const tableData = functions.map(f => [
+            const headers = [['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO']];
+            
+            // Definir quais funções mostrar nesta página
+            let functionsToShow = [];
+            if (isFirstPage) {
+                functionsToShow = [
+                    { funcao: 'Introdução e Motivação' },
+                    { funcao: 'Mediação e Assimilação' }
+                ];
+            } else {
+                functionsToShow = [
+                    { funcao: 'Domínio e Consolidação' },
+                    { funcao: 'Controlo e Avaliação' }
+                ];
+            }
+            
+            const tableData = functionsToShow.map(f => [
                 '', // TEMPO vazio
-                f.funcao,
-                '',
-                '',
-                '',
-                '',
-                ''
+                f.funcao, // FUNÇÕES DIDÁCTICAS
+                '', // CONTEÚDOS
+                '', // ACTIVIDADES DO PROFESSOR
+                '', // ACTIVIDADES DOS ALUNOS
+                '', // MÉTODOS DE ENSINO
+                ''  // MEIOS DE ENSINO
             ]);
             
-            // Criar tabela com jsPDF AutoTable - DIMENSÕES AJUSTADAS
+            // Criar tabela com dimensões ajustadas
             pdf.autoTable({
-                startY: tableTop,
+                startY: tableStartY,
                 head: headers,
                 body: tableData,
-                margin: { left: margin, right: margin },
-                tableWidth: width,
+                margin: { left: marginLeft, right: marginRight },
+                tableWidth: contentWidth,
                 styles: {
-                    fontSize: 9,
+                    fontSize: 10,
                     cellPadding: 3,
                     overflow: 'linebreak',
                     halign: 'left',
@@ -509,7 +518,7 @@
                     lineWidth: 0.5
                 },
                 headStyles: {
-                    fillColor: [108, 117, 125], // Cinza
+                    fillColor: [108, 117, 125], // Cinza (#6c757d)
                     textColor: [255, 255, 255],
                     fontStyle: 'bold',
                     halign: 'center',
@@ -517,85 +526,81 @@
                     textTransform: 'uppercase'
                 },
                 columnStyles: {
-                    0: { cellWidth: 40, halign: 'center' }, // TEMPO (ajustado)
-                    1: { cellWidth: 90, fontStyle: 'bold' }, // FUNÇÕES (ajustado)
-                    2: { cellWidth: 110 }, // CONTEÚDOS (ajustado)
-                    3: { cellWidth: 90 }, // ACTIV. PROFESSOR (ajustado)
-                    4: { cellWidth: 90 }, // ACTIV. ALUNOS (ajustado)
-                    5: { cellWidth: 70 }, // MÉTODOS (ajustado)
-                    6: { cellWidth: 70 } // MEIOS (ajustado)
+                    0: { cellWidth: 30, halign: 'center' },   // TEMPO
+                    1: { cellWidth: 50, fontStyle: 'bold' },  // FUNÇÕES DIDÁCTICAS
+                    2: { cellWidth: 65 },                     // CONTEÚDOS
+                    3: { cellWidth: 65 },                     // ACTIV. PROFESSOR
+                    4: { cellWidth: 65 },                     // ACTIV. ALUNOS
+                    5: { cellWidth: 40 },                     // MÉTODOS
+                    6: { cellWidth: 40 }                      // MEIOS
                 },
                 theme: 'grid',
                 didParseCell: function(data) {
-                    // Adicionar bordas pretas em todas as células
+                    // Garantir bordas pretas em todas as células
                     data.cell.styles.lineWidth = 0.5;
                     data.cell.styles.lineColor = [0, 0, 0];
                     
-                    // Se for célula vazia, adicionar placeholder
+                    // Se for célula vazia, adicionar underline
                     if (data.column.index >= 2 && data.cell.raw === '') {
-                        data.cell.text = ['__________________________'];
+                        data.cell.text = ['________________________'];
                     }
                 }
             });
             
+            // --- ANEXO / QUADRO MORAL (apenas na segunda página) ---
+            if (!isFirstPage) {
+                const finalY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 20 : tableStartY + 150;
+                
+                // Linha divisória
+                pdf.setDrawColor(0, 0, 0);
+                pdf.setLineWidth(0.5);
+                pdf.line(marginLeft, finalY, pageWidth - marginRight, finalY);
+                
+                // Texto "ANEXO / QUADRO MORAL"
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(26, 95, 35);
+                pdf.text('ANEXO / QUADRO MORAL', marginLeft + (contentWidth / 2), finalY + 15, { align: 'center' });
+                
+                // Espaço em branco para anotações
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setLineWidth(0.2);
+                let lineY = finalY + 30;
+                for (let i = 0; i < 10; i++) {
+                    pdf.line(marginLeft, lineY, pageWidth - marginRight, lineY);
+                    lineY += 12;
+                }
+            }
+            
             // Número da página
             pdf.setFontSize(9);
             pdf.setTextColor(150, 150, 150);
-            pdf.text(`Aula ${aulaNum} - Página ${pageNum}`, 841.89 - margin, 595.28 - margin, { align: 'right' });
+            pdf.text(`Aula ${aulaNum} - Página ${pageNum}`, pageWidth - marginRight, pageHeight - marginBottom + 10, { align: 'right' });
         }
         
-        // Função para criar página vertical de anexo SIMPLIFICADA
-        function createAnexoPage(pageNum, aulaNum, progress) {
-            updateProgress(progress, `Criando página ${pageNum}...`, `Preparando anexo da aula ${aulaNum}`);
-            
-            // Adicionar nova página vertical
-            pdf.addPage();
-            
-            // Margens
-            const margin = 19.84; // 0,7cm
-            const width = 595.28 - (margin * 2);
-            
-            // Título em maiúsculas
-            pdf.setFontSize(20);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(26, 95, 35);
-            pdf.text('ANEXO / QUADRO MORAL', margin + (width / 2), 50, { align: 'center' });
-            
-            // Linha preta abaixo do cabeçalho
-            pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(1);
-            pdf.line(margin, 58, width + margin, 58);
-            
-            // Página fica em branco para preenchimento
-            // Número da página
-            pdf.setFontSize(9);
-            pdf.setTextColor(150, 150, 150);
-            pdf.text(`Anexo Aula ${aulaNum} - Página ${pageNum}`, 595.28 - margin, 841.89 - margin, { align: 'right' });
-        }
-        
-        // Função para gerar PDF flexível
+        // Função para gerar PDF flexível (ATUALIZADA)
         async function generateFlexivelPDF() {
             updateProgress(10, 'Iniciando geração...', 'Preparando Plano Flexível');
             
-            // Criar PDF inicial
+            // Criar PDF
             pdf = new jspdf.jsPDF({
                 orientation: 'landscape',
                 unit: 'pt',
                 format: 'a4'
             });
             
-            // Página 1: Plano (Horizontal) COM NOVA TABELA
+            // Página 1: Plano (primeira metade da tabela)
             await new Promise(resolve => setTimeout(resolve, 300));
-            createPlanoPage(1, 1, 50);
+            createPlanoPage(1, 1, 50, true);
             
-            // Página 2: Anexo (Vertical) SIMPLIFICADO
+            // Página 2: Plano (segunda metade da tabela + anexo)
             await new Promise(resolve => setTimeout(resolve, 300));
-            createAnexoPage(2, 1, 90);
+            createPlanoPage(2, 1, 90, false);
             
             updateProgress(100, 'PDF gerado com sucesso!', 'Documento pronto para download');
         }
         
-        // Função para gerar PDF do bloco
+        // Função para gerar PDF do bloco (ATUALIZADA)
         async function generateBlocoPDF() {
             updateProgress(5, 'Iniciando geração...', 'Preparando Bloco de Planificação');
             
@@ -606,39 +611,38 @@
                 format: 'a4'
             });
             
-            // Página 1: Capa (Vertical)
+            // Página 1: Capa (Vertical) - apenas para bloco
             await new Promise(resolve => setTimeout(resolve, 500));
             await createCapa(15);
             
             // Calcular progresso por página
-            const totalPages = (config.aulas * 2) + 1;
-            const pagesAfterCapa = totalPages - 1;
-            const progressPerPage = (85 - 15) / pagesAfterCapa;
+            const totalAulas = config.aulas || 1;
+            const progressPerAula = (85 - 15) / totalAulas;
             
             // Páginas das aulas
-            for (let i = 1; i <= config.aulas; i++) {
-                const baseProgress = 15 + ((i - 1) * 2 * progressPerPage);
+            for (let i = 1; i <= totalAulas; i++) {
+                const baseProgress = 15 + ((i - 1) * progressPerAula);
                 
-                // Página do plano (Horizontal) COM NOVA TABELA
-                const planoPageNum = (i * 2);
-                const planoProgress = baseProgress + progressPerPage;
+                // Página 1 da aula (primeira metade da tabela)
+                const planoPage1 = (i * 2);
+                const planoProgress1 = baseProgress + (progressPerAula * 0.4);
                 await new Promise(resolve => setTimeout(resolve, 200));
-                createPlanoPage(planoPageNum, i, planoProgress);
+                createPlanoPage(planoPage1, i, planoProgress1, true);
                 
-                // Página do anexo (Vertical) SIMPLIFICADO
-                const anexoPageNum = (i * 2) + 1;
-                const anexoProgress = baseProgress + (2 * progressPerPage);
+                // Página 2 da aula (segunda metade da tabela + anexo)
+                const planoPage2 = (i * 2) + 1;
+                const planoProgress2 = baseProgress + (progressPerAula * 0.8);
                 await new Promise(resolve => setTimeout(resolve, 200));
-                createAnexoPage(anexoPageNum, i, anexoProgress);
+                createPlanoPage(planoPage2, i, planoProgress2, false);
             }
             
-            updateProgress(100, 'PDF gerado com sucesso!', `Documento com ${totalPages} páginas pronto`);
+            updateProgress(100, 'PDF gerado com sucesso!', `Documento com ${(totalAulas * 2) + 1} páginas pronto`);
         }
         
-        // Função principal
+        // Função principal (MANTIDA)
         async function generatePDF() {
             try {
-                // Obter configuração
+                // Obter configuração do localStorage
                 const configData = localStorage.getItem('planoConfig');
                 if (!configData) {
                     throw new Error('Configuração não encontrada. Por favor, volte ao início.');
