@@ -254,15 +254,138 @@
             });
         }
         
-        // Função para criar capa do bloco
+        // ============================================
+        // CONFIGURAÇÕES DE MEDIDAS
+        // ============================================
+        
+        // Margens de segurança (em pontos)
+        const MARGEM_CIMA = 19.845;      // 0.7 cm
+        const MARGEM_BAIXO = 22.68;      // 0.8 cm
+        const MARGEM_ESQUERDA = 19.845;  // 0.7 cm
+        const MARGEM_DIREITA = 19.845;   // 0.7 cm
+        
+        // Dimensões da página A4 horizontal (em pontos)
+        const PAGINA_LARGURA = 841.89;
+        const PAGINA_ALTURA = 595.28;
+        
+        // Área útil (dentro das margens)
+        const AREA_LARGURA = PAGINA_LARGURA - MARGEM_ESQUERDA - MARGEM_DIREITA;   // 802.2 pontos
+        const AREA_ALTURA = PAGINA_ALTURA - MARGEM_CIMA - MARGEM_BAIXO;          // 552.755 pontos
+        
+        // Alturas específicas das linhas (em pontos)
+        const ALTURA_CABECALHO = 56.7;   // 2 cm
+        const ALTURA_FUNCAO1 = 170.1;    // 6 cm
+        const ALTURA_FUNCAO2 = 198.45;   // 7 cm
+        const ALTURA_FUNCAO3 = 141.75;   // 5 cm
+        const ALTURA_FUNCAO4 = 170.1;    // 6 cm
+        
+        // Larguras das colunas (em pontos)
+        const LARGURA_COLUNAS = {
+            TEMPO: 60,
+            FUNCOES: 120,
+            CONTEUDOS: 140,
+            ATIV_PROFESSOR: 140,
+            ATIV_ALUNOS: 140,
+            METODOS: 100,
+            MEIOS: 100
+        };
+        
+        // Calcular largura total da tabela
+        const LARGURA_TOTAL_TABELA = Object.values(LARGURA_COLUNAS).reduce((a, b) => a + b, 0); // 800 pontos
+        const ALTURA_TOTAL_TABELA = ALTURA_CABECALHO + ALTURA_FUNCAO1 + ALTURA_FUNCAO2; // Primeira página
+        
+        // Posição X da tabela (centralizada horizontalmente)
+        const TABELA_X = MARGEM_ESQUERDA + ((AREA_LARGURA - LARGURA_TOTAL_TABELA) / 2);
+        
+        // Função para desenhar grade completa da tabela
+        function desenharGradeTabela(x, y, larguras, alturas, mostrarCabeçalho = true) {
+            const totalAltura = alturas.reduce((a, b) => a + b, 0);
+            const totalLargura = larguras.reduce((a, b) => a + b, 0);
+            
+            // Configurar estilo da linha
+            pdf.setDrawColor(0, 0, 0); // Preto
+            pdf.setLineWidth(0.5);     // Linha fina
+            
+            // Desenhar borda externa da tabela
+            pdf.rect(x, y, totalLargura, totalAltura);
+            
+            // Desenhar linhas horizontais
+            let currentY = y;
+            for (let i = 0; i < alturas.length; i++) {
+                currentY += alturas[i];
+                if (i < alturas.length - 1) {
+                    pdf.line(x, currentY, x + totalLargura, currentY);
+                }
+            }
+            
+            // Desenhar linhas verticais
+            let currentX = x;
+            const larguraArray = Object.values(larguras);
+            for (let i = 0; i < larguraArray.length; i++) {
+                currentX += larguraArray[i];
+                if (i < larguraArray.length - 1) {
+                    pdf.line(currentX, y, currentX, y + totalAltura);
+                }
+            }
+            
+            return { x, y, largura: totalLargura, altura: totalAltura };
+        }
+        
+        // Função para escrever texto na tabela
+        function escreverNaTabela(texto, linha, coluna, xInicio, yInicio, alturas, larguras) {
+            const fontSizes = {
+                cabecalho: 12,
+                funcoes: 12,
+                conteudo: 12
+            };
+            
+            // Calcular posição X
+            let posX = xInicio;
+            for (let i = 0; i < coluna; i++) {
+                posX += Object.values(larguras)[i];
+            }
+            
+            // Calcular posição Y
+            let posY = yInicio;
+            for (let i = 0; i < linha; i++) {
+                posY += alturas[i];
+            }
+            
+            // Configurar fonte
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(fontSizes.cabecalho);
+            pdf.setTextColor(0, 0, 0);
+            
+            // Centralizar nas células específicas
+            const larguraCelula = Object.values(larguras)[coluna];
+            const alturaCelula = alturas[linha];
+            
+            if (coluna === 0 || coluna === 5 || coluna === 6) { // TEMPO, MÉTODOS, MEIOS
+                pdf.text(texto, posX + (larguraCelula / 2), posY + (alturaCelula / 2), { align: "center" });
+            } else if (coluna === 1) { // FUNÇÕES DIDÁCTICAS
+                pdf.setFont("times", "bold");
+                pdf.text(texto, posX + 10, posY + 20);
+            } else { // Outras colunas
+                pdf.text(texto, posX + 10, posY + 15);
+            }
+        }
+        
+        // Função para criar capa do bloco (vertical)
         async function createCapa(progress) {
             updateProgress(progress, 'Criando capa...', 'Preparando capa oficial com emblema');
             
             const emblem = await loadEmblemImage();
             
-            // Configurar página vertical
-            pdf.addPage();
-            pdf.setPage(1);
+            // Criar nova página vertical para capa
+            pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+            
+            // Margens para capa
+            const capaMargem = 56.7; // 2cm
+            const capaLarguraUtil = 595.28 - (capaMargem * 2);
             
             // Fundo branco
             pdf.setFillColor(255, 255, 255);
@@ -270,10 +393,10 @@
             
             // Emblema no topo (se disponível)
             if (emblem) {
-                const emblemWidth = 100;
-                const emblemHeight = 100;
+                const emblemWidth = 80;
+                const emblemHeight = 80;
                 const emblemX = (595.28 - emblemWidth) / 2;
-                const emblemY = 60;
+                const emblemY = capaMargem + 20;
                 
                 try {
                     pdf.addImage(emblem, 'PNG', emblemX, emblemY, emblemWidth, emblemHeight);
@@ -282,484 +405,272 @@
                 }
             }
             
-            // Títulos
-            pdf.setFontSize(32);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(26, 95, 35);
-            pdf.text('REPÚBLICA DE MOÇAMBIQUE', 297.64, 180, { align: 'center' });
+            // Títulos - Times New Roman
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(28);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('REPÚBLICA DE MOÇAMBIQUE', 595.28 / 2, 200, { align: 'center' });
             
-            pdf.setFontSize(24);
-            pdf.text('MINISTÉRIO DA EDUCAÇÃO', 297.64, 210, { align: 'center' });
+            pdf.setFontSize(22);
+            pdf.text('MINISTÉRIO DA EDUCAÇÃO', 595.28 / 2, 240, { align: 'center' });
             
             // Linha divisória
-            pdf.setDrawColor(26, 95, 35);
+            pdf.setDrawColor(0, 0, 0);
             pdf.setLineWidth(2);
-            pdf.line(100, 240, 495.28, 240);
+            pdf.line(100, 280, 495.28, 280);
             
             // Título principal
-            pdf.setFontSize(36);
-            pdf.setTextColor(211, 47, 47);
-            pdf.text('BLOCO DE PLANIFICAÇÃO', 297.64, 290, { align: 'center' });
+            pdf.setFontSize(32);
+            pdf.text('BLOCO DE PLANIFICAÇÃO', 595.28 / 2, 340, { align: 'center' });
             
-            // Informações
-            pdf.setFontSize(20);
-            pdf.setTextColor(0, 0, 0);
-            pdf.setFont('helvetica', 'bold');
+            // Informações - Grade para preenchimento
+            pdf.setFontSize(18);
             
-            let y = 350;
-            const lineHeight = 28;
+            let y = 400;
+            const lineHeight = 35;
             
-            if (config.dados.escola) {
-                pdf.text(`ESCOLA: ${config.dados.escola.toUpperCase()}`, 297.64, y, { align: 'center' });
-                y += lineHeight;
-            }
+            // Escola
+            pdf.text('ESCOLA:', 595.28 / 2, y, { align: 'center' });
+            pdf.setDrawColor(0, 0, 0);
+            pdf.setLineWidth(0.5);
+            pdf.line(150, y + 5, 445.28, y + 5);
+            y += lineHeight;
             
-            if (config.dados.professor) {
-                pdf.text(`PROFESSOR: ${config.dados.professor.toUpperCase()}`, 297.64, y, { align: 'center' });
-                y += lineHeight;
-            }
+            // Professor
+            pdf.text('PROFESSOR:', 595.28 / 2, y, { align: 'center' });
+            pdf.line(150, y + 5, 445.28, y + 5);
+            y += lineHeight;
             
-            if (config.dados.disciplina) {
-                pdf.text(`DISCIPLINA: ${config.dados.disciplina.toUpperCase()}`, 297.64, y, { align: 'center' });
-                y += lineHeight;
-            }
+            // Disciplina
+            pdf.text('DISCIPLINA:', 595.28 / 2, y, { align: 'center' });
+            pdf.line(150, y + 5, 445.28, y + 5);
+            y += lineHeight;
             
-            if (config.dados.classe) {
-                pdf.text(`CLASSE: ${config.dados.classe.toUpperCase()}`, 297.64, y, { align: 'center' });
-                y += lineHeight;
-            }
+            // Classe
+            pdf.text('CLASSE:', 595.28 / 2, y, { align: 'center' });
+            pdf.line(150, y + 5, 445.28, y + 5);
             
             // Rodapé
             pdf.setFontSize(12);
+            pdf.setFont("times", "normal");
             pdf.setTextColor(100, 100, 100);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text('Template para preenchimento manual', 297.64, 780, { align: 'center' });
-            pdf.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, 297.64, 795, { align: 'center' });
+            pdf.text('Template para preenchimento manual', 595.28 / 2, 780, { align: 'center' });
+            pdf.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, 595.28 / 2, 800, { align: 'center' });
         }
         
-        // ALTURAS ESPECÍFICAS (em pontos - 1cm = 28.35 pontos)
-        const ALTURAS = {
-            CABECALHO: 56.7,    // 2 cm
-            FUNCAO1: 170.1,     // 6 cm
-            FUNCAO2: 198.45,    // 7 cm
-            FUNCAO3: 141.75,    // 5 cm
-            FUNCAO4: 170.1      // 6 cm
-        };
-        
-        // LARGURAS DAS COLUNAS (em pontos)
-        const LARGURAS = {
-            TEMPO: 40,           // TEMPO
-            FUNCOES: 80,         // FUNÇÕES DIDÁCTICAS
-            CONTEUDOS: 100,      // CONTEÚDOS
-            ATIV_PROF: 100,      // ACTIVIDADES DO PROFESSOR
-            ATIV_ALUNOS: 100,    // ACTIVIDADES DOS ALUNOS
-            METODOS: 70,         // MÉTODOS DE ENSINO
-            MEIOS: 70            // MEIOS DE ENSINO
-        };
-        
-        // Calcular largura total
-        const LARGURA_TOTAL = Object.values(LARGURAS).reduce((a, b) => a + b, 0);
-        
-        // Função para criar primeira página do plano (com cabeçalho e funções 1-2)
-        function createPlanoPage1(aulaNum, progress, pageNum) {
-            updateProgress(progress, `Criando página ${pageNum}...`, `Preparando template da aula ${aulaNum}`);
+        // Função para criar página com Funções 1 e 2 (com cabeçalho da tabela)
+        function createPaginaFuncoes12(aulaNum, progress, paginaNum) {
+            updateProgress(progress, `Criando página ${paginaNum}...`, `Preparando template da aula ${aulaNum}`);
             
-            // Adicionar nova página horizontal
-            pdf.addPage([841.89, 595.28], 'landscape');
+            // Se não for a primeira página (não for capa), adicionar nova página
+            if (paginaNum > 1) {
+                pdf.addPage([841.89, 595.28], 'landscape');
+            }
             
-            // Margens de 7cm (198.4 pontos)
-            const marginLeft = 198.4;
-            const marginRight = 198.4;
-            const marginTop = 56.7; // 2cm
-            const marginBottom = 56.7; // 2cm
+            // Configurar fonte para toda a página
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 0, 0);
             
-            const pageWidth = 841.89;
-            const pageHeight = 595.28;
+            // ============================================
+            // CABEÇALHO DO PLANO
+            // ============================================
             
-            // --- TÍTULO ---
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(26, 95, 35);
-            const centerX = marginLeft + ((pageWidth - marginLeft - marginRight) / 2);
-            pdf.text('PLANO DE AULA', centerX, marginTop, { align: 'center' });
+            const tituloY = MARGEM_CIMA + 30;
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(14);
+            pdf.text('PLANO DE AULA', PAGINA_LARGURA / 2, tituloY, { align: "center" });
             
             // Linha abaixo do título
-            pdf.setDrawColor(26, 95, 35);
+            pdf.setDrawColor(0, 0, 0);
             pdf.setLineWidth(1);
-            pdf.line(centerX - 60, marginTop + 5, centerX + 60, marginTop + 5);
+            const linhaComprimento = 150;
+            pdf.line((PAGINA_LARGURA - linhaComprimento) / 2, tituloY + 5, 
+                     (PAGINA_LARGURA + linhaComprimento) / 2, tituloY + 5);
             
-            // --- PRELIMINARES EM 2 COLUNAS ---
-            let y = marginTop + 25;
-            const colWidth = (pageWidth - marginLeft - marginRight) / 2;
-            const colGap = 30;
+            // ============================================
+            // PRELIMINARES - Dados em 2 colunas
+            // ============================================
             
-            // Coluna 1: Esquerda
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('DADOS DO PROFESSOR', marginLeft, y);
-            pdf.setFont('helvetica', 'normal');
+            let yAtual = tituloY + 30;
+            const colunaLargura = (AREA_LARGURA - 60) / 2;
+            const coluna1X = MARGEM_ESQUERDA;
+            const coluna2X = coluna1X + colunaLargura + 60;
             
-            let currentY = y + 10;
+            // Coluna 1: Dados do Professor
+            pdf.setFont("times", "bold");
+            pdf.text('DADOS DO PROFESSOR', coluna1X, yAtual);
+            yAtual += 15;
             
-            // Professor
-            if (config.dados.professor) {
-                pdf.text(`Professor: ${config.dados.professor}`, marginLeft, currentY);
-            } else {
-                pdf.text('Professor: __________________________', marginLeft, currentY);
-            }
-            currentY += 15;
+            pdf.setFont("times", "normal");
+            const dadosEsquerda = [
+                `Professor: ${config.dados.professor || ''}`,
+                `Escola: ${config.dados.escola || ''}`,
+                `Turma: ${config.dados.turma || ''}`,
+                `Disciplina: ${config.dados.disciplina || ''}`,
+                `Unid. Temática:`,
+                `Tema:`
+            ];
             
-            // Escola
-            if (config.dados.escola) {
-                pdf.text(`Escola: ${config.dados.escola}`, marginLeft, currentY);
-            } else {
-                pdf.text('Escola: __________________________', marginLeft, currentY);
-            }
-            currentY += 15;
+            dadosEsquerda.forEach((linha, index) => {
+                pdf.text(linha, coluna1X, yAtual + (index * 15));
+            });
             
-            // Outros campos
-            pdf.text('Turma: ______', marginLeft, currentY);
-            currentY += 15;
+            // Coluna 2: Dados da Aula
+            yAtual = tituloY + 30;
+            pdf.setFont("times", "bold");
+            pdf.text('DADOS DA AULA', coluna2X, yAtual);
+            yAtual += 15;
             
-            if (config.dados.disciplina) {
-                pdf.text(`Disciplina: ${config.dados.disciplina}`, marginLeft, currentY);
-            } else {
-                pdf.text('Disciplina: __________________________', marginLeft, currentY);
-            }
+            pdf.setFont("times", "normal");
+            const dadosDireita = [
+                `Classe: ${config.dados.classe || ''}`,
+                `Lição nº:`,
+                `Duração: ${config.dados.duracao || ''}`,
+                `Período: ${config.dados.periodo || ''}`,
+                `Tipo de Aula: ${config.dados.tipo_aula || ''}`,
+                `Data: ${config.dados.data || ''}`
+            ];
             
-            // Coluna 2: Direita
-            let yRight = y + 10;
+            dadosDireita.forEach((linha, index) => {
+                pdf.text(linha, coluna2X, yAtual + (index * 15));
+            });
             
-            if (config.dados.classe) {
-                pdf.text(`Classe: ${config.dados.classe}`, marginLeft + colWidth + colGap, yRight);
-            } else {
-                pdf.text('Classe: ______', marginLeft + colWidth + colGap, yRight);
-            }
-            yRight += 15;
+            // ============================================
+            // OBJETIVOS ESPECÍFICOS
+            // ============================================
             
-            pdf.text('Lição nº: ______', marginLeft + colWidth + colGap, yRight);
-            yRight += 15;
+            const objetivosY = tituloY + 130;
+            pdf.setFont("times", "bold");
+            pdf.text('Objectivos específicos:', MARGEM_ESQUERDA, objetivosY);
             
-            if (config.dados.duracao) {
-                pdf.text(`Duração: ${config.dados.duracao}`, marginLeft + colWidth + colGap, yRight);
-            } else {
-                pdf.text('Duração: _________________________', marginLeft + colWidth + colGap, yRight);
-            }
-            yRight += 15;
+            // Desenhar grade para 3 objetivos
+            const objetivoAltura = 20;
+            const objetivoLargura = AREA_LARGURA;
+            const objetivosGradeY = objetivosY + 10;
             
-            if (config.dados.periodo) {
-                pdf.text(`Período: ${config.dados.periodo}`, marginLeft + colWidth + colGap, yRight);
-            } else {
-                pdf.text('Período: ______', marginLeft + colWidth + colGap, yRight);
-            }
-            yRight += 15;
-            
-            if (config.dados.tipo_aula) {
-                pdf.text(`Tipo de Aula: ${config.dados.tipo_aula}`, marginLeft + colWidth + colGap, yRight);
-            } else {
-                pdf.text('Tipo de Aula: ____________________', marginLeft + colWidth + colGap, yRight);
-            }
-            yRight += 15;
-            
-            if (config.dados.data) {
-                pdf.text(`Data: ${config.dados.data}`, marginLeft + colWidth + colGap, yRight);
-            } else {
-                pdf.text('Data: ____________________________', marginLeft + colWidth + colGap, yRight);
-            }
-            
-            // --- OBJETIVOS ESPECÍFICOS ---
-            const objetivosY = Math.max(currentY, yRight) + 20;
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Objectivos específicos:', marginLeft, objetivosY);
-            
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            let objY = objetivosY + 10;
-            
-            // 3 linhas para objetivos
-            for (let i = 1; i <= 3; i++) {
-                pdf.text(`${i}. __________________________________________________________`, marginLeft + 10, objY);
-                objY += 15;
-            }
-            
-            // --- POSIÇÃO DA TABELA ---
-            const tableStartY = objY + 20;
-            const tableStartX = marginLeft;
-            
-            // --- CABEÇALHO DA TABELA (2 cm = 56.7 pontos) ---
-            pdf.setFillColor(200, 200, 200); // Cinza claro
-            pdf.rect(tableStartX, tableStartY, LARGURA_TOTAL, ALTURAS.CABECALHO, 'F');
-            
-            // Texto do cabeçalho
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0, 0, 0);
-            
-            let headerX = tableStartX;
-            const headers = ['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO'];
-            
-            for (let i = 0; i < headers.length; i++) {
-                const colWidth = Object.values(LARGURAS)[i];
-                pdf.text(headers[i], headerX + (colWidth / 2), tableStartY + (ALTURAS.CABECALHO / 2), { align: 'center' });
-                headerX += colWidth;
-            }
-            
-            // --- FUNÇÃO 1: INTRODUÇÃO E MOTIVAÇÃO (6 cm = 170.1 pontos) ---
-            const funcao1Y = tableStartY + ALTURAS.CABECALHO;
-            
-            // Borda da célula
             pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(1.5);
-            pdf.rect(tableStartX, funcao1Y, LARGURA_TOTAL, ALTURAS.FUNCAO1);
+            pdf.setLineWidth(0.5);
             
-            // Conteúdo da Função 1
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(0, 0, 0);
+            // Desenhar 3 retângulos para objetivos
+            for (let i = 0; i < 3; i++) {
+                pdf.rect(MARGEM_ESQUERDA, objetivosGradeY + (i * objetivoAltura), objetivoLargura, objetivoAltura);
+                pdf.text(`${i + 1}.`, MARGEM_ESQUERDA + 10, objetivosGradeY + (i * objetivoAltura) + 14);
+            }
             
-            // TEMPO
-            let cellX = tableStartX;
-            pdf.text('_____', cellX + (LARGURAS.TEMPO / 2), funcao1Y + (ALTURAS.FUNCAO1 / 2) - 20, { align: 'center' });
+            // ============================================
+            // TABELA PRINCIPAL - Funções 1 e 2
+            // ============================================
             
-            // FUNÇÕES DIDÁCTICAS (PRÉ-PREENCHIDO)
-            cellX += LARGURAS.TEMPO;
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Introdução e Motivação', cellX + 5, funcao1Y + 15);
-            pdf.setFont('helvetica', 'normal');
+            const tabelaY = objetivosGradeY + (3 * objetivoAltura) + 20;
             
-            // CONTEÚDOS (VAZIO)
-            cellX += LARGURAS.FUNCOES;
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('• Saudação\n• Marcação de presença\n• Correção do TPC / Recapitulação\n• Apresentação do tema', 
-                     cellX + 5, funcao1Y + 15);
+            // Alturas para esta página (cabeçalho + função 1 + função 2)
+            const alturasPagina1 = [ALTURA_CABECALHO, ALTURA_FUNCAO1, ALTURA_FUNCAO2];
             
-            // ATIVIDADES PROFESSOR (VAZIO)
-            cellX += LARGURAS.CONTEUDOS;
-            pdf.text('• Saúda os alunos\n• Faz a marcação de presenças\n• Corrige o TPC\n• Introduz o tema', 
-                     cellX + 5, funcao1Y + 15);
+            // Desenhar grade completa da tabela
+            const tabela = desenharGradeTabela(TABELA_X, tabelaY, LARGURA_COLUNAS, alturasPagina1, true);
             
-            // ATIVIDADES ALUNOS (VAZIO)
-            cellX += LARGURAS.ATIV_PROF;
-            pdf.text('• Saúdam o professor\n• Confirmam a presença\n• Participam na correção\n• Anotam o tema', 
-                     cellX + 5, funcao1Y + 15);
+            // Preencher cabeçalho da tabela
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(12);
             
-            // MÉTODOS (VAZIO)
-            cellX += LARGURAS.ATIV_ALUNOS;
-            pdf.text('___________', cellX + 5, funcao1Y + (ALTURAS.FUNCAO1 / 2));
+            const cabecalhos = ['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 
+                                'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 
+                                'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO'];
             
-            // MEIOS (VAZIO)
-            cellX += LARGURAS.METODOS;
-            pdf.text('___________', cellX + 5, funcao1Y + (ALTURAS.FUNCAO1 / 2));
+            Object.keys(LARGURA_COLUNAS).forEach((coluna, index) => {
+                const colunaX = TABELA_X;
+                let acumulado = 0;
+                for (let i = 0; i < index; i++) {
+                    acumulado += Object.values(LARGURA_COLUNAS)[i];
+                }
+                const centroX = colunaX + acumulado + (Object.values(LARGURA_COLUNAS)[index] / 2);
+                pdf.text(cabecalhos[index], centroX, tabelaY + (ALTURA_CABECALHO / 2), { align: "center" });
+            });
             
-            // --- FUNÇÃO 2: MEDIAÇÃO E ASSIMILAÇÃO (7 cm = 198.45 pontos) ---
-            const funcao2Y = funcao1Y + ALTURAS.FUNCAO1;
+            // Preencher Função 1: Introdução e Motivação
+            const linha1Y = tabelaY + ALTURA_CABECALHO;
+            escreverNaTabela("", 1, 0, TABELA_X, tabelaY, alturasPagina1, LARGURA_COLUNAS); // Tempo vazio
+            escreverNaTabela("Introdução e Motivação", 1, 1, TABELA_X, tabelaY, alturasPagina1, LARGURA_COLUNAS);
+            // Demais colunas ficam vazias (apenas grade visível)
             
-            // Borda da célula
-            pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(1.5);
-            pdf.rect(tableStartX, funcao2Y, LARGURA_TOTAL, ALTURAS.FUNCAO2);
-            
-            // Conteúdo da Função 2
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(0, 0, 0);
-            
-            // TEMPO
-            cellX = tableStartX;
-            pdf.text('_____', cellX + (LARGURAS.TEMPO / 2), funcao2Y + (ALTURAS.FUNCAO2 / 2) - 20, { align: 'center' });
-            
-            // FUNÇÕES DIDÁCTICAS (PRÉ-PREENCHIDO)
-            cellX += LARGURAS.TEMPO;
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Mediação e Assimilação', cellX + 5, funcao2Y + 15);
-            pdf.setFont('helvetica', 'normal');
-            
-            // CONTEÚDOS (VAZIO)
-            cellX += LARGURAS.FUNCOES;
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('• Exploração de pressupostos\n• Explicação do tema\n• Esclarecimento de dúvidas\n• Desenvolvimento do conteúdo', 
-                     cellX + 5, funcao2Y + 15);
-            
-            // ATIVIDADES PROFESSOR (VAZIO)
-            cellX += LARGURAS.CONTEUDOS;
-            pdf.text('• Explora ideias dos alunos\n• Explica o conteúdo\n• Sana dúvidas\n• Passa apontamentos', 
-                     cellX + 5, funcao2Y + 15);
-            
-            // ATIVIDADES ALUNOS (VAZIO)
-            cellX += LARGURAS.ATIV_PROF;
-            pdf.text('• Expõem as suas ideias\n• Prestam atenção\n• Esclarecem dúvidas\n• Transcrevem apontamentos', 
-                     cellX + 5, funcao2Y + 15);
-            
-            // MÉTODOS (VAZIO)
-            cellX += LARGURAS.ATIV_ALUNOS;
-            pdf.text('___________', cellX + 5, funcao2Y + (ALTURAS.FUNCAO2 / 2));
-            
-            // MEIOS (VAZIO)
-            cellX += LARGURAS.METODOS;
-            pdf.text('___________', cellX + 5, funcao2Y + (ALTURAS.FUNCAO2 / 2));
+            // Preencher Função 2: Mediação e Assimilação
+            const linha2Y = linha1Y + ALTURA_FUNCAO1;
+            escreverNaTabela("", 2, 0, TABELA_X, tabelaY, alturasPagina1, LARGURA_COLUNAS); // Tempo vazio
+            escreverNaTabela("Mediação e Assimilação", 2, 1, TABELA_X, tabelaY, alturasPagina1, LARGURA_COLUNAS);
+            // Demais colunas ficam vazias (apenas grade visível)
             
             // Número da página
-            pdf.setFontSize(9);
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(10);
             pdf.setTextColor(150, 150, 150);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`Aula ${aulaNum} - Página ${pageNum}`, pageWidth - marginRight, pageHeight - marginBottom + 10, { align: 'right' });
+            pdf.text(`Aula ${aulaNum} - Página ${paginaNum}`, PAGINA_LARGURA - MARGEM_DIREITA, PAGINA_ALTURA - MARGEM_BAIXO + 15, { align: "right" });
         }
         
-        // Função para criar segunda página do plano (com funções 3-4 + anexo)
-        function createPlanoPage2(aulaNum, progress, pageNum) {
-            updateProgress(progress, `Criando página ${pageNum}...`, `Completando template da aula ${aulaNum}`);
+        // Função para criar página com Funções 3 e 4 + Anexo
+        function createPaginaFuncoes34Anexo(aulaNum, progress, paginaNum) {
+            updateProgress(progress, `Criando página ${paginaNum}...`, `Completando template da aula ${aulaNum}`);
             
             // Adicionar nova página horizontal
             pdf.addPage([841.89, 595.28], 'landscape');
             
-            // Margens de 7cm (198.4 pontos)
-            const marginLeft = 198.4;
-            const marginRight = 198.4;
-            const marginTop = 56.7; // 2cm
-            const marginBottom = 56.7; // 2cm
-            
-            const pageWidth = 841.89;
-            const pageHeight = 595.28;
-            
-            // Posição da tabela (começa mais acima para caber anexo)
-            const tableStartY = marginTop;
-            const tableStartX = marginLeft;
-            
-            // --- FUNÇÃO 3: DOMÍNIO E CONSOLIDAÇÃO (5 cm = 141.75 pontos) ---
-            
-            // Borda da célula
-            pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(1.5);
-            pdf.rect(tableStartX, tableStartY, LARGURA_TOTAL, ALTURAS.FUNCAO3);
-            
-            // Conteúdo da Função 3
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
+            // Configurar fonte para toda a página
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(12);
             pdf.setTextColor(0, 0, 0);
             
-            // TEMPO
-            let cellX = tableStartX;
-            pdf.text('_____', cellX + (LARGURAS.TEMPO / 2), tableStartY + (ALTURAS.FUNCAO3 / 2) - 15, { align: 'center' });
+            // ============================================
+            // TABELA PRINCIPAL - Funções 3 e 4
+            // ============================================
             
-            // FUNÇÕES DIDÁCTICAS (PRÉ-PREENCHIDO)
-            cellX += LARGURAS.TEMPO;
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Domínio e Consolidação', cellX + 5, tableStartY + 15);
-            pdf.setFont('helvetica', 'normal');
+            const tabelaY = MARGEM_CIMA;
             
-            // CONTEÚDOS (VAZIO)
-            cellX += LARGURAS.FUNCOES;
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('• Exercícios de aplicação\n• Verificação de resolução\n• Consolidação de conceitos\n• Prática guiada', 
-                     cellX + 5, tableStartY + 15);
+            // Alturas para esta página (função 3 + função 4)
+            const alturasPagina2 = [ALTURA_FUNCAO3, ALTURA_FUNCAO4];
             
-            // ATIVIDADES PROFESSOR (VAZIO)
-            cellX += LARGURAS.CONTEUDOS;
-            pdf.text('• Passa exercícios\n• Orienta a resolução\n• Verifica o trabalho\n• Fornece feedback', 
-                     cellX + 5, tableStartY + 15);
+            // Desenhar grade completa da tabela (SEM CABEÇALHO)
+            const tabela = desenharGradeTabela(TABELA_X, tabelaY, LARGURA_COLUNAS, alturasPagina2, false);
             
-            // ATIVIDADES ALUNOS (VAZIO)
-            cellX += LARGURAS.ATIV_PROF;
-            pdf.text('• Transcrevem exercícios\n• Resolvem individualmente\n• Apresentam resultados\n• Corrigem erros', 
-                     cellX + 5, tableStartY + 15);
+            // Preencher Função 3: Domínio e Consolidação
+            escreverNaTabela("", 0, 0, TABELA_X, tabelaY, alturasPagina2, LARGURA_COLUNAS); // Tempo vazio
+            escreverNaTabela("Domínio e Consolidação", 0, 1, TABELA_X, tabelaY, alturasPagina2, LARGURA_COLUNAS);
+            // Demais colunas ficam vazias (apenas grade visível)
             
-            // MÉTODOS (VAZIO)
-            cellX += LARGURAS.ATIV_ALUNOS;
-            pdf.text('___________', cellX + 5, tableStartY + (ALTURAS.FUNCAO3 / 2));
+            // Preencher Função 4: Controlo e Avaliação
+            escreverNaTabela("", 1, 0, TABELA_X, tabelaY, alturasPagina2, LARGURA_COLUNAS); // Tempo vazio
+            escreverNaTabela("Controlo e Avaliação", 1, 1, TABELA_X, tabelaY, alturasPagina2, LARGURA_COLUNAS);
+            // Demais colunas ficam vazias (apenas grade visível)
             
-            // MEIOS (VAZIO)
-            cellX += LARGURAS.METODOS;
-            pdf.text('___________', cellX + 5, tableStartY + (ALTURAS.FUNCAO3 / 2));
+            // ============================================
+            // ANEXO / QUADRO MORAL
+            // ============================================
             
-            // --- FUNÇÃO 4: CONTROLO E AVALIAÇÃO (6 cm = 170.1 pontos) ---
-            const funcao4Y = tableStartY + ALTURAS.FUNCAO3;
+            const anexoY = tabelaY + ALTURA_FUNCAO3 + ALTURA_FUNCAO4 + 30;
             
-            // Borda da célula
+            // Linha divisória acima do anexo
             pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(1.5);
-            pdf.rect(tableStartX, funcao4Y, LARGURA_TOTAL, ALTURAS.FUNCAO4);
-            
-            // Conteúdo da Função 4
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(0, 0, 0);
-            
-            // TEMPO
-            cellX = tableStartX;
-            pdf.text('_____', cellX + (LARGURAS.TEMPO / 2), funcao4Y + (ALTURAS.FUNCAO4 / 2) - 20, { align: 'center' });
-            
-            // FUNÇÕES DIDÁCTICAS (PRÉ-PREENCHIDO)
-            cellX += LARGURAS.TEMPO;
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Controlo e Avaliação', cellX + 5, funcao4Y + 15);
-            pdf.setFont('helvetica', 'normal');
-            
-            // CONTEÚDOS (VAZIO)
-            cellX += LARGURAS.FUNCOES;
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('• Correção de exercícios\n• Resumo da aula\n• Marcação do TPC\n• Avaliação formativa', 
-                     cellX + 5, funcao4Y + 15);
-            
-            // ATIVIDADES PROFESSOR (VAZIO)
-            cellX += LARGURAS.CONTEUDOS;
-            pdf.text('• Corrige exercícios\n• Resume pontos principais\n• Marca o TPC\n• Avalia participação', 
-                     cellX + 5, funcao4Y + 15);
-            
-            // ATIVIDADES ALUNOS (VAZIO)
-            cellX += LARGURAS.ATIV_PROF;
-            pdf.text('• Apresentam exercícios\n• Anotam o resumo\n• Registam o TPC\n• Participam na avaliação', 
-                     cellX + 5, funcao4Y + 15);
-            
-            // MÉTODOS (VAZIO)
-            cellX += LARGURAS.ATIV_ALUNOS;
-            pdf.text('___________', cellX + 5, funcao4Y + (ALTURAS.FUNCAO4 / 2));
-            
-            // MEIOS (VAZIO)
-            cellX += LARGURAS.METODOS;
-            pdf.text('___________', cellX + 5, funcao4Y + (ALTURAS.FUNCAO4 / 2));
-            
-            // --- ANEXO / QUADRO MORAL ---
-            const anexoStartY = funcao4Y + ALTURAS.FUNCAO4 + 20;
-            
-            // Linha divisória
-            pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(0.5);
-            pdf.line(tableStartX, anexoStartY, tableStartX + LARGURA_TOTAL, anexoStartY);
+            pdf.setLineWidth(1);
+            pdf.line(TABELA_X, anexoY - 10, TABELA_X + LARGURA_TOTAL_TABELA, anexoY - 10);
             
             // Título do anexo
+            pdf.setFont("times", "bold");
             pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(26, 95, 35);
-            pdf.text('ANEXO / QUADRO MORAL', tableStartX + (LARGURA_TOTAL / 2), anexoStartY + 15, { align: 'center' });
+            pdf.text('ANEXO / QUADRO MORAL', PAGINA_LARGURA / 2, anexoY, { align: "center" });
             
-            // Espaço livre SEM LINHAS
-            const anexoHeight = pageHeight - anexoStartY - marginBottom - 30;
-            
-            // Apenas um retângulo vazio (borda muito clara)
-            pdf.setDrawColor(220, 220, 220);
+            // Caixa do anexo (espaço livre)
+            const anexoAltura = PAGINA_ALTURA - anexoY - MARGEM_BAIXO - 30;
+            pdf.setDrawColor(0, 0, 0);
             pdf.setLineWidth(0.5);
-            pdf.rect(tableStartX, anexoStartY + 25, LARGURA_TOTAL, anexoHeight);
-            
-            // Texto de instrução (opcional)
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(180, 180, 180);
-            pdf.text('Espaço livre para apontamentos, observações e anotações adicionais', 
-                     tableStartX + (LARGURA_TOTAL / 2), anexoStartY + anexoHeight + 15, { align: 'center' });
+            pdf.rect(TABELA_X, anexoY + 15, LARGURA_TOTAL_TABELA, anexoAltura);
             
             // Número da página
-            pdf.setFontSize(9);
+            pdf.setFont("times", "normal");
+            pdf.setFontSize(10);
             pdf.setTextColor(150, 150, 150);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`Aula ${aulaNum} - Página ${pageNum}`, pageWidth - marginRight, pageHeight - marginBottom + 10, { align: 'right' });
+            pdf.text(`Aula ${aulaNum} - Página ${paginaNum}`, PAGINA_LARGURA - MARGEM_DIREITA, PAGINA_ALTURA - MARGEM_BAIXO + 15, { align: "right" });
         }
         
-        // Função para gerar PDF flexível
+        // Função para gerar PDF flexível (1 aula)
         async function generateFlexivelPDF() {
             updateProgress(10, 'Iniciando geração...', 'Preparando Template Flexível');
             
@@ -770,57 +681,49 @@
                 format: 'a4'
             });
             
-            // Página 1: Plano (funções 1 e 2 com cabeçalho)
+            // Página 1: Funções 1 e 2
             await new Promise(resolve => setTimeout(resolve, 300));
-            createPlanoPage1(1, 50, 1);
+            createPaginaFuncoes12(1, 50, 1);
             
-            // Página 2: Plano (funções 3 e 4 sem cabeçalho + anexo)
+            // Página 2: Funções 3 e 4 + Anexo
             await new Promise(resolve => setTimeout(resolve, 300));
-            createPlanoPage2(1, 90, 2);
+            createPaginaFuncoes34Anexo(1, 90, 2);
             
             updateProgress(100, 'Template gerado com sucesso!', 'Documento pronto para impressão e preenchimento manual');
         }
         
-        // Função para gerar PDF do bloco
+        // Função para gerar PDF do bloco (múltiplas aulas)
         async function generateBlocoPDF() {
             updateProgress(5, 'Iniciando geração...', 'Preparando Bloco de Planificação');
             
-            // Criar PDF vertical para capa
-            pdf = new jspdf.jsPDF({
-                orientation: 'portrait',
-                unit: 'pt',
-                format: 'a4'
-            });
-            
-            // Página 1: Capa (Vertical) - apenas para bloco
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Criar Capa (página 1 - vertical)
             await createCapa(15);
             
             // Calcular progresso por aula
             const totalAulas = config.aulas || 1;
             const progressPerAula = (85 - 15) / totalAulas;
             
-            // Páginas das aulas
+            // Gerar páginas para cada aula
             for (let i = 1; i <= totalAulas; i++) {
                 const baseProgress = 15 + ((i - 1) * progressPerAula);
                 
-                // Página 1 da aula (funções 1 e 2 com cabeçalho)
-                const planoPage1 = (i * 2);
-                const planoProgress1 = baseProgress + (progressPerAula * 0.4);
+                // Página da aula: Funções 1 e 2
+                const pagina1 = (i * 2) - 1; // Páginas 2, 4, 6...
+                const progress1 = baseProgress + (progressPerAula * 0.4);
                 await new Promise(resolve => setTimeout(resolve, 200));
-                createPlanoPage1(i, planoProgress1, planoPage1);
+                createPaginaFuncoes12(i, progress1, pagina1);
                 
-                // Página 2 da aula (funções 3 e 4 sem cabeçalho + anexo)
-                const planoPage2 = (i * 2) + 1;
-                const planoProgress2 = baseProgress + (progressPerAula * 0.8);
+                // Página da aula: Funções 3 e 4 + Anexo
+                const pagina2 = i * 2; // Páginas 3, 5, 7...
+                const progress2 = baseProgress + (progressPerAula * 0.8);
                 await new Promise(resolve => setTimeout(resolve, 200));
-                createPlanoPage2(i, planoProgress2, planoPage2);
+                createPaginaFuncoes34Anexo(i, progress2, pagina2);
             }
             
             updateProgress(100, 'Bloco gerado com sucesso!', `Documento com ${(totalAulas * 2) + 1} páginas pronto para impressão`);
         }
         
-        // Função principal
+        // Função principal de geração
         async function generatePDF() {
             try {
                 // Obter configuração do localStorage
@@ -830,6 +733,11 @@
                 }
                 
                 config = JSON.parse(configData);
+                
+                // Validar dados obrigatórios
+                if (!config.dados.professor || !config.dados.escola) {
+                    throw new Error('Dados obrigatórios não preenchidos. Volte ao formulário.');
+                }
                 
                 // Gerar PDF baseado no tipo
                 if (config.tipo === 'flexivel') {
@@ -843,8 +751,8 @@
                 downloadBtn.innerHTML = '<i class="fas fa-download"></i> Baixar Template';
                 downloadBtn.onclick = () => {
                     const tipoNome = config.tipo === 'flexivel' ? 'Template_Flexivel' : 'Bloco_Planificacao';
-                    const professorNome = config.dados.professor ? config.dados.professor.replace(/\s+/g, '_') : 'Template';
-                    const filename = `${tipoNome}_${professorNome}_${Date.now()}.pdf`;
+                    const professorNome = config.dados.professor.replace(/\s+/g, '_');
+                    const filename = `${tipoNome}_${professorNome}_${new Date().toISOString().split('T')[0]}.pdf`;
                     pdf.save(filename);
                 };
                 
@@ -854,7 +762,7 @@
             }
         }
         
-        // Iniciar geração
+        // Iniciar geração quando a página carregar
         document.addEventListener('DOMContentLoaded', generatePDF);
     </script>
 </body>
