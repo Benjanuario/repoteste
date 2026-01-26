@@ -1,598 +1,674 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-  <script>
-(function () {
-  'use strict';
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerando PDF - Sistema de Planos de Aula</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  function isMobileOrTablet() {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isTouch = navigator.maxTouchPoints > 1;
-    return /Android|iPhone|iPad|Tablet|Silk|Kindle|PlayBook/i.test(ua) || isTouch;
-  }
-
-  if (!isMobileOrTablet()) {
-    document.documentElement.innerHTML = `
-      <!DOCTYPE html>
-      <html lang="pt">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Acesso Restrito</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
-            color: #2c3e50;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0d4d16 0%, #1a5f23 100%);
+            color: white;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 2rem;
             text-align: center;
-            padding: 20px;
-            overflow: hidden;
-          }
-          .box {
-            max-width: 500px;
+        }
+
+        .container {
+            max-width: 600px;
             width: 100%;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 2s infinite;
+            color: white;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .loading-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            padding: 40px 30px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.6s ease-out forwards;
-          }
-          .icon {
-            font-size: 3em;
-            margin-bottom: 24px;
-            opacity: 0;
-            animation: bounceIn 0.8s ease-out 0.2s forwards;
-          }
-          h1 {
-            font-size: 1.8em;
-            margin-bottom: 16px;
-            color: #e74c3c;
-            opacity: 0;
-            animation: fadeIn 0.6s ease-out 0.4s forwards;
-          }
-          p {
-            font-size: 1.1em;
-            line-height: 1.6;
-            color: #555;
-            margin-bottom: 12px;
-            opacity: 0;
-            animation: fadeIn 0.6s ease-out 0.6s forwards;
-          }
-          @keyframes fadeIn {
-            to { opacity: 1; }
-          }
-          @keyframes fadeInUp {
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.1); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="box">
-          <div class="icon">⚠️📱⚠️</div>
-          <h1>Acesso permitido apenas por smartphone ou tablet</h1>
-          <p>Este site foi projectado exclusivamente para dispositivos <strong>móveis</strong>.</p>
-          <p>Abra esta página num telefone ou tablet para continuar.</p>
-        </div>
-      </body>
-      </html>
-    `;
-    throw new Error('Desktop access blocked');
-  }
-})();
-</script>
-  <script src="/security/blocks.js"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download do Plano de Aula</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<!-- libs necessárias -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<style>
-body { font-family: 'Times New Roman', serif; background: #e0f7fa; margin:0; padding:0; color:#333; }
-header { background-color: #007BFF; color:white; padding:20px; text-align:center; font-size:22px; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.15);}
-main { max-width:750px; margin:30px auto; padding:20px; background:#fff; border-radius:12px; box-shadow:0 6px 15px rgba(0,0,0,0.1);}
-h2 { text-align:center; margin-bottom:25px; color:#007BFF; }
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
 
-/* Código promocional grande */
-#codigo-promocional {
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  color: #e74c3c;
-  margin-bottom: 25px;
-  letter-spacing: 3px;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-}
+        .status {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
 
-/* Campo de código */
-.input-container {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 15px;
-  flex-direction: column;
-  align-items: center;
-}
-input[type="text"] {
-  padding: 14px;
-  font-size: 18px;
-  border-radius: 10px;
-  border: 2px solid #007BFF;
-  width: 240px;
-  text-align: center;
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-button.confirmar-btn {
-  padding: 12px 20px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: none;
-  background-color: #28a745;
-  color: white;
-  cursor: pointer;
-  transition: 0.3s;
-  font-weight: bold;
-}
-button.confirmar-btn:hover {
-  background-color: #218838;
-  transform: translateY(-2px);
-}
-.mensagem {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 17px;
-  font-weight: bold;
-}
+        .details {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
 
-/* Spinner */
-.spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007BFF;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
-<script>
-(function() {
-  // Google AdSense
-  var metaAd = document.createElement('meta');
-  metaAd.name = "google-adsense-account";
-  metaAd.content = "ca-pub-8468056906401026";
-  document.head.appendChild(metaAd);
-  // Google Analytics
-  var gaScript = document.createElement('script');
-  gaScript.async = true;
-  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0";
-  document.head.appendChild(gaScript);
-  var gaInline = document.createElement('script');
-  gaInline.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-02K874D1P0');
-  `;
-  document.head.appendChild(gaInline);
-})();
-</script>
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            color: #1a5f23;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            margin-top: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .logo { font-size: 3rem; }
+            .loading-container { padding: 2rem 1rem; }
+        }
+    </style>
 </head>
 <body>
-<header>Download do Plano de Aula</header>
-<main>
-  <h2>Insira o Código Abaixo para Baixar o Plano</h2>
-
-  <!-- Código promocional grande e visível -->
-  <div id="codigo-promocional"></div>
-
-  <div class="input-container" id="input-codigo">
-    <input type="text" id="codigo-acesso" placeholder="digita aqui" maxlength="8">
-    <span id="feedback-codigo" style="color:#dc3545; font-size:13px; display:block; text-align:center; margin-top:5px;"></span>
-    <button class="confirmar-btn" onclick="validarCodigo()">Confirmar</button>
-  </div>
-
-  <div id="mensagem" class="mensagem"></div>
-
-<script>
-const URL_APP = "https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec";
-const inputCodigo = document.getElementById('codigo-acesso');
-const feedback = document.getElementById('feedback-codigo');
-
-inputCodigo.addEventListener('input', () => {
-  let valor = inputCodigo.value.toUpperCase();
-  const novoValor = valor.replace(/[^A-Z0-9]/g, '');
-  if(valor !== novoValor){
-    feedback.innerText = "❌ Apenas caracteres alfanuméricos são permitidos!";
-  } else {
-    feedback.innerText = "";
-  }
-  inputCodigo.value = novoValor.slice(0, 8);
-});
-
-// Exibir código promocional aleatório (visível)
-const codigosPromo = ['2514DC16', '7655GT27', '8K7814D3', 'TD171705', 'J66BGK27'];
-document.getElementById('codigo-promocional').textContent = codigosPromo[Math.floor(Math.random() * codigosPromo.length)];
-
-function validarCodigo(){
-  const codigo = inputCodigo.value.trim().toUpperCase();
-  const msg = document.getElementById('mensagem');
-  if(codigo.length !== 8){
-    msg.style.color = "#dc3545";
-    msg.innerText = "❌ O código deve ter 8 caracteres.";
-    return;
-  }
-  msg.style.color = "#007BFF";
-  msg.innerHTML = '🔍 Verificando o Código <span class="spinner"></span>';
-  fetch(`${URL_APP}?codigo=${codigo}`, { method:'GET', mode:'cors' })
-    .then(res => {
-      if(!res.ok) throw new Error('Serviço indisponível');
-      return res.json();
-    })
-    .then(data => {
-      if(data && data.valido){
-        const planoDataJSON = sessionStorage.getItem("planoData");
-        if(!planoDataJSON){
-            alert("❌ Nenhum plano encontrado. Gere o plano antes de tentar desbloquear.");
-            return;
-        }
-        const planoData = JSON.parse(planoDataJSON);
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a4'
-        });
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-file-pdf"></i>
+        </div>
         
-        // Fonte padrão
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
+        <h1>Gerando o seu PDF</h1>
+        <p class="subtitle">Estamos a preparar o seu documento com todas as especificações solicitadas.</p>
         
-        // --- TÍTULO DO PLANO ---
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(26, 95, 35); // Verde escuro
-        doc.text("PLANO DE AULA", 148, 15, { align: "center" });
+        <div class="loading-container">
+            <div class="spinner"></div>
+            
+            <div class="status" id="status">Iniciando geração do PDF...</div>
+            <div class="details" id="details">Carregando configurações...</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="details" id="progress-text">0% concluído</div>
+        </div>
         
-        // Linha abaixo do título
-        doc.setDrawColor(26, 95, 35);
-        doc.setLineWidth(1);
-        doc.line(50, 18, 246, 18);
+        <button class="btn" id="download-btn" disabled>
+            <i class="fas fa-download"></i> Baixar PDF
+        </button>
         
-        // Reset para texto normal
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.setFont("helvetica", "normal");
+        <div class="error" id="error-message">
+            <h3 style="margin-bottom: 1rem; color: white;"><i class="fas fa-exclamation-triangle"></i> Erro ao gerar PDF</h3>
+            <p id="error-text" style="color: white;">Ocorreu um erro ao gerar o documento. Por favor, tente novamente.</p>
+            <button class="btn" onclick="window.location.href='index.html'" style="margin-top: 1rem; background: #dc3545; color: white;">
+                <i class="fas fa-arrow-left"></i> Voltar ao Início
+            </button>
+        </div>
         
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = planoData.html;
+        <a href="preview.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Voltar à Pré-visualização
+        </a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        // Configuração
+        let config = null;
+        let pdf = null;
         
-        // Dados da Esquerda (Coluna 1)
-        let yLeft = 30;
-        const addLineLeft = (label, value) => {
-          if (value) {
-            doc.text(`${label}:`, 10, yLeft);
-            doc.text(value, 40, yLeft);
-            yLeft += 7;
-          }
-        };
+        // Elementos DOM
+        const statusEl = document.getElementById('status');
+        const detailsEl = document.getElementById('details');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const downloadBtn = document.getElementById('download-btn');
+        const errorEl = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
         
-        const dadosEsquerda = tempDiv.querySelector('#dadosEsquerda');
-        if (dadosEsquerda) {
-          const esquerdaText = dadosEsquerda.innerText;
-          const lines = esquerdaText.split('\n');
-          lines.forEach(line => {
-            if (line.includes(':')) {
-              const [label, value] = line.split(':', 2);
-              addLineLeft(label.trim(), value.trim());
-            }
-          });
+        // Funções de progresso
+        function updateProgress(percent, status, details) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '% concluído';
+            statusEl.textContent = status;
+            detailsEl.textContent = details;
         }
         
-        // Dados da Direita (Coluna 3)
-        let yRight = 30;
-        const addLineRight = (label, value) => {
-          if (value) {
-            doc.text(`${label}:`, 160, yRight);
-            doc.text(value, 190, yRight);
-            yRight += 7;
-          }
-        };
-        
-        const dadosDireita = tempDiv.querySelector('#dadosDireita');
-        if (dadosDireita) {
-          const direitaText = dadosDireita.innerText;
-          const lines = direitaText.split('\n');
-          lines.forEach(line => {
-            if (line.includes(':')) {
-              const [label, value] = line.split(':', 2);
-              addLineRight(label.trim(), value.trim());
-            }
-          });
+        function showError(message) {
+            errorText.textContent = message;
+            errorEl.classList.add('show');
         }
         
-        // Dados do Centro (Coluna 2)
-        let yCenter = 30;
-        const addLineCenter = (label, value) => {
-          if (value) {
-            doc.text(`${label}:`, 85, yCenter);
-            doc.text(value, 115, yCenter);
-            yCenter += 7;
-          }
-        };
-        
-        const dadosCentro = tempDiv.querySelector('#dadosCentro');
-        if (dadosCentro) {
-          const centroText = dadosCentro.innerText;
-          const lines = centroText.split('\n');
-          lines.forEach(line => {
-            if (line.includes(':')) {
-              const [label, value] = line.split(':', 2);
-              addLineCenter(label.trim(), value.trim());
-            }
-          });
+        // Função para carregar imagem da capa
+        async function loadEmblemImage() {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    console.warn('Emblema não encontrado, usando placeholder');
+                    resolve(null);
+                };
+                img.src = 'emblema.png';
+            });
         }
         
-        // Objetivos
-        const listaObjetivos = tempDiv.querySelector('#listaObjetivos');
-        let lastY = Math.max(yLeft, yRight, yCenter);
-        if (listaObjetivos) {
-          doc.setFont("helvetica", "bold");
-          doc.text("Objectivos específicos:", 10, lastY + 10);
-          doc.setFont("helvetica", "normal");
-          
-          let yObj = lastY + 18;
-          const objetivos = listaObjetivos.querySelectorAll('li');
-          objetivos.forEach(obj => {
-            const texto = obj.innerText.trim();
-            if(texto){
-              doc.text(`• ${texto}`, 15, yObj);
-              yObj += 7;
-            }
-          });
-          lastY = yObj;
-        }
-        
-        // --- TABELA COM DIMENSÕES DO SISTEMA MOÇAMBIQUE ---
-        // Dados das 4 funções didáticas
-        const funcoesDidaticas = [
-            'Introdução e Motivação',
-            'Mediação e Assimilação',
-            'Domínio e Consolidação',
-            'Controlo e Avaliação'
-        ];
-        
-        // Criar tabela com 4 linhas e 7 colunas
-        const tableData = funcoesDidaticas.map(funcao => [
-            '',                    // TEMPO (vazio para preenchimento manual)
-            funcao,                // FUNÇÕES DIDÁCTICAS (pré-preenchida)
-            '',                    // CONTEÚDOS (vazio)
-            '',                    // ACTIVIDADES DO PROFESSOR (vazio)
-            '',                    // ACTIVIDADES DOS ALUNOS (vazio)
-            '',                    // MÉTODOS DE ENSINO (vazio)
-            ''                     // MEIOS DE ENSINO (vazio)
-        ]);
-
-        // Criar tabela com jsPDF AutoTable
-        doc.autoTable({
-            startY: lastY + 15,
-            head: [[
-                'TEMPO', 
-                'FUNÇÕES DIDÁCTICAS', 
-                'CONTEÚDOS', 
-                'ACTIVIDADES DO PROFESSOR', 
-                'ACTIVIDADES DOS ALUNOS', 
-                'MÉTODOS DE ENSINO', 
-                'MEIOS DE ENSINO'
-            ]],
-            body: tableData,
-            theme: 'grid',
-            styles: {
-                font: 'helvetica',
-                fontSize: 10,
-                textColor: [0, 0, 0],
-                lineColor: [0, 0, 0],
-                lineWidth: 1.5,  // Linhas mais grossas (1.5pt)
-                cellPadding: 4,
-                valign: 'top',
-                overflow: 'linebreak',
-                cellWidth: 'wrap'
-            },
-            headStyles: {
-                fillColor: [108, 117, 125],  // Cinza (#6c757d)
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-                halign: 'center',
-                fontSize: 10,
-                textTransform: 'uppercase'  // Texto maiúsculo
-            },
-            columnStyles: {
-                0: { cellWidth: 20, halign: 'center' },   // TEMPO
-                1: { cellWidth: 45, fontStyle: 'bold' },  // FUNÇÕES DIDÁCTICAS
-                2: { cellWidth: 53 },                     // CONTEÚDOS
-                3: { cellWidth: 45 },                     // ACTIV. PROFESSOR
-                4: { cellWidth: 45 },                     // ACTIV. ALUNOS
-                5: { cellWidth: 33 },                     // MÉTODOS
-                6: { cellWidth: 33 }                      // MEIOS
-            },
-            margin: { 
-                top: 10, 
-                bottom: 10, 
-                left: 10,
-                right: 10
-            },
-            tableWidth: 'auto',
-            showHead: 'firstPage',
-            didParseCell: function(data) {
-                // Garantir bordas pretas em todas as células
-                data.cell.styles.lineWidth = 1.5;
-                data.cell.styles.lineColor = [0, 0, 0];
+        // Função para criar capa do bloco
+        async function createCapa(progress) {
+            updateProgress(progress, 'Criando capa...', 'Preparando capa oficial com emblema');
+            
+            const emblem = await loadEmblemImage();
+            
+            // Configurar página vertical
+            pdf.addPage();
+            pdf.setPage(1);
+            
+            // Fundo branco
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, 595.28, 841.89, 'F');
+            
+            // Emblema no topo (se disponível)
+            if (emblem) {
+                const emblemWidth = 100;
+                const emblemHeight = 100;
+                const emblemX = (595.28 - emblemWidth) / 2;
+                const emblemY = 60;
                 
-                // Se for célula vazia, adicionar placeholder
-                if (data.column.index >= 0 && data.cell.raw === '' && 
-                    ![0, 1].includes(data.column.index)) {
-                    // Adicionar underline para campos vazios
-                    data.cell.text = ['__________________________'];
-                }
-                
-                // Alinhamento específico
-                if (data.column.index === 0) { // TEMPO
-                    data.cell.styles.halign = 'center';
-                    data.cell.styles.valign = 'middle';
+                try {
+                    pdf.addImage(emblem, 'PNG', emblemX, emblemY, emblemWidth, emblemHeight);
+                } catch (e) {
+                    console.warn('Erro ao adicionar emblema:', e);
                 }
             }
-        });
-        
-        // === ANEXO SIMPLIFICADO (PÁGINA LIMPA) ===
-        // Criar nova página para o anexo
-        doc.addPage('portrait');
-        
-        // Configurações
-        const margin = 20; // Margem de 20mm
-        const pageWidth = doc.internal.pageSize.getWidth();
-        
-        // Título do anexo (cabeçalho)
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.setTextColor(26, 95, 35); // Verde escuro
-        
-        // Texto em maiúsculas
-        const titulo = "ANEXO / QUADRO MORAL";
-        doc.text(titulo, pageWidth / 2, 30, { align: "center" });
-        
-        // Linha preta abaixo do cabeçalho
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(1);
-        doc.line(margin, 35, pageWidth - margin, 35);
-        
-        // O resto da página fica em branco para preenchimento manual
-        // Pode adicionar aqui linhas horizontais se quiser
-        
-        // Opcional: Adicionar algumas linhas horizontais para escrita
-        doc.setDrawColor(200, 200, 200); // Cinza claro
-        doc.setLineWidth(0.5);
-        let lineY = 50;
-        for (let i = 0; i < 30; i++) {
-            doc.line(margin, lineY, pageWidth - margin, lineY);
-            lineY += 10;
+            
+            // Títulos
+            pdf.setFontSize(32);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(26, 95, 35); // Verde escuro
+            pdf.text('REPÚBLICA DE MOÇAMBIQUE', 297.64, 180, { align: 'center' });
+            
+            pdf.setFontSize(24);
+            pdf.text('MINISTÉRIO DA EDUCAÇÃO', 297.64, 210, { align: 'center' });
+            
+            // Linha divisória
+            pdf.setDrawColor(26, 95, 35);
+            pdf.setLineWidth(2);
+            pdf.line(100, 240, 495.28, 240);
+            
+            // Título principal
+            pdf.setFontSize(36);
+            pdf.setTextColor(211, 47, 47); // Vermelho
+            pdf.text('BLOCO DE PLANIFICAÇÃO', 297.64, 290, { align: 'center' });
+            
+            // Informações
+            pdf.setFontSize(20);
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont('helvetica', 'bold');
+            
+            let y = 350;
+            const lineHeight = 28;
+            
+            if (config.dados.escola) {
+                pdf.text(`ESCOLA: ${config.dados.escola.toUpperCase()}`, 297.64, y, { align: 'center' });
+                y += lineHeight;
+            }
+            
+            if (config.dados.professor) {
+                pdf.text(`PROFESSOR: ${config.dados.professor.toUpperCase()}`, 297.64, y, { align: 'center' });
+                y += lineHeight;
+            }
+            
+            if (config.dados.disciplina) {
+                pdf.text(`DISCIPLINA: ${config.dados.disciplina.toUpperCase()}`, 297.64, y, { align: 'center' });
+                y += lineHeight;
+            }
+            
+            if (config.dados.classe) {
+                pdf.text(`CLASSE: ${config.dados.classe.toUpperCase()}`, 297.64, y, { align: 'center' });
+                y += lineHeight;
+            }
+            
+            if (config.dados.ano) {
+                pdf.text(`ANO LECTIVO: ${config.dados.ano}`, 297.64, y, { align: 'center' });
+                y += lineHeight;
+            }
+            
+            // Rodapé
+            pdf.setFontSize(12);
+            pdf.setTextColor(100, 100, 100);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Documento gerado automaticamente pelo Sistema de Planos de Aula', 297.64, 780, { align: 'center' });
+            pdf.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, 297.64, 795, { align: 'center' });
         }
         
-        // Salvar PDF com nome personalizado
-        const disciplina = planoData.disciplina || "";
-        const classe = planoData.classe || "";
-        const dataPlano = planoData.data || "";
-        const pdfBlob = doc.output('blob');
-        const nomeArquivo = `Plano_de_Aula_${disciplina}_${classe}_${dataPlano}.pdf`;
-
-        // --- Salvar no Histórico ---
-        const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
-        historico.push({
-          escola: planoData.escola,
-          professor: planoData.professor,
-          disciplina: planoData.disciplina,
-          unidade: planoData.unidade,
-          tema: planoData.tema,
-          tipo: planoData.tipo,
-          classe: planoData.classe,
-          data: planoData.data
-        });
-        localStorage.setItem("historicoPlanos", JSON.stringify(historico));
-
-        // Mensagem de sucesso
-        // Armazena para fallback
-        window.__ultimoPDFBlob = pdfBlob;
-        window.__ultimoPDFNome = nomeArquivo;
-
-        // Tenta download automático
-        setTimeout(() => {
-          try {
-            baixarPDF(pdfBlob, nomeArquivo);
-          } catch (e) {
-            console.warn("Auto-download bloqueado pelo navegador.");
-          }
-        }, 300);
-
-        // Mostra mensagem + botão de fallback
-        msg.innerHTML = `
-          ✅ Código válido! PDFs restantes: ${data.restante}<br>
-          Se o download não iniciou, clique abaixo:<br><br>
-          <button onclick="baixarPDFManual()" 
-                  style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
-                  onmouseover="this.style.background='#218838';"
-                  onmouseout="this.style.background='#28a745';">
-            📥 Baixar o Plano Agora
-          </button>
-        `;
-      } else {
-        msg.style.color = "#dc3545";
-        msg.innerText = `❌ ${data && data.msg ? data.msg : 'Código inválido'}`;
-      }
-    })
-    .catch(err => {
-      msg.style.color = "#dc3545";
-      msg.innerText = "❌ Erro ao validar código. Tente novamente.";
-      console.error(err);
-    });
-}
-
-// === Funções de Download com Fallback ===
-function baixarPDF(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = nome;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-// Variáveis globais para o fallback
-window.__ultimoPDFBlob = null;
-window.__ultimoPDFNome = null;
-
-function baixarPDFManual() {
-  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
-    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
-  } else {
-    alert("❌ Nenhum PDF disponível para download.");
-  }
-}
-</script>
-<script>(function(s){s.dataset.zone='10293369',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-<script src="https://pl28401815.effectivegatecpm.com/3e/2a/35/3e2a35a0861dc473b82d502274ed385c.js"></script>
-<script>
-  atOptions = {
-    'key' : '19b34a2091aea1ccc9455af1a4a4bbd3',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script src="https://www.highperformanceformat.com/19b34a2091aea1ccc9455af1a4a4bbd3/invoke.js"></script>
-</main>
+        // Função para criar página horizontal de plano COM NOVA TABELA
+        function createPlanoPage(pageNum, aulaNum, progress) {
+            updateProgress(progress, `Criando página ${pageNum}...`, `Preparando plano da aula ${aulaNum}`);
+            
+            // Adicionar nova página horizontal
+            pdf.addPage([841.89, 595.28], 'landscape');
+            
+            // Margens: 0,7cm = 19.84 pontos (1cm = 28.35 pontos)
+            const margin = 19.84;
+            const width = 841.89 - (margin * 2);
+            const height = 595.28 - (margin * 2);
+            
+            // Cabeçalho
+            pdf.setFontSize(28);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(26, 95, 35);
+            pdf.text('PLANO DE AULA', margin + (width / 2), margin + 20, { align: 'center' });
+            
+            // Linha abaixo do título
+            pdf.setDrawColor(26, 95, 35);
+            pdf.setLineWidth(1.5);
+            pdf.line(margin + (width / 2) - 100, margin + 30, margin + (width / 2) + 100, margin + 30);
+            
+            // Preliminares em 3 colunas
+            const colWidth = width / 3;
+            const colGap = 20;
+            let y = margin + 60;
+            
+            // Coluna 1: Esquerda
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(0, 0, 0);
+            
+            if (config.dados.professor) {
+                pdf.text(`Professor: ${config.dados.professor}`, margin, y);
+            } else {
+                pdf.text('Professor: __________________________', margin, y);
+            }
+            y += 18;
+            
+            if (config.dados.escola) {
+                pdf.text(`Escola: ${config.dados.escola}`, margin, y);
+            } else {
+                pdf.text('Escola: __________________________', margin, y);
+            }
+            y += 18;
+            
+            if (config.dados.turma) {
+                pdf.text(`Turma: ${config.dados.turma}`, margin, y);
+            } else {
+                pdf.text('Turma: ______', margin, y);
+            }
+            
+            // Coluna 2: Centro
+            y = margin + 60;
+            const centerX = margin + colWidth + colGap;
+            
+            pdf.text('Disciplina: __________________________', centerX, y);
+            y += 18;
+            pdf.text('Unidade Temática: ___________________', centerX, y);
+            y += 18;
+            pdf.text('Tema: _______________________________', centerX, y);
+            y += 18;
+            
+            if (config.dados.tipo_aula) {
+                pdf.text(`Tipo de Aula: ${config.dados.tipo_aula}`, centerX, y);
+            } else {
+                pdf.text('Tipo de Aula: ____________________', centerX, y);
+            }
+            y += 18;
+            
+            if (config.dados.data) {
+                pdf.text(`Data: ${config.dados.data}`, centerX, y);
+            } else {
+                pdf.text('Data: ____________________________', centerX, y);
+            }
+            
+            // Coluna 3: Direita
+            y = margin + 60;
+            const rightX = margin + (colWidth * 2) + (colGap * 2);
+            
+            if (config.dados.classe) {
+                pdf.text(`Classe: ${config.dados.classe}`, rightX, y);
+            } else {
+                pdf.text('Classe: ______', rightX, y);
+            }
+            y += 18;
+            
+            pdf.text('Lição nº: ______', rightX, y);
+            y += 18;
+            
+            if (config.dados.duracao) {
+                pdf.text(`Duração: ${config.dados.duracao}`, rightX, y);
+            } else {
+                pdf.text('Duração: _________________________', rightX, y);
+            }
+            y += 18;
+            
+            if (config.dados.periodo) {
+                pdf.text(`Período: ${config.dados.periodo}`, rightX, y);
+            } else {
+                pdf.text('Período: ______', rightX, y);
+            }
+            
+            // Objetivos Específicos
+            y += 30;
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Objectivos específicos:', margin, y);
+            
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'normal');
+            y += 15;
+            
+            // Primeiro objetivo na mesma linha
+            pdf.text('• _________________________________________________________', margin, y);
+            y += 15;
+            
+            // Segundo e terceiro objetivos em novas linhas
+            pdf.text('• _________________________________________________________', margin, y);
+            y += 15;
+            pdf.text('• _________________________________________________________', margin, y);
+            
+            // Tabela do plano COM DIMENSÕES DO SISTEMA MOÇAMBIQUE
+            const tableTop = y + 25;
+            
+            // Configurar cabeçalho da tabela
+            const headers = [
+                ['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIV. PROFESSOR', 'ACTIV. ALUNOS', 'MÉTODOS', 'MEIOS']
+            ];
+            
+            const functions = [
+                { funcao: 'Introdução e Motivação' },
+                { funcao: 'Mediação e Assimilação' },
+                { funcao: 'Domínio e Consolidação' },
+                { funcao: 'Controlo e Avaliação' }
+            ];
+            
+            // Preparar dados da tabela
+            const tableData = functions.map(f => [
+                '', // TEMPO vazio
+                f.funcao,
+                '',
+                '',
+                '',
+                '',
+                ''
+            ]);
+            
+            // Criar tabela com jsPDF AutoTable - DIMENSÕES AJUSTADAS
+            pdf.autoTable({
+                startY: tableTop,
+                head: headers,
+                body: tableData,
+                margin: { left: margin, right: margin },
+                tableWidth: width,
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    overflow: 'linebreak',
+                    halign: 'left',
+                    valign: 'top',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5
+                },
+                headStyles: {
+                    fillColor: [108, 117, 125], // Cinza
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fontSize: 9,
+                    textTransform: 'uppercase'
+                },
+                columnStyles: {
+                    0: { cellWidth: 40, halign: 'center' }, // TEMPO (ajustado)
+                    1: { cellWidth: 90, fontStyle: 'bold' }, // FUNÇÕES (ajustado)
+                    2: { cellWidth: 110 }, // CONTEÚDOS (ajustado)
+                    3: { cellWidth: 90 }, // ACTIV. PROFESSOR (ajustado)
+                    4: { cellWidth: 90 }, // ACTIV. ALUNOS (ajustado)
+                    5: { cellWidth: 70 }, // MÉTODOS (ajustado)
+                    6: { cellWidth: 70 } // MEIOS (ajustado)
+                },
+                theme: 'grid',
+                didParseCell: function(data) {
+                    // Adicionar bordas pretas em todas as células
+                    data.cell.styles.lineWidth = 0.5;
+                    data.cell.styles.lineColor = [0, 0, 0];
+                    
+                    // Se for célula vazia, adicionar placeholder
+                    if (data.column.index >= 2 && data.cell.raw === '') {
+                        data.cell.text = ['__________________________'];
+                    }
+                }
+            });
+            
+            // Número da página
+            pdf.setFontSize(9);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text(`Aula ${aulaNum} - Página ${pageNum}`, 841.89 - margin, 595.28 - margin, { align: 'right' });
+        }
+        
+        // Função para criar página vertical de anexo SIMPLIFICADA
+        function createAnexoPage(pageNum, aulaNum, progress) {
+            updateProgress(progress, `Criando página ${pageNum}...`, `Preparando anexo da aula ${aulaNum}`);
+            
+            // Adicionar nova página vertical
+            pdf.addPage();
+            
+            // Margens
+            const margin = 19.84; // 0,7cm
+            const width = 595.28 - (margin * 2);
+            
+            // Título em maiúsculas
+            pdf.setFontSize(20);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(26, 95, 35);
+            pdf.text('ANEXO / QUADRO MORAL', margin + (width / 2), 50, { align: 'center' });
+            
+            // Linha preta abaixo do cabeçalho
+            pdf.setDrawColor(0, 0, 0);
+            pdf.setLineWidth(1);
+            pdf.line(margin, 58, width + margin, 58);
+            
+            // Página fica em branco para preenchimento
+            // Número da página
+            pdf.setFontSize(9);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text(`Anexo Aula ${aulaNum} - Página ${pageNum}`, 595.28 - margin, 841.89 - margin, { align: 'right' });
+        }
+        
+        // Função para gerar PDF flexível
+        async function generateFlexivelPDF() {
+            updateProgress(10, 'Iniciando geração...', 'Preparando Plano Flexível');
+            
+            // Criar PDF inicial
+            pdf = new jspdf.jsPDF({
+                orientation: 'landscape',
+                unit: 'pt',
+                format: 'a4'
+            });
+            
+            // Página 1: Plano (Horizontal) COM NOVA TABELA
+            await new Promise(resolve => setTimeout(resolve, 300));
+            createPlanoPage(1, 1, 50);
+            
+            // Página 2: Anexo (Vertical) SIMPLIFICADO
+            await new Promise(resolve => setTimeout(resolve, 300));
+            createAnexoPage(2, 1, 90);
+            
+            updateProgress(100, 'PDF gerado com sucesso!', 'Documento pronto para download');
+        }
+        
+        // Função para gerar PDF do bloco
+        async function generateBlocoPDF() {
+            updateProgress(5, 'Iniciando geração...', 'Preparando Bloco de Planificação');
+            
+            // Criar PDF
+            pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+            
+            // Página 1: Capa (Vertical)
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await createCapa(15);
+            
+            // Calcular progresso por página
+            const totalPages = (config.aulas * 2) + 1;
+            const pagesAfterCapa = totalPages - 1;
+            const progressPerPage = (85 - 15) / pagesAfterCapa;
+            
+            // Páginas das aulas
+            for (let i = 1; i <= config.aulas; i++) {
+                const baseProgress = 15 + ((i - 1) * 2 * progressPerPage);
+                
+                // Página do plano (Horizontal) COM NOVA TABELA
+                const planoPageNum = (i * 2);
+                const planoProgress = baseProgress + progressPerPage;
+                await new Promise(resolve => setTimeout(resolve, 200));
+                createPlanoPage(planoPageNum, i, planoProgress);
+                
+                // Página do anexo (Vertical) SIMPLIFICADO
+                const anexoPageNum = (i * 2) + 1;
+                const anexoProgress = baseProgress + (2 * progressPerPage);
+                await new Promise(resolve => setTimeout(resolve, 200));
+                createAnexoPage(anexoPageNum, i, anexoProgress);
+            }
+            
+            updateProgress(100, 'PDF gerado com sucesso!', `Documento com ${totalPages} páginas pronto`);
+        }
+        
+        // Função principal
+        async function generatePDF() {
+            try {
+                // Obter configuração
+                const configData = localStorage.getItem('planoConfig');
+                if (!configData) {
+                    throw new Error('Configuração não encontrada. Por favor, volte ao início.');
+                }
+                
+                config = JSON.parse(configData);
+                
+                // Gerar PDF baseado no tipo
+                if (config.tipo === 'flexivel') {
+                    await generateFlexivelPDF();
+                } else {
+                    await generateBlocoPDF();
+                }
+                
+                // Habilitar botão de download
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Baixar PDF';
+                downloadBtn.onclick = () => {
+                    const filename = `${config.tipo === 'flexivel' ? 'Plano_Flexivel' : 'Bloco_Planificacao'}_${config.dados.professor.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+                    pdf.save(filename);
+                };
+                
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                showError(error.message);
+            }
+        }
+        
+        // Iniciar geração
+        document.addEventListener('DOMContentLoaded', generatePDF);
+    </script>
 </body>
 </html>
