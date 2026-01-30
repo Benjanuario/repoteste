@@ -312,6 +312,95 @@
             font-size: 0.9rem;
         }
 
+        /* Declaração Styles */
+        .declaracao-content {
+            padding: 2.5rem;
+            height: 100%;
+            text-align: justify;
+            line-height: 1.8;
+        }
+
+        .declaracao-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-transform: uppercase;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .declaracao-text {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .declaracao-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin: 1.5rem 0;
+        }
+
+        .info-item-declaracao {
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .info-label-declaracao {
+            font-weight: 700;
+            color: var(--primary-dark);
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .info-value-declaracao {
+            color: var(--medium-gray);
+        }
+
+        .assinatura-area {
+            margin-top: 3rem;
+            text-align: center;
+            border-top: 2px solid var(--light-gray);
+            padding-top: 2rem;
+        }
+
+        .assinatura-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .linha-assinatura {
+            width: 300px;
+            height: 1px;
+            background: var(--dark);
+            margin: 2rem auto;
+            position: relative;
+        }
+
+        .linha-assinatura::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #f8f9fa;
+        }
+
+        .ano-letivo {
+            font-style: italic;
+            color: var(--medium-gray);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
         /* Plano Page Styles */
         .plano-header {
             text-align: center;
@@ -655,6 +744,7 @@
             .preliminares { grid-template-columns: 1fr; }
             .controls { flex-direction: column; }
             .btn { width: 100%; }
+            .declaracao-content { padding: 1.5rem; }
         }
 
         @media (max-width: 480px) {
@@ -662,6 +752,7 @@
             h1 { font-size: 1.5rem; }
             .preview-tabs { flex-wrap: wrap; }
             .tab { flex: 1; min-width: 120px; }
+            .linha-assinatura { width: 200px; }
         }
     </style>
 </head>
@@ -764,6 +855,10 @@
                                     <div style="font-size: 0.9rem; color: var(--medium-gray);">Fundo branco, letras grandes</div>
                                 </div>
                                 <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Declaração Pedagógica</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">Página com informações e assinatura</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
                                     <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Preliminares em 3 colunas</div>
                                     <div style="font-size: 0.9rem; color: var(--medium-gray);">Otimização de espaço</div>
                                 </div>
@@ -774,6 +869,10 @@
                                 <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
                                     <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Tabela com grade completa</div>
                                     <div style="font-size: 0.9rem; color: var(--medium-gray);">Margens 0,7cm, linhas pretas</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--light-gray);">
+                                    <div style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-check"></i> Anexo para anotações</div>
+                                    <div style="font-size: 0.9rem; color: var(--medium-gray);">Espaço livre para observações</div>
                                 </div>
                             </div>
                         </div>
@@ -826,7 +925,8 @@
             if (config.tipo === 'flexivel') {
                 totalPages = 2;
             } else {
-                totalPages = (config.aulas * 2) + 1;
+                // Capa + Declaração + (Aulas * 2 páginas)
+                totalPages = 2 + (config.aulas * 2);
             }
 
             // Atualizar interface
@@ -930,6 +1030,10 @@
                         <span class="info-label">Capa:</span>
                         <span class="info-value">Incluída</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Declaração:</span>
+                        <span class="info-value">Incluída</span>
+                    </div>
                 `;
             }
             
@@ -967,10 +1071,24 @@
             let pageLabel = '';
             if (currentPage === 1 && config.tipo === 'bloco') {
                 pageLabel = 'Capa';
-            } else if (currentPage % 2 === 0 || (config.tipo === 'flexivel' && currentPage === 1)) {
-                pageLabel = `Plano Aula ${Math.ceil((currentPage - 1) / 2)}`;
+            } else if (currentPage === 2 && config.tipo === 'bloco') {
+                pageLabel = 'Declaração Pedagógica';
+            } else if (config.tipo === 'bloco') {
+                // Ajuste após as páginas fixas
+                const pageIndex = currentPage - 2; // Subtrai capa e declaração
+                if (pageIndex % 2 === 1) {
+                    // Página ímpar após ajuste = plano de aula
+                    const aulaNum = Math.ceil(pageIndex / 2);
+                    pageLabel = `Plano Aula ${aulaNum}`;
+                } else {
+                    // Página par após ajuste = anexo
+                    const aulaNum = Math.ceil(pageIndex / 2);
+                    pageLabel = `Anexo Aula ${aulaNum}`;
+                }
+            } else if (config.tipo === 'flexivel' && currentPage === 1) {
+                pageLabel = 'Plano Aula 1';
             } else {
-                pageLabel = `Anexo Aula ${Math.ceil((currentPage - 1) / 2)}`;
+                pageLabel = 'Anexo';
             }
             
             pageInfo.textContent = `Página ${currentPage} de ${totalPages} - ${pageLabel}`;
@@ -1007,7 +1125,19 @@
             
             if (currentPage === 1 && config.tipo === 'bloco') {
                 renderCapaPage();
-            } else if (currentPage % 2 === 0 || (config.tipo === 'flexivel' && currentPage === 1)) {
+            } else if (currentPage === 2 && config.tipo === 'bloco') {
+                renderDeclaracaoPage();
+            } else if (config.tipo === 'bloco') {
+                // Ajuste para páginas após a declaração
+                const pageIndex = currentPage - 2; // Subtrai capa e declaração
+                if (pageIndex % 2 === 1) {
+                    // Página ímpar = plano de aula
+                    renderPlanoPage();
+                } else {
+                    // Página par = anexo
+                    renderAnexoPage();
+                }
+            } else if (config.tipo === 'flexivel' && currentPage === 1) {
                 renderPlanoPage();
             } else {
                 renderAnexoPage();
@@ -1052,11 +1182,87 @@
             previewContainer.appendChild(page);
         }
 
+        function renderDeclaracaoPage() {
+            const page = document.createElement('div');
+            page.className = 'pdf-page portrait';
+            
+            // Obter ano letivo atual
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            const anoLetivo = `${currentYear}/${nextYear}`;
+            
+            page.innerHTML = `
+                <div class="pdf-content">
+                    <div class="declaracao-content">
+                        <h1 class="declaracao-title">DECLARAÇÃO PEDAGÓGICA</h1>
+                        
+                        <div class="declaracao-text">
+                            <p>O presente documento constitui um <strong>Bloco de Planificação Pedagógica</strong>, elaborado no âmbito do processo de ensino e aprendizagem, com finalidade exclusivamente educativa.</p>
+                        </div>
+                        
+                        <div class="declaracao-info">
+                            <div class="info-item-declaracao">
+                                <span class="info-label-declaracao">Professor(a):</span>
+                                <span class="info-value-declaracao">${config.dados.professor}</span>
+                            </div>
+                            <div class="info-item-declaracao">
+                                <span class="info-label-declaracao">Escola:</span>
+                                <span class="info-value-declaracao">${config.dados.escola}</span>
+                            </div>
+                            ${config.dados.classe ? `
+                            <div class="info-item-declaracao">
+                                <span class="info-label-declaracao">Classe:</span>
+                                <span class="info-value-declaracao">${config.dados.classe}</span>
+                            </div>
+                            ` : ''}
+                            ${config.dados.disciplina ? `
+                            <div class="info-item-declaracao">
+                                <span class="info-label-declaracao">Disciplina:</span>
+                                <span class="info-value-declaracao">${config.dados.disciplina}</span>
+                            </div>
+                            ` : ''}
+                            <div class="info-item-declaracao">
+                                <span class="info-label-declaracao">Ano Letivo:</span>
+                                <span class="info-value-declaracao">${anoLetivo}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="declaracao-text">
+                            <p>Este Bloco de Planificação pertence ao(a) Professor(a) acima identificado(a).</p>
+                            
+                            <p>O conteúdo aqui apresentado destina-se ao uso pessoal, profissional e pedagógico do(a) docente, servindo como instrumento de apoio à planificação, organização, acompanhamento e execução das atividades letivas.</p>
+                            
+                            <p>Este documento é considerado <strong>intransmissível</strong>, não devendo ser copiado, partilhado, reproduzido ou utilizado por terceiros sem a autorização expressa do seu titular, respeitando-se os princípios éticos, pedagógicos e profissionais que regem a atividade docente.</p>
+                            
+                            <p>A utilização deste Bloco de Planificação tem como objetivo contribuir para a melhoria da qualidade do ensino, assegurar o cumprimento dos objetivos curriculares e fortalecer práticas pedagógicas responsáveis, conscientes e eficazes.</p>
+                        </div>
+                        
+                        <div class="assinatura-area">
+                            <div class="assinatura-label">ASSINATURA DO DOCENTE</div>
+                            <div class="linha-assinatura"></div>
+                            <div class="assinatura-label">${config.dados.professor}</div>
+                        </div>
+                        
+                        <div class="ano-letivo">
+                            Documento gerado em: ${new Date().toLocaleDateString('pt-MZ')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            previewContainer.appendChild(page);
+        }
+
         function renderPlanoPage() {
             const page = document.createElement('div');
             page.className = 'pdf-page landscape';
             
-            const aulaNum = config.tipo === 'flexivel' ? 1 : Math.ceil((currentPage - 1) / 2);
+            // Calcular número da aula
+            let aulaNum = 1;
+            if (config.tipo === 'bloco') {
+                // (currentPage - 2) / 2 porque: -1 para capa, -1 para declaração, /2 porque 2 páginas por aula
+                aulaNum = Math.ceil((currentPage - 2) / 2);
+            }
             
             page.innerHTML = `
                 <div class="pdf-content">
@@ -1225,7 +1431,11 @@
             const page = document.createElement('div');
             page.className = 'pdf-page portrait';
             
-            const aulaNum = config.tipo === 'flexivel' ? 1 : Math.ceil((currentPage - 1) / 2);
+            // Calcular número da aula
+            let aulaNum = 1;
+            if (config.tipo === 'bloco') {
+                aulaNum = Math.ceil((currentPage - 2) / 2);
+            }
             
             page.innerHTML = `
                 <div class="pdf-content">

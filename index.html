@@ -45,53 +45,38 @@
         }
 
         .app-container {
-            max-width: 100%;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 0;
+            padding: 0 1rem;
         }
 
         /* Header */
         .header {
             background: var(--header-bg);
             color: white;
-            padding: 1.5rem 1rem;
+            padding: 2rem 1rem;
             text-align: center;
             box-shadow: var(--shadow-md);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.05"><path d="M0,0 L100,0 L100,100 Z" fill="white"/></svg>');
-            background-size: 150px;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            margin-bottom: 2rem;
         }
 
         .logo-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
+            gap: 1rem;
         }
 
         .logo-icon {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             background: rgba(255,255,255,0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            backdrop-filter: blur(5px);
+            font-size: 2.5rem;
             border: 2px solid rgba(255,255,255,0.25);
         }
 
@@ -99,117 +84,28 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 0.25rem;
-            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            font-size: 0.9rem;
+            font-size: 1rem;
             opacity: 0.9;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
         }
 
         /* Main Content */
         .main-content {
-            padding: 1.5rem 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* Progress Steps */
-        .steps-container {
-            display: flex;
-            justify-content: center;
-            margin: 2rem auto 3rem;
-            max-width: 700px;
-            position: relative;
-        }
-
-        .steps-container::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 15%;
-            right: 15%;
-            height: 3px;
-            background: var(--light-gray);
-            z-index: 1;
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-            flex: 1;
-        }
-
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            border: 3px solid var(--light-gray);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: var(--medium-gray);
-            margin-bottom: 0.75rem;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .step.active .step-circle {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: white;
-            transform: scale(1.1);
-            box-shadow: 0 0 0 6px rgba(255, 152, 0, 0.2);
-        }
-
-        .step.completed .step-circle {
-            background: var(--success);
-            border-color: var(--success);
-            color: white;
-        }
-
-        .step-label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-align: center;
-            color: var(--medium-gray);
-        }
-
-        .step.active .step-label {
-            color: var(--dark);
-        }
-
-        /* Step Content */
-        .step-content {
             background: white;
             border-radius: var(--radius-lg);
             padding: 2rem;
-            margin-bottom: 2rem;
             box-shadow: var(--shadow-lg);
-            animation: slideUp 0.4s ease-out;
-            display: none;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .step-content.active {
-            display: block;
+            margin-bottom: 2rem;
         }
 
         .section-title {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: var(--primary-dark);
             margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
@@ -223,107 +119,17 @@
             color: var(--accent);
         }
 
-        /* Option Cards */
-        .options-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .option-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 1.75rem;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 3px solid transparent;
-            box-shadow: var(--shadow-md);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .option-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .option-card.selected {
-            border-color: var(--primary);
+        .info-box {
             background: linear-gradient(135deg, #f8fff8 0%, #f0f9ff 100%);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            border: 2px dashed var(--primary-light);
         }
 
-        .option-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: var(--primary-light);
-        }
-
-        .option-card.bloco::before {
-            background: var(--secondary);
-        }
-
-        .option-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .option-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .option-icon.flexivel {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        }
-
-        .option-icon.bloco {
-            background: linear-gradient(135deg, var(--secondary) 0%, #f44336 100%);
-        }
-
-        .option-title {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .option-desc {
+        .info-box p {
+            margin-bottom: 0.75rem;
             color: var(--medium-gray);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .option-features {
-            list-style: none;
-            margin-top: 1rem;
-        }
-
-        .option-features li {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .option-features i {
-            color: var(--success);
-            font-size: 0.8rem;
-            min-width: 16px;
         }
 
         /* Forms */
@@ -386,35 +192,35 @@
             font-style: italic;
         }
 
-        /* Range Slider */
-        .range-container {
-            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
+        /* Bloco Config */
+        .bloco-config {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
             padding: 1.75rem;
             border-radius: var(--radius-lg);
             margin: 1.5rem 0;
-            border: 2px dashed var(--primary-light);
+            border: 2px solid var(--primary-light);
         }
 
-        .range-header {
+        .config-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.25rem;
         }
 
-        .range-label {
+        .config-label {
             font-weight: 700;
             color: var(--primary-dark);
             font-size: 1.1rem;
         }
 
-        .range-value {
+        .config-value {
             font-size: 2rem;
             font-weight: 800;
             color: var(--primary);
         }
 
-        .range-slider {
+        .config-slider {
             width: 100%;
             height: 10px;
             -webkit-appearance: none;
@@ -424,7 +230,7 @@
             margin: 1rem 0;
         }
 
-        .range-slider::-webkit-slider-thumb {
+        .config-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 28px;
             height: 28px;
@@ -436,66 +242,16 @@
             transition: var(--transition);
         }
 
-        .range-slider::-webkit-slider-thumb:hover {
+        .config-slider::-webkit-slider-thumb:hover {
             transform: scale(1.1);
         }
 
-        .range-info {
+        .config-info {
             display: flex;
             justify-content: space-between;
             color: var(--medium-gray);
             font-size: 0.9rem;
             margin-top: 0.75rem;
-        }
-
-        /* Pages Preview */
-        .pages-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .page-item {
-            background: white;
-            border-radius: 8px;
-            padding: 0.75rem;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--light-gray);
-            transition: var(--transition);
-        }
-
-        .page-item:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .page-item.capa {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            color: white;
-            border: none;
-        }
-
-        .page-icon {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .page-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-number {
-            font-size: 0.7rem;
-            color: var(--medium-gray);
-            opacity: 0.8;
-        }
-
-        .page-item.capa .page-number {
-            color: rgba(255,255,255,0.8);
         }
 
         /* Buttons */
@@ -524,35 +280,6 @@
             text-decoration: none;
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--dark);
-            border: 2px solid var(--light-gray);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: var(--light);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(26, 95, 35, 0.3);
-        }
-
         .btn-preview {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             animation: pulse 2s infinite;
@@ -565,7 +292,7 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
         }
 
-        .btn-preview:hover:not(:disabled) {
+        .btn-preview:hover {
             background: linear-gradient(135deg, #e68900 0%, var(--accent) 100%);
             transform: translateY(-2px);
         }
@@ -582,19 +309,12 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            h1 { font-size: 1.5rem; }
-            .step-content { padding: 1.5rem; }
-            .options-container { grid-template-columns: 1fr; }
+            .app-container { padding: 0 0.5rem; }
+            .main-content { padding: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             .button-container { flex-direction: column; }
             .btn { width: 100%; }
-            .steps-container::before { left: 10%; right: 10%; }
-        }
-
-        @media (max-width: 480px) {
-            .header { padding: 1rem; }
-            .step-circle { width: 36px; height: 36px; }
-            .range-value { font-size: 1.75rem; }
+            h1 { font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -613,268 +333,92 @@
             </div>
         </header>
 
-        <!-- Progress Steps -->
-        <div class="steps-container">
-            <div class="step active" id="step1-indicator">
-                <div class="step-circle">1</div>
-                <div class="step-label">Tipo de Plano</div>
-            </div>
-            <div class="step" id="step2-indicator">
-                <div class="step-circle">2</div>
-                <div class="step-label">Dados Obrigatórios</div>
-            </div>
-            <div class="step" id="step3-indicator">
-                <div class="step-circle">3</div>
-                <div class="step-label">Dados Opcionais</div>
-            </div>
-            <div class="step" id="step4-indicator">
-                <div class="step-circle">4</div>
-                <div class="step-label">Configuração</div>
-            </div>
-            <div class="step" id="step5-indicator">
-                <div class="step-circle">5</div>
-                <div class="step-label">Visualizar</div>
-            </div>
-        </div>
-
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Step 1: Tipo de Plano -->
-            <div class="step-content active" id="step1-content">
-                <h2 class="section-title"><i class="fas fa-file-alt"></i> Selecione o Tipo de Plano</h2>
-                <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Escolha o formato que melhor se adapta às suas necessidades</p>
-                
-                <div class="options-container">
-                    <div class="option-card" id="option-flexivel">
-                        <div class="option-header">
-                            <div class="option-icon flexivel">
-                                <i class="fas fa-file-invoice"></i>
-                            </div>
-                            <div>
-                                <h3 class="option-title">Plano Flexível</h3>
-                                <p class="option-desc">Para uma única aula (2 páginas)</p>
-                            </div>
-                        </div>
-                        <ul class="option-features">
-                            <li><i class="fas fa-check"></i> 1 aula completa</li>
-                            <li><i class="fas fa-check"></i> Página 1: Horizontal (Tabela)</li>
-                            <li><i class="fas fa-check"></i> Página 2: Vertical (Anexo)</li>
-                            <li><i class="fas fa-check"></i> Preenchimento manual rápido</li>
-                            <li><i class="fas fa-check"></i> Ideal para aulas avulsas</li>
-                        </ul>
-                    </div>
+            <h2 class="section-title"><i class="fas fa-file-alt"></i> Bloco de Planificação</h2>
+            
+            <div class="info-box">
+                <p><strong>Instruções:</strong> Preencha apenas os campos que deseja que apareçam no PDF.</p>
+                <p>Os campos em branco aparecerão como linhas para preenchimento manual no documento final.</p>
+                <p>O PDF gerado terá todas as grades e estruturas prontas, com os dados preenchidos inseridos automaticamente.</p>
+            </div>
 
-                    <div class="option-card bloco" id="option-bloco">
-                        <div class="option-header">
-                            <div class="option-icon bloco">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div>
-                                <h3 class="option-title">Bloco de Planificação</h3>
-                                <p class="option-desc">Várias aulas com capa oficial</p>
-                            </div>
-                        </div>
-                        <ul class="option-features">
-                            <li><i class="fas fa-check"></i> Capa vertical profissional</li>
-                            <li><i class="fas fa-check"></i> Múltiplas aulas configuráveis</li>
-                            <li><i class="fas fa-check"></i> Páginas horizontal/vertical alternadas</li>
-                            <li><i class="fas fa-check"></i> Paginação automática</li>
-                            <li><i class="fas fa-check"></i> Pronto para encadernação</li>
-                        </ul>
-                    </div>
+            <!-- Formulário Simplificado -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="fas fa-school"></i> Nome da Escola
+                    </label>
+                    <input type="text" id="escola" class="form-input" 
+                           placeholder="Ex: Primária de Chapo" required>
                 </div>
 
-                <div class="button-container">
-                    <button class="btn btn-primary" onclick="nextStep(1)">
-                        Continuar <i class="fas fa-arrow-right"></i>
-                    </button>
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="fas fa-user-tie"></i> Nome do Professor
+                    </label>
+                    <input type="text" id="professor" class="form-input" 
+                           placeholder="Ex: Benjamim Januario Paulino" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-book"></i> Disciplina
+                    </label>
+                    <input type="text" id="disciplina" class="form-input" placeholder="Ex: Matemática">
+                    <p class="form-help">Se deixar em branco, aparecerá linha para preencher</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-graduation-cap"></i> Classe
+                    </label>
+                    <input type="text" id="classe" class="form-input" placeholder="Ex: 5ª">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-users"></i> Turma
+                    </label>
+                    <input type="text" id="turma" class="form-input" placeholder="Ex: A">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-clock"></i> Período/Turno
+                    </label>
+                    <select id="periodo" class="form-select">
+                        <option value="">Selecione o período (opcional)</option>
+                        <option value="Manhã">Manhã</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Noite">Noite</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Step 2: Dados Obrigatórios -->
-            <div class="step-content" id="step2-content">
-                <h2 class="section-title"><i class="fas fa-user-graduate"></i> Dados Obrigatórios</h2>
-                <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Estes dados aparecerão em todas as páginas do seu plano</p>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="fas fa-user-tie"></i> Nome do Professor
-                        </label>
-                        <input type="text" id="professor" class="form-input" 
-                               placeholder="Ex: Benjamim Januario Paulino" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="fas fa-school"></i> Nome da Escola
-                        </label>
-                        <input type="text" id="escola" class="form-input" 
-                               placeholder="Ex: Primária de Chapo" required>
-                    </div>
+            <!-- Configuração do Bloco -->
+            <div class="bloco-config">
+                <div class="config-header">
+                    <span class="config-label">Número de Aulas no Bloco</span>
+                    <span class="config-value" id="aulas-value">10</span>
                 </div>
-
-                <div class="button-container">
-                    <button class="btn btn-secondary" onclick="prevStep(2)">
-                        <i class="fas fa-arrow-left"></i> Voltar
-                    </button>
-                    <button class="btn btn-primary" onclick="nextStep(2)">
-                        Continuar <i class="fas fa-arrow-right"></i>
-                    </button>
+                
+                <input type="range" min="1" max="50" value="10" class="config-slider" id="aulas-slider">
+                
+                <div class="config-info">
+                    <span>Mínimo: 1 aula</span>
+                    <span>Máximo: 50 aulas</span>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1.5rem; color: var(--primary-dark); font-weight: 600;">
+                    Total de páginas: <span id="total-paginas">21</span> (1 capa + <span id="paginas-aulas">20</span> páginas de aula)
                 </div>
             </div>
 
-            <!-- Step 3: Dados Opcionais -->
-            <div class="step-content" id="step3-content">
-                <h2 class="section-title"><i class="fas fa-info-circle"></i> Dados Opcionais</h2>
-                <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">
-                    Estes dados serão impressos se preenchidos. Caso contrário, aparecerá espaço para preenchimento manual.
-                </p>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-users"></i> Turma
-                        </label>
-                        <input type="text" id="turma" class="form-input" placeholder="Ex: A">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-clock"></i> Período/Turno
-                        </label>
-                        <select id="periodo" class="form-select">
-                            <option value="">Selecione o período</option>
-                            <option value="Manhã">Manhã</option>
-                            <option value="Tarde">Tarde</option>
-                            <option value="Noite">Noite</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-graduation-cap"></i> Classe
-                        </label>
-                        <input type="text" id="classe" class="form-input" placeholder="Ex: 5ª">
-                        <p class="form-help">Se deixar em branco, aparecerá espaço para preencher manualmente</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-book"></i> Disciplina
-                        </label>
-                        <input type="text" id="disciplina" class="form-input" placeholder="Ex: Matemática">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-calendar-alt"></i> Data
-                        </label>
-                        <input type="text" id="data" class="form-input" placeholder="Ex: 2026-01-22">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-hourglass-half"></i> Duração
-                        </label>
-                        <select id="duracao" class="form-select">
-                            <option value="">Selecione a duração</option>
-                            <option value="45 minutos">45 minutos</option>
-                            <option value="90 minutos">90 minutos</option>
-                            <option value="120 minutos">120 minutos</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-chalkboard"></i> Tipo de Aula
-                        </label>
-                        <select id="tipo_aula" class="form-select">
-                            <option value="">Selecione o tipo</option>
-                            <option value="Inicial">Inicial</option>
-                            <option value="Desenvolvimento">Desenvolvimento</option>
-                            <option value="Consolidação">Consolidação</option>
-                            <option value="Avaliação">Avaliação</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="button-container">
-                    <button class="btn btn-secondary" onclick="prevStep(3)">
-                        <i class="fas fa-arrow-left"></i> Voltar
-                    </button>
-                    <button class="btn btn-primary" onclick="nextStep(3)">
-                        Continuar <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 4: Configuração (Apenas para Bloco) -->
-            <div class="step-content" id="step4-content">
-                <h2 class="section-title"><i class="fas fa-sliders-h"></i> Configuração do Bloco</h2>
-                
-                <div class="range-container">
-                    <div class="range-header">
-                        <span class="range-label">Número de Aulas</span>
-                        <span class="range-value" id="aulas-value">10</span>
-                    </div>
-                    
-                    <input type="range" min="1" max="50" value="10" class="range-slider" id="aulas-slider">
-                    
-                    <div class="range-info">
-                        <span>Mínimo: 1 aula</span>
-                        <span>Máximo: 50 aulas</span>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 1.5rem; color: var(--primary-dark); font-weight: 600;">
-                        Total de páginas: <span id="total-paginas">21</span> (1 capa + <span id="paginas-aulas">20</span> páginas de aula)
-                    </div>
-                </div>
-
-                <div class="pages-preview" id="pages-preview">
-                    <!-- Páginas serão geradas dinamicamente -->
-                </div>
-
-                <div class="button-container">
-                    <button class="btn btn-secondary" onclick="prevStep(4)">
-                        <i class="fas fa-arrow-left"></i> Voltar
-                    </button>
-                    <button class="btn btn-primary" onclick="nextStep(4)">
-                        Continuar <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 5: Resumo e Visualização -->
-            <div class="step-content" id="step5-content">
-                <h2 class="section-title"><i class="fas fa-eye"></i> Visualizar e Confirmar</h2>
-                
-                <div style="background: linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%); 
-                            padding: 1.75rem; border-radius: var(--radius-lg); margin-bottom: 2rem;
-                            border: 2px solid #FFE082;">
-                    <h3 style="color: #E65100; margin-bottom: 1rem; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-clipboard-check"></i> Resumo da Configuração
-                    </h3>
-                    <div id="config-summary"></div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%); 
-                            padding: 1.75rem; border-radius: var(--radius-lg); margin-bottom: 2rem;
-                            border: 2px solid var(--primary-light);">
-                    <h3 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-info-circle"></i> Informações do PDF
-                    </h3>
-                    <div id="pdf-info"></div>
-                </div>
-
-                <div class="button-container">
-                    <button class="btn btn-secondary" onclick="prevStep(5)">
-                        <i class="fas fa-arrow-left"></i> Voltar
-                    </button>
-                    <button class="btn btn-preview" onclick="goToPreview()">
-                        <i class="fas fa-eye"></i> Visualizar Template
-                    </button>
-                </div>
+            <div class="button-container">
+                <button class="btn btn-preview" onclick="generateAndPreview()">
+                    <i class="fas fa-eye"></i> Visualizar e Gerar PDF
+                </button>
             </div>
         </main>
 
@@ -888,27 +432,20 @@
     <script>
         // Configuração
         let config = {
-            tipo: '',
+            tipo: 'bloco',
             dados: {
-                professor: '',
                 escola: '',
-                turma: '',
-                periodo: '',
-                classe: '',
+                professor: '',
                 disciplina: '',
-                data: '',
-                duracao: '',
-                tipo_aula: ''
+                classe: '',
+                turma: '',
+                periodo: ''
             },
             aulas: 10
         };
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // Seleção do tipo de plano
-            document.getElementById('option-flexivel').addEventListener('click', () => selectOption('flexivel'));
-            document.getElementById('option-bloco').addEventListener('click', () => selectOption('bloco'));
-
             // Slider de aulas
             const slider = document.getElementById('aulas-slider');
             const aulasValue = document.getElementById('aulas-value');
@@ -923,218 +460,56 @@
                 const paginas = value * 2;
                 paginasAulas.textContent = paginas;
                 totalPaginas.textContent = paginas + 1;
-                
-                updatePagesPreview(value);
             });
 
-            // Inicializar preview
-            updatePagesPreview(10);
+            // Carregar dados salvos (se existirem)
+            const savedData = localStorage.getItem('planoData');
+            if (savedData) {
+                const saved = JSON.parse(savedData);
+                document.getElementById('escola').value = saved.escola || '';
+                document.getElementById('professor').value = saved.professor || '';
+                document.getElementById('disciplina').value = saved.disciplina || '';
+                document.getElementById('classe').value = saved.classe || '';
+                document.getElementById('turma').value = saved.turma || '';
+                document.getElementById('periodo').value = saved.periodo || '';
+            }
         });
 
-        // Funções de navegação
-        function updateSteps(currentStep) {
-            // Atualizar indicadores
-            const steps = document.querySelectorAll('.step');
-            steps.forEach((step, index) => {
-                const stepNum = index + 1;
-                step.classList.remove('active', 'completed');
-                
-                if (stepNum < currentStep) {
-                    step.classList.add('completed');
-                } else if (stepNum === currentStep) {
-                    step.classList.add('active');
-                }
-            });
-
-            // Atualizar conteúdo
-            const contents = document.querySelectorAll('.step-content');
-            contents.forEach(content => content.classList.remove('active'));
-            document.getElementById(`step${currentStep}-content`).classList.add('active');
-        }
-
-        function selectOption(tipo) {
-            config.tipo = tipo;
-            
-            // Atualizar visual das opções
-            document.querySelectorAll('.option-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            if (tipo === 'flexivel') {
-                document.getElementById('option-flexivel').classList.add('selected');
-            } else {
-                document.getElementById('option-bloco').classList.add('selected');
-            }
-        }
-
-        function nextStep(currentStep) {
-            // Validação
-            if (currentStep === 1 && !config.tipo) {
-                alert('Por favor, selecione um tipo de plano.');
-                return;
-            }
-            
-            if (currentStep === 2) {
-                const professor = document.getElementById('professor').value.trim();
-                const escola = document.getElementById('escola').value.trim();
-                
-                if (!professor || !escola) {
-                    alert('Por favor, preencha os campos obrigatórios: Nome do Professor e Nome da Escola.');
-                    return;
-                }
-            }
-
-            // Salvar dados do passo atual
-            if (currentStep === 2) {
-                config.dados.professor = document.getElementById('professor').value.trim();
-                config.dados.escola = document.getElementById('escola').value.trim();
-            }
-            
-            if (currentStep === 3) {
-                config.dados.turma = document.getElementById('turma').value.trim();
-                config.dados.periodo = document.getElementById('periodo').value;
-                config.dados.classe = document.getElementById('classe').value.trim();
-                config.dados.disciplina = document.getElementById('disciplina').value.trim();
-                config.dados.data = document.getElementById('data').value.trim();
-                config.dados.duracao = document.getElementById('duracao').value;
-                config.dados.tipo_aula = document.getElementById('tipo_aula').value;
-            }
-
-            // Determinar próximo passo
-            let nextStepNum = currentStep + 1;
-            
-            // Se for flexível, pular passo 4
-            if (config.tipo === 'flexivel' && nextStepNum === 4) {
-                nextStepNum = 5;
-            }
-            
-            // Se for passo 5, atualizar resumo
-            if (nextStepNum === 5) {
-                updateConfigSummary();
-            }
-            
-            updateSteps(nextStepNum);
-        }
-
-        function prevStep(currentStep) {
-            let prevStepNum = currentStep - 1;
-            
-            // Se for flexível voltando do passo 5, voltar para passo 3
-            if (config.tipo === 'flexivel' && currentStep === 5) {
-                prevStepNum = 3;
-            }
-            
-            updateSteps(prevStepNum);
-        }
-
-        function updatePagesPreview(numAulas) {
-            const container = document.getElementById('pages-preview');
-            container.innerHTML = '';
-            
-            // Adicionar capa
-            const capaPage = document.createElement('div');
-            capaPage.className = 'page-item capa';
-            capaPage.innerHTML = `
-                <div class="page-icon"><i class="fas fa-book"></i></div>
-                <div class="page-label">Capa</div>
-                <div class="page-number">Página 1</div>
-            `;
-            container.appendChild(capaPage);
-            
-            // Calcular quantas páginas mostrar (máximo 8)
-            const maxPages = 8;
-            const totalPages = Math.min(numAulas * 2, maxPages);
-            
-            for (let i = 1; i <= totalPages; i++) {
-                const isHorizontal = i % 2 === 1;
-                const aulaNum = Math.ceil(i / 2);
-                
-                const page = document.createElement('div');
-                page.className = 'page-item';
-                page.innerHTML = `
-                    <div class="page-icon">
-                        <i class="fas ${isHorizontal ? 'fa-table' : 'fa-sticky-note'}"></i>
-                    </div>
-                    <div class="page-label">${isHorizontal ? 'Plano' : 'Anexo'} A${aulaNum}</div>
-                    <div class="page-number">Pág ${i + 1}</div>
-                `;
-                container.appendChild(page);
-            }
-            
-            // Se houver mais páginas, mostrar indicador
-            if (numAulas * 2 > maxPages) {
-                const morePages = document.createElement('div');
-                morePages.className = 'page-item';
-                morePages.innerHTML = `
-                    <div class="page-icon"><i class="fas fa-ellipsis-h"></i></div>
-                    <div class="page-label">+${(numAulas * 2) - maxPages}</div>
-                    <div class="page-number">mais páginas</div>
-                `;
-                container.appendChild(morePages);
-            }
-        }
-
-        function updateConfigSummary() {
-            const summary = document.getElementById('config-summary');
-            const pdfInfo = document.getElementById('pdf-info');
-            
-            // Resumo da configuração
-            let html = `
-                <div style="display: grid; gap: 0.5rem; font-size: 0.95rem;">
-                    <div><strong>Tipo:</strong> <span style="color: ${config.tipo === 'flexivel' ? 'var(--primary)' : 'var(--secondary)'}; font-weight: 700;">${config.tipo === 'flexivel' ? 'Plano Flexível' : 'Bloco de Planificação'}</span></div>
-                    <div><strong>Professor:</strong> ${config.dados.professor}</div>
-                    <div><strong>Escola:</strong> ${config.dados.escola}</div>
-            `;
-            
-            if (config.dados.turma) html += `<div><strong>Turma:</strong> ${config.dados.turma}</div>`;
-            if (config.dados.periodo) html += `<div><strong>Período:</strong> ${config.dados.periodo}</div>`;
-            if (config.dados.classe) html += `<div><strong>Classe:</strong> ${config.dados.classe}</div>`;
-            if (config.dados.disciplina) html += `<div><strong>Disciplina:</strong> ${config.dados.disciplina}</div>`;
-            if (config.dados.duracao) html += `<div><strong>Duração:</strong> ${config.dados.duracao}</div>`;
-            if (config.dados.tipo_aula) html += `<div><strong>Tipo de Aula:</strong> ${config.dados.tipo_aula}</div>`;
-            
-            html += `</div>`;
-            summary.innerHTML = html;
-            
-            // Informações do PDF
-            let pdfHtml = `
-                <div style="display: grid; gap: 0.5rem; font-size: 0.95rem;">
-            `;
-            
-            if (config.tipo === 'flexivel') {
-                pdfHtml += `
-                    <div><strong>Formato:</strong> 2 páginas (frente e verso)</div>
-                    <div><strong>Página 1:</strong> Horizontal - Tabela do plano</div>
-                    <div><strong>Página 2:</strong> Vertical - Anexo/apontamentos</div>
-                    <div><strong>Campos pré-preenchidos:</strong> Nome do Professor e Escola</div>
-                    <div><strong>Outros campos:</strong> Espaço para preenchimento manual</div>
-                `;
-            } else {
-                pdfHtml += `
-                    <div><strong>Formato:</strong> Bloco com ${config.aulas} aulas</div>
-                    <div><strong>Total de páginas:</strong> ${config.aulas * 2 + 1}</div>
-                    <div><strong>Capa:</strong> Vertical com emblema oficial</div>
-                    <div><strong>Páginas de aula:</strong> Alternam entre horizontal (plano) e vertical (anexo)</div>
-                    <div><strong>Campos pré-preenchidos:</strong> Apenas os que você preencheu acima</div>
-                `;
-            }
-            
-            pdfHtml += `</div>`;
-            pdfInfo.innerHTML = pdfHtml;
-        }
-
-        function goToPreview() {
+        function generateAndPreview() {
             // Validar campos obrigatórios
-            if (!config.dados.professor || !config.dados.escola) {
-                alert('Por favor, preencha os campos obrigatórios antes de visualizar.');
-                updateSteps(2);
+            const escola = document.getElementById('escola').value.trim();
+            const professor = document.getElementById('professor').value.trim();
+            
+            if (!escola || !professor) {
+                alert('Por favor, preencha os campos obrigatórios: Nome da Escola e Nome do Professor.');
                 return;
             }
 
-            // Salvar configuração no localStorage
+            // Salvar dados
+            config.dados = {
+                escola: escola,
+                professor: professor,
+                disciplina: document.getElementById('disciplina').value.trim(),
+                classe: document.getElementById('classe').value.trim(),
+                turma: document.getElementById('turma').value.trim(),
+                periodo: document.getElementById('periodo').value,
+                // Campos que aparecerão como linhas vazias no PDF
+                unidade: '', // Unidade Temática
+                tema: '',    // Tema
+                tipo: '',    // Tipo de Aula
+                licao: '',   // Lição nº
+                duracao: '', // Duração
+                data: ''     // Data
+            };
+
+            // Salvar no sessionStorage para o gratisunlock.html
+            sessionStorage.setItem('planoData', JSON.stringify(config.dados));
+            
+            // Salvar também no localStorage para preview
+            localStorage.setItem('planoData', JSON.stringify(config.dados));
             localStorage.setItem('planoConfig', JSON.stringify(config));
             
-            // Redirecionar para preview
+            // Redirecionar para pré-visualização
             window.location.href = 'preview.html';
         }
     </script>
