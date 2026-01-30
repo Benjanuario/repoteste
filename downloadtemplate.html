@@ -1,3 +1,5 @@
+[file name]: downloadtemplate.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -626,14 +628,308 @@ function createDeclaracaoPage(doc, planoData) {
 // PÁGINA 1 DA AULA: Preliminares, Objetivos, 2 primeiras funções
 // ====================================================
 function createPagina1Aula(doc, planoData, aulaNum) {
-  // ... (mantenha todo o código existente desta função) ...
+  // CONFIGURAÇÕES ORIGINAIS
+  const margemLateral = 7;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const larguraUtil = pageWidth - (2 * margemLateral);
+  
+  // LARGURAS DAS COLUNAS ORIGINAIS
+  const colWidths = [15, 30, 71, 55, 55, 25, 25];
+  
+  // ALTURAS ORIGINAIS
+  const headerHeight = 15;
+  const alturaLinha1 = 45;
+  const alturaLinha2 = 45;
+  
+  // Fonte padrão
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+  
+  // TÍTULO DO PLANO
+  doc.setFontSize(14);
+  doc.setFont("times", "bold");
+  doc.text("PLANO DE AULA (MODELO PARA PREENCHIMENTO MANUAL)", pageWidth/2, 15, { align: "center" });
+  doc.setFontSize(12);
+  doc.setFont("times", "normal");
+  
+  // PRELIMINARES
+  let yPos = 25;
+  const meioPagina = pageWidth / 2;
+  
+  function mostrarCampo(rotulo, valor, x, y, comprimento) {
+    if (valor && valor.trim() !== '') {
+      doc.text(rotulo + ": " + valor, x, y);
+    } else {
+      const linha = "_".repeat(comprimento);
+      doc.text(rotulo + ": " + linha, x, y);
+    }
+  }
+  
+  // COLUNA ESQUERDA
+  mostrarCampo("Escola", planoData.escola, margemLateral, yPos, 50);
+  mostrarCampo("Professor", planoData.professor, margemLateral, yPos + 6, 45);
+  mostrarCampo("Disciplina", planoData.disciplina, margemLateral, yPos + 12, 45);
+  doc.text("Unidade Temática: __________________________", margemLateral, yPos + 18);
+  doc.text("Tema: __________________________", margemLateral, yPos + 24);
+  doc.text("Tipo de Aula: __________________________", margemLateral, yPos + 30);
+  
+  // COLUNA DIREITA
+  mostrarCampo("Classe", planoData.classe, meioPagina, yPos, 50);
+  mostrarCampo("Turma", planoData.turma, meioPagina, yPos + 6, 50);
+  doc.text("Lição nº: ______", meioPagina, yPos + 12);
+  doc.text("Duração: __________________________", meioPagina, yPos + 18);
+  mostrarCampo("Período", planoData.periodo, meioPagina, yPos + 24, 45);
+  doc.text("Data: __________________________", meioPagina, yPos + 30);
+  
+  // OBJECTIVOS ESPECÍFICOS
+  yPos += 40;
+  doc.setFont("times", "bold");
+  doc.text("OBJECTIVOS ESPECÍFICOS:", margemLateral, yPos);
+  doc.setFont("times", "normal");
+  
+  const linhaObjetivo = "_".repeat(80);
+  doc.text("• " + linhaObjetivo, margemLateral + 5, yPos + 8);
+  doc.text("• " + linhaObjetivo, margemLateral + 5, yPos + 16);
+  doc.text("• " + linhaObjetivo, margemLateral + 5, yPos + 24);
+  
+  // TABELA - SOMENTE CABEÇALHO E 2 PRIMEIRAS LINHAS
+  yPos += 35;
+  
+  // CABEÇALHO
+  doc.setFillColor(220, 220, 220);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margemLateral, yPos, larguraUtil, headerHeight, 'FD');
+  
+  const headerTexts = [
+    "TEMPO",
+    "FUNÇÕES\nDIDÁCTICAS",
+    "CONTEÚDOS",
+    "ACTIVIDADES\nDO PROFESSOR",
+    "ACTIVIDADES\nDOS ALUNOS",
+    "MÉTODOS\nDE ENSINO",
+    "MEIOS\nDE ENSINO"
+  ];
+  
+  let xPos = margemLateral;
+  headerTexts.forEach((texto, index) => {
+    const larguraCol = colWidths[index];
+    const centroX = xPos + larguraCol / 2;
+    
+    const linhas = texto.split('\n');
+    const alturaTexto = linhas.length * 4;
+    const inicioY = yPos + (headerHeight - alturaTexto) / 2 + 3;
+    
+    linhas.forEach((linha, linhaIndex) => {
+      doc.setFont("times", "bold");
+      doc.setFontSize(10);
+      doc.text(linha, centroX, inicioY + (linhaIndex * 4), { align: "center" });
+    });
+    
+    if (index < headerTexts.length - 1) {
+      doc.line(xPos + larguraCol, yPos, xPos + larguraCol, yPos + headerHeight);
+    }
+    
+    xPos += larguraCol;
+  });
+  
+  // LINHA 1: Introdução e Motivação
+  let currentY = yPos + headerHeight;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margemLateral, currentY, larguraUtil, alturaLinha1);
+  
+  xPos = margemLateral;
+  for (let i = 0; i < colWidths.length; i++) {
+    if (i > 0) {
+      doc.line(xPos, currentY, xPos, currentY + alturaLinha1);
+    }
+    xPos += colWidths[i];
+  }
+  
+  const centroFuncaoX1 = margemLateral + colWidths[0] + (colWidths[1] / 2);
+  const linhasFuncao1 = "Introdução\ne Motivação".split('\n');
+  const alturaTextoFuncao1 = linhasFuncao1.length * 4;
+  const inicioYFuncao1 = currentY + (alturaLinha1 - alturaTextoFuncao1) / 2 + 2;
+  
+  linhasFuncao1.forEach((linha, idx) => {
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text(linha, centroFuncaoX1, inicioYFuncao1 + (idx * 4), { align: "center" });
+  });
+  
+  currentY += alturaLinha1;
+  
+  // LINHA 2: Mediação e Assimilação
+  doc.rect(margemLateral, currentY, larguraUtil, alturaLinha2);
+  
+  xPos = margemLateral;
+  for (let i = 0; i < colWidths.length; i++) {
+    if (i > 0) {
+      doc.line(xPos, currentY, xPos, currentY + alturaLinha2);
+    }
+    xPos += colWidths[i];
+  }
+  
+  const centroFuncaoX2 = margemLateral + colWidths[0] + (colWidths[1] / 2);
+  const linhasFuncao2 = "Mediação\ne Assimilação".split('\n');
+  const alturaTextoFuncao2 = linhasFuncao2.length * 4;
+  const inicioYFuncao2 = currentY + (alturaLinha2 - alturaTextoFuncao2) / 2 + 2;
+  
+  linhasFuncao2.forEach((linha, idx) => {
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text(linha, centroFuncaoX2, inicioYFuncao2 + (idx * 4), { align: "center" });
+  });
+  
+  currentY += alturaLinha2;
+  
+  // Linha final
+  doc.line(margemLateral, currentY, margemLateral + larguraUtil, currentY);
+  
+  // Rodapé
+  doc.setFont("times", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Aula ${aulaNum} - Página 1/2`, pageWidth - margemLateral, pageHeight - 10, { align: "right" });
 }
 
 // ====================================================
 // PÁGINA 2 DA AULA: 2 últimas funções e Anexo
 // ====================================================
 function createPagina2Aula(doc, aulaNum) {
-  // ... (mantenha todo o código existente desta função) ...
+  const margemLateral = 7;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const larguraUtil = pageWidth - (2 * margemLateral);
+  
+  const colWidths = [15, 30, 71, 55, 55, 25, 25];
+  const headerHeight = 15;
+  const alturaLinha3 = 45;
+  const alturaLinha4 = 45;
+  
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+  
+  // CABEÇALHO DA TABELA (repetido)
+  const tabelaY = 20;
+  
+  doc.setFillColor(220, 220, 220);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margemLateral, tabelaY, larguraUtil, headerHeight, 'FD');
+  
+  const headerTexts = [
+    "TEMPO",
+    "FUNÇÕES\nDIDÁCTICAS",
+    "CONTEÚDOS",
+    "ACTIVIDADES\nDO PROFESSOR",
+    "ACTIVIDADES\nDOS ALUNOS",
+    "MÉTODOS\nDE ENSINO",
+    "MEIOS\nDE ENSINO"
+  ];
+  
+  let xPos = margemLateral;
+  headerTexts.forEach((texto, index) => {
+    const larguraCol = colWidths[index];
+    const centroX = xPos + larguraCol / 2;
+    
+    const linhas = texto.split('\n');
+    const alturaTexto = linhas.length * 4;
+    const inicioY = tabelaY + (headerHeight - alturaTexto) / 2 + 3;
+    
+    linhas.forEach((linha, linhaIndex) => {
+      doc.setFont("times", "bold");
+      doc.setFontSize(10);
+      doc.text(linha, centroX, inicioY + (linhaIndex * 4), { align: "center" });
+    });
+    
+    if (index < headerTexts.length - 1) {
+      doc.line(xPos + larguraCol, tabelaY, xPos + larguraCol, tabelaY + headerHeight);
+    }
+    
+    xPos += larguraCol;
+  });
+  
+  // LINHA 3: Domínio e Consolidação
+  let currentY = tabelaY + headerHeight;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margemLateral, currentY, larguraUtil, alturaLinha3);
+  
+  xPos = margemLateral;
+  for (let i = 0; i < colWidths.length; i++) {
+    if (i > 0) {
+      doc.line(xPos, currentY, xPos, currentY + alturaLinha3);
+    }
+    xPos += colWidths[i];
+  }
+  
+  const centroFuncaoX3 = margemLateral + colWidths[0] + (colWidths[1] / 2);
+  const linhasFuncao3 = "Domínio\ne Consolidação".split('\n');
+  const alturaTextoFuncao3 = linhasFuncao3.length * 4;
+  const inicioYFuncao3 = currentY + (alturaLinha3 - alturaTextoFuncao3) / 2 + 2;
+  
+  linhasFuncao3.forEach((linha, idx) => {
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text(linha, centroFuncaoX3, inicioYFuncao3 + (idx * 4), { align: "center" });
+  });
+  
+  currentY += alturaLinha3;
+  
+  // LINHA 4: Controlo e Avaliação
+  doc.rect(margemLateral, currentY, larguraUtil, alturaLinha4);
+  
+  xPos = margemLateral;
+  for (let i = 0; i < colWidths.length; i++) {
+    if (i > 0) {
+      doc.line(xPos, currentY, xPos, currentY + alturaLinha4);
+    }
+    xPos += colWidths[i];
+  }
+  
+  const centroFuncaoX4 = margemLateral + colWidths[0] + (colWidths[1] / 2);
+  const linhasFuncao4 = "Controlo\ne Avaliação".split('\n');
+  const alturaTextoFuncao4 = linhasFuncao4.length * 4;
+  const inicioYFuncao4 = currentY + (alturaLinha4 - alturaTextoFuncao4) / 2 + 2;
+  
+  linhasFuncao4.forEach((linha, idx) => {
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text(linha, centroFuncaoX4, inicioYFuncao4 + (idx * 4), { align: "center" });
+  });
+  
+  currentY += alturaLinha4;
+  doc.line(margemLateral, currentY, margemLateral + larguraUtil, currentY);
+  
+  // ====================================================
+  // ANEXO / QUADRO MORAL
+  // ====================================================
+  currentY += 15;
+  
+  doc.setFontSize(12);
+  doc.setFont("times", "bold");
+  doc.text("ANEXO / QUADRO MORAL", pageWidth/2, currentY, { align: "center" });
+  doc.setFont("times", "normal");
+  
+  currentY += 8;
+  
+  const larguraAnexo = pageWidth - (2 * margemLateral);
+  const alturaAnexo = pageHeight - currentY - 20;
+  
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.rect(margemLateral, currentY, larguraAnexo, alturaAnexo);
+  
+  // NADA MAIS DENTRO DA CAIXA - TOTALMENTE VAZIA PARA ESCRITA LIVRE
+  
+  // Rodapé
+  doc.setFont("times", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Aula ${aulaNum} - Página 2/2`, pageWidth - margemLateral, pageHeight - 10, { align: "right" });
 }
 
 // ====================================================
@@ -676,3 +972,4 @@ function baixarPDFManual() {
 </main>
 </body>
 </html>
+[file content end]
