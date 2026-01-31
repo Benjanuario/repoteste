@@ -968,9 +968,8 @@ function createDeclaracaoPage(doc, planoData) {
   addInfo('Disciplina', planoData.disciplina);
   
   const currentYear = new Date().getFullYear();
-  const nextYear = currentYear + 1;
-  const anoLetivo = `${currentYear}/${nextYear}`;
-  addInfo('Ano Letivo', anoLetivo);
+  const anoLetivo = `${currentYear}`;
+  addInfo('Ano Lectivo', anoLetivo);
   
   yPos += 70;
   
