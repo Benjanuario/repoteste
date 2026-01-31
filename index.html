@@ -14,6 +14,7 @@
             --secondary: #d32f2f;
             --accent: #ff9800;
             --accent-dark: #e68900;
+            --accent-light: #ffb74d;
             --light: #f8f9fa;
             --light-gray: #e9ecef;
             --medium-gray: #6c757d;
@@ -21,6 +22,7 @@
             --success: #28a745;
             --warning: #ffc107;
             --danger: #dc3545;
+            --info: #17a2b8;
             --header-bg: linear-gradient(135deg, #0d4d16 0%, #1a5f23 50%, #2e7d32 100%);
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
@@ -45,7 +47,7 @@
         }
 
         .app-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 1rem;
         }
@@ -59,6 +61,56 @@
             box-shadow: var(--shadow-md);
             border-radius: 0 0 var(--radius-lg) var(--radius-lg);
             margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .action-btn.exemplo {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border-color: rgba(255, 255, 255, 0.8);
+            animation: pulse-gold 2s infinite;
+        }
+
+        .action-btn.pacotes {
+            background: linear-gradient(135deg, var(--info) 0%, #138496 100%);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.5); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
         }
 
         .logo-container {
@@ -66,50 +118,55 @@
             flex-direction: column;
             align-items: center;
             gap: 1rem;
+            padding-top: 1rem;
         }
 
         .logo-icon {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             background: rgba(255,255,255,0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            border: 2px solid rgba(255,255,255,0.25);
+            font-size: 3rem;
+            border: 3px solid rgba(255,255,255,0.25);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .subtitle {
-            font-size: 1rem;
-            opacity: 0.9;
+            font-size: 1.2rem;
+            opacity: 0.95;
             max-width: 500px;
             margin: 0 auto;
+            font-weight: 500;
         }
 
         /* Main Content */
         .main-content {
             background: white;
             border-radius: var(--radius-lg);
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .section-title {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--primary-dark);
             margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
-            border-bottom: 2px solid var(--light-gray);
+            border-bottom: 3px solid var(--primary);
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -117,6 +174,7 @@
 
         .section-title i {
             color: var(--accent);
+            font-size: 1.5rem;
         }
 
         .info-box {
@@ -124,20 +182,26 @@
             padding: 1.5rem;
             border-radius: var(--radius);
             margin-bottom: 2rem;
-            border: 2px dashed var(--primary-light);
+            border: 2px solid var(--primary-light);
+            box-shadow: var(--shadow-sm);
         }
 
         .info-box p {
             margin-bottom: 0.75rem;
             color: var(--medium-gray);
+            line-height: 1.7;
+        }
+
+        .info-box strong {
+            color: var(--primary-dark);
         }
 
         /* Forms */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 1.5rem;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .form-group {
@@ -146,39 +210,41 @@
         }
 
         .form-label {
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--dark);
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.95rem;
+            font-size: 1rem;
         }
 
         .form-label i {
-            color: var(--primary-light);
-            font-size: 0.9rem;
+            color: var(--primary);
+            font-size: 1rem;
         }
 
         .required::after {
             content: ' *';
             color: var(--danger);
+            font-weight: bold;
         }
 
         .form-input, .form-select {
-            padding: 0.875rem;
+            padding: 1rem;
             border: 2px solid var(--light-gray);
             border-radius: var(--radius);
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
             transition: var(--transition);
             background: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .form-input:focus, .form-select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(26, 95, 35, 0.1);
+            box-shadow: 0 0 0 4px rgba(26, 95, 35, 0.15);
         }
 
         .form-input::placeholder {
@@ -195,126 +261,557 @@
         /* Bloco Config */
         .bloco-config {
             background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-            padding: 1.75rem;
+            padding: 2rem;
             border-radius: var(--radius-lg);
-            margin: 1.5rem 0;
-            border: 2px solid var(--primary-light);
+            margin: 2.5rem 0;
+            border: 3px solid var(--primary);
+            position: relative;
+            box-shadow: var(--shadow-md);
         }
 
         .config-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .config-label {
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary-dark);
-            font-size: 1.1rem;
+            font-size: 1.3rem;
         }
 
         .config-value {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 2.5rem;
+            font-weight: 900;
             color: var(--primary);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .config-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .config-slider {
-            width: 100%;
-            height: 10px;
+            flex: 1;
+            height: 14px;
             -webkit-appearance: none;
-            background: linear-gradient(to right, var(--light-gray), var(--primary));
-            border-radius: 5px;
+            background: linear-gradient(to right, #c1e7c1, var(--primary));
+            border-radius: 7px;
             outline: none;
-            margin: 1rem 0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .config-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 28px;
-            height: 28px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: white;
-            border: 3px solid var(--primary);
+            border: 5px solid var(--primary);
             cursor: pointer;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 12px rgba(26, 95, 35, 0.4);
             transition: var(--transition);
         }
 
         .config-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
+            transform: scale(1.15);
+            box-shadow: 0 6px 16px rgba(26, 95, 35, 0.6);
+        }
+
+        .add-pages-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 1rem 2rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(26, 95, 35, 0.3);
+        }
+
+        .add-pages-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #0c4513 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(26, 95, 35, 0.4);
+        }
+
+        .add-pages-btn i {
+            font-size: 1.2rem;
         }
 
         .config-info {
             display: flex;
             justify-content: space-between;
             color: var(--medium-gray);
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .pages-summary {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--light-gray);
+        }
+
+        .pages-summary h4 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .pages-details {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .page-item {
+            text-align: center;
+            padding: 1.25rem;
+            background: white;
+            border-radius: var(--radius);
+            min-width: 140px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid var(--light-gray);
+            transition: var(--transition);
+        }
+
+        .page-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .page-number {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-label {
             font-size: 0.9rem;
-            margin-top: 0.75rem;
+            color: var(--medium-gray);
+            font-weight: 500;
+        }
+
+        /* Pacotes Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 1.75rem 2rem;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .modal-header h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .modal-header h3 i {
+            color: var(--accent);
+        }
+
+        .close-modal {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .modal-content {
+            padding: 2.5rem;
+        }
+
+        .pacotes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .pacotes-table th {
+            background: var(--primary);
+            color: white;
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pacotes-table th:first-child {
+            border-radius: var(--radius) 0 0 0;
+        }
+
+        .pacotes-table th:last-child {
+            border-radius: 0 var(--radius) 0 0;
+        }
+
+        .pacotes-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--light-gray);
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        .pacotes-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .pacotes-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pacotes-table .valor {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .pacotes-table .capa {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .pacotes-table .plan-name {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .info-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: var(--radius-lg);
+            border-left: 5px solid var(--primary);
+        }
+
+        .info-section h4 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+            color: var(--dark);
+        }
+
+        .info-section li {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #dee2e6;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .info-section li:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-section li i {
+            color: var(--success);
+            font-size: 1.2rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
         }
 
         /* Buttons */
         .button-container {
             display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 1.5rem;
+            margin-top: 3rem;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 1rem 2rem;
+            padding: 1.25rem 2.5rem;
             border: none;
             border-radius: var(--radius);
             font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 1rem;
             flex: 1;
-            min-width: 160px;
+            min-width: 200px;
             text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-preview {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             animation: pulse 2s infinite;
             color: white;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 152, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
         }
 
         .btn-preview:hover {
             background: linear-gradient(135deg, #e68900 0%, var(--accent) 100%);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--dark);
+            border: 3px solid var(--light-gray);
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(26, 95, 35, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(26, 95, 35, 0.4);
         }
 
         /* Footer */
         .footer {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 2.5rem 1rem;
             color: var(--medium-gray);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--light-gray);
+            font-size: 0.95rem;
+            border-top: 2px solid var(--light-gray);
             margin-top: 2rem;
+        }
+
+        .footer p:first-child {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .app-container { padding: 0 0.5rem; }
+            .app-container { padding: 0 0.75rem; }
+            .main-content { padding: 2rem; }
+            .form-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+            .button-container { flex-direction: column; gap: 1rem; }
+            .btn { width: 100%; min-width: auto; }
+            h1 { font-size: 2rem; }
+            .header-actions {
+                position: static;
+                justify-content: center;
+                margin-top: 1.5rem;
+                flex-wrap: wrap;
+            }
+            .config-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.25rem;
+            }
+            .add-pages-btn {
+                justify-content: center;
+                padding: 1rem;
+            }
+            .pages-details {
+                flex-direction: column;
+                gap: 1.25rem;
+            }
+            .page-item {
+                min-width: auto;
+                width: 100%;
+                max-width: 250px;
+                margin: 0 auto;
+            }
+            .config-value {
+                font-size: 2rem;
+            }
+            .modal-header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .modal-header h3 {
+                font-size: 1.5rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
+            .pacotes-table th,
+            .pacotes-table td {
+                padding: 1rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            .section-title {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header { padding: 1.5rem 1rem; }
+            h1 { font-size: 1.8rem; }
+            .logo-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 2.5rem;
+            }
             .main-content { padding: 1.5rem; }
-            .form-grid { grid-template-columns: 1fr; }
-            .button-container { flex-direction: column; }
-            .btn { width: 100%; }
-            h1 { font-size: 1.5rem; }
+            .config-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .config-label { font-size: 1.1rem; }
+            .action-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+            .modal {
+                max-height: 85vh;
+            }
+            .btn {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Aviso Importante */
+        .aviso-importante {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .aviso-importante strong {
+            color: #856404;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .aviso-importante p {
+            color: #856404;
+            margin: 0;
+            font-size: 0.95rem;
         }
     </style>
 </head>
@@ -322,25 +819,37 @@
     <div class="app-container">
         <!-- Header -->
         <header class="header">
+            <div class="header-actions">
+                <button class="action-btn pacotes" onclick="mostrarPacotes()">
+                    <i class="fas fa-tags"></i> VER PACOTES
+                </button>
+                <a href="https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing" 
+                   class="action-btn exemplo" 
+                   target="_blank"
+                   id="link-exemplo">
+                    <i class="fas fa-eye"></i> VER EXEMPLO
+                </a>
+            </div>
+            
             <div class="logo-container">
                 <div class="logo-icon">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
                 <div>
-                    <h1>Gerador de Planos de Aula</h1>
-                    <p class="subtitle">Ministério da Educação - República de Moçambique</p>
+                    <h1>BLOCO DE PLANIFICAÇÃO</h1>
+                    <p class="subtitle">Gerador Automático de Planos de Aula</p>
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
-            <h2 class="section-title"><i class="fas fa-file-alt"></i> Bloco de Planificação</h2>
+            <h2 class="section-title"><i class="fas fa-file-alt"></i> CONFIGURAR BLOCO</h2>
             
             <div class="info-box">
-                <p><strong>Instruções:</strong> Preencha apenas os campos que deseja que apareçam no PDF.</p>
-                <p>Os campos em branco aparecerão como linhas para preenchimento manual no documento final.</p>
-                <p>O PDF gerado terá todas as grades e estruturas prontas, com os dados preenchidos inseridos automaticamente.</p>
+                <p><strong>🚀 INSTRUÇÕES:</strong> Preencha apenas os campos que deseja que apareçam no PDF.</p>
+                <p>📝 Os campos em branco aparecerão como linhas para preenchimento manual no documento final.</p>
+                <p>✅ O PDF gerado terá todas as grades e estruturas prontas, com os dados preenchidos inseridos automaticamente.</p>
             </div>
 
             <!-- Formulário Simplificado -->
@@ -399,33 +908,145 @@
             <!-- Configuração do Bloco -->
             <div class="bloco-config">
                 <div class="config-header">
-                    <span class="config-label">Número de Aulas no Bloco</span>
+                    <span class="config-label">NÚMERO DE PLANOS (AULAS)</span>
                     <span class="config-value" id="aulas-value">10</span>
                 </div>
                 
-                <input type="range" min="1" max="50" value="10" class="config-slider" id="aulas-slider">
+                <div class="config-controls">
+                    <input type="range" min="10" max="50" value="10" step="1" class="config-slider" id="aulas-slider">
+                    <button class="add-pages-btn" onclick="adicionarPaginas(5)">
+                        <i class="fas fa-plus-circle"></i> +5 PÁGINAS
+                    </button>
+                </div>
                 
                 <div class="config-info">
-                    <span>Mínimo: 1 aula</span>
-                    <span>Máximo: 50 aulas</span>
+                    <span>🔻 MÍNIMO: 10 planos</span>
+                    <span>🔺 MÁXIMO: 50 planos</span>
                 </div>
                 
-                <div style="text-align: center; margin-top: 1.5rem; color: var(--primary-dark); font-weight: 600;">
-                    Total de páginas: <span id="total-paginas">21</span> (1 capa + <span id="paginas-aulas">20</span> páginas de aula)
+                <div class="pages-summary">
+                    <h4><i class="fas fa-chart-bar"></i> RESUMO DE PÁGINAS</h4>
+                    <div class="pages-details">
+                        <div class="page-item">
+                            <div class="page-number" id="total-paginas">22</div>
+                            <div class="page-label">TOTAL DE PÁGINAS</div>
+                        </div>
+                        <div class="page-item">
+                            <div class="page-number" id="paginas-aulas">20</div>
+                            <div class="page-label">PÁGINAS DE AULAS</div>
+                        </div>
+                        <div class="page-item">
+                            <div class="page-number">2</div>
+                            <div class="page-label">CAPA + DECLARAÇÃO</div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="aviso-importante">
+                <strong>⚠️ ATENÇÃO!</strong>
+                <p>O valor será calculado automaticamente com base no número de planos escolhido. Visualize os pacotes disponíveis clicando no botão "VER PACOTES".</p>
             </div>
 
             <div class="button-container">
                 <button class="btn btn-preview" onclick="generateAndPreview()">
-                    <i class="fas fa-eye"></i> Visualizar e Gerar PDF
+                    <i class="fas fa-eye"></i> VISUALIZAR E GERAR PDF
                 </button>
             </div>
         </main>
 
+        <!-- Modal de Pacotes -->
+        <div class="modal-overlay" id="pacotesModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-tags"></i> PACOTES DISPONÍVEIS</h3>
+                    <button class="close-modal" onclick="fecharPacotes()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-content">
+                    <table class="pacotes-table">
+                        <thead>
+                            <tr>
+                                <th>PLANO</th>
+                                <th>AULAS</th>
+                                <th>PÁGINAS TOTAIS</th>
+                                <th>VALOR (MT)</th>
+                                <th>CAPA + DECLARAÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="plan-name">PACOTE BÁSICO</td>
+                                <td>10 - 20</td>
+                                <td>22 - 42</td>
+                                <td class="valor">25 MT</td>
+                                <td class="capa">✅ INCLUÍDA</td>
+                            </tr>
+                            <tr>
+                                <td class="plan-name">PACOTE INTERMÉDIO</td>
+                                <td>21 - 30</td>
+                                <td>44 - 62</td>
+                                <td class="valor">35 MT</td>
+                                <td class="capa">✅ INCLUÍDA</td>
+                            </tr>
+                            <tr>
+                                <td class="plan-name">PACOTE AVANÇADO</td>
+                                <td>31 - 40</td>
+                                <td>64 - 82</td>
+                                <td class="valor">45 MT</td>
+                                <td class="capa">✅ INCLUÍDA</td>
+                            </tr>
+                            <tr>
+                                <td class="plan-name">PACOTE COMPLETO</td>
+                                <td>41 - 50</td>
+                                <td>84 - 102</td>
+                                <td class="valor">50 MT</td>
+                                <td class="capa">✅ INCLUÍDA</td>
+                            </tr>
+                            <tr>
+                                <td class="plan-name">PACOTE PERSONALIZADO</td>
+                                <td>10 - 50</td>
+                                <td>22 - 102</td>
+                                <td class="valor">50 MT</td>
+                                <td class="capa">✅ INCLUÍDA</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="info-section">
+                        <h4><i class="fas fa-info-circle"></i> INFORMAÇÕES IMPORTANTES</h4>
+                        <ul>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Cada plano (aula) corresponde a <strong>2 páginas</strong> no PDF (plano + anexo)</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Todos os pacotes incluem <strong>capa profissional</strong> e <strong>declaração pedagógica</strong></span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Pagamento via <strong>Emola</strong> ou <strong>M-Pesa</strong> após visualização do PDF</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Receba <strong>código via SMS</strong> após pagamento para desbloquear download do PDF</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Suporte via <strong>WhatsApp</strong> disponível para dúvidas</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2024 Ministério da Educação - República de Moçambique</p>
-            <p>Sistema de Geração Automática de Planos de Aula</p>
+            <p>© 2024 GERADOR DE BLOCO DE PLANIFICAÇÃO</p>
+            <p>SISTEMA DE GERAÇÃO AUTOMÁTICA DE PLANOS DE AULA</p>
         </footer>
     </div>
 
@@ -452,14 +1073,12 @@
             const totalPaginas = document.getElementById('total-paginas');
             const paginasAulas = document.getElementById('paginas-aulas');
             
+            // Atualizar display inicial
+            atualizarDisplayAulas(10);
+            
             slider.addEventListener('input', function() {
-                const value = this.value;
-                aulasValue.textContent = value;
-                config.aulas = parseInt(value);
-                
-                const paginas = value * 2;
-                paginasAulas.textContent = paginas;
-                totalPaginas.textContent = paginas + 1;
+                const value = parseInt(this.value);
+                atualizarDisplayAulas(value);
             });
 
             // Carregar dados salvos (se existirem)
@@ -473,6 +1092,123 @@
                 document.getElementById('turma').value = saved.turma || '';
                 document.getElementById('periodo').value = saved.periodo || '';
             }
+
+            // Configurar link do exemplo (substitua pelo seu link real)
+            const linkExemplo = document.getElementById('link-exemplo');
+            // DESCOMENTE A LINHA ABAIXO E COLOQUE SEU LINK DO GOOGLE DRIVE
+            // linkExemplo.href = "https://drive.google.com/file/d/SEU_FILE_ID/view?usp=sharing";
+        });
+
+        function atualizarDisplayAulas(numAulas) {
+            const aulasValue = document.getElementById('aulas-value');
+            const slider = document.getElementById('aulas-slider');
+            const totalPaginas = document.getElementById('total-paginas');
+            const paginasAulas = document.getElementById('paginas-aulas');
+            
+            // Atualizar valores
+            aulasValue.textContent = numAulas;
+            slider.value = numAulas;
+            config.aulas = numAulas;
+            
+            // Calcular páginas
+            const paginas = numAulas * 2;
+            const total = paginas + 2; // +2 para capa e declaração
+            
+            paginasAulas.textContent = paginas;
+            totalPaginas.textContent = total;
+        }
+
+        function adicionarPaginas(qtd) {
+            const slider = document.getElementById('aulas-slider');
+            let currentValue = parseInt(slider.value);
+            let newValue = currentValue + qtd;
+            
+            // Limitar ao máximo de 50
+            if (newValue > 50) {
+                newValue = 50;
+                mostrarMensagem("🎯 Máximo de 50 planos atingido!", "warning");
+            } else {
+                mostrarMensagem(`✅ ${qtd} planos adicionados! Total: ${newValue} planos`, "success");
+            }
+            
+            atualizarDisplayAulas(newValue);
+            
+            // Feedback visual do botão
+            const btn = event.target.closest('.add-pages-btn');
+            const originalText = btn.innerHTML;
+            const originalBg = btn.style.background;
+            btn.innerHTML = `<i class="fas fa-check"></i> ADICIONADO!`;
+            btn.style.background = "linear-gradient(135deg, var(--success) 0%, #1e7e34 100%)";
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = originalBg;
+            }, 1500);
+        }
+
+        function mostrarMensagem(texto, tipo = "info") {
+            // Criar elemento de mensagem
+            const mensagem = document.createElement('div');
+            const icon = tipo === 'warning' ? 'exclamation-triangle' : 
+                         tipo === 'success' ? 'check-circle' : 'info-circle';
+            const bgColor = tipo === 'warning' ? '#fff3cd' : 
+                           tipo === 'success' ? '#d4edda' : '#d1ecf1';
+            const textColor = tipo === 'warning' ? '#856404' : 
+                            tipo === 'success' ? '#155724' : '#0c5460';
+            
+            mensagem.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: ${textColor};
+                padding: 1.25rem 1.75rem;
+                border-radius: var(--radius);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                z-index: 1001;
+                animation: slideInRight 0.4s ease, fadeOut 0.4s ease 2.6s;
+                max-width: 400px;
+                border-left: 5px solid ${tipo === 'warning' ? '#ffc107' : 
+                                     tipo === 'success' ? '#28a745' : '#17a2b8'};
+                font-weight: 600;
+            `;
+            
+            mensagem.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-${icon}" style="font-size: 1.5rem;"></i>
+                    <span>${texto}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(mensagem);
+            
+            setTimeout(() => {
+                mensagem.remove();
+            }, 3000);
+        }
+
+        function mostrarPacotes() {
+            document.getElementById('pacotesModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharPacotes() {
+            document.getElementById('pacotesModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('pacotesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharPacotes();
+            }
+        });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('pacotesModal').classList.contains('active')) {
+                fecharPacotes();
+            }
         });
 
         function generateAndPreview() {
@@ -481,37 +1217,116 @@
             const professor = document.getElementById('professor').value.trim();
             
             if (!escola || !professor) {
-                alert('Por favor, preencha os campos obrigatórios: Nome da Escola e Nome do Professor.');
+                mostrarMensagem("⚠️ Preencha os campos obrigatórios: Escola e Professor", "warning");
+                
+                // Dar destaque aos campos vazios
+                if (!escola) {
+                    document.getElementById('escola').style.borderColor = "var(--danger)";
+                    document.getElementById('escola').focus();
+                } else if (!professor) {
+                    document.getElementById('professor').style.borderColor = "var(--danger)";
+                    document.getElementById('professor').focus();
+                }
+                
                 return;
             }
 
-            // Salvar dados
-            config.dados = {
+            // Validar número mínimo de aulas
+            if (config.aulas < 10) {
+                mostrarMensagem("⚠️ O número mínimo de planos é 10", "warning");
+                return;
+            }
+
+            // Salvar dados no formato COMPATÍVEL com downloadtemplate.html
+            const planoData = {
                 escola: escola,
                 professor: professor,
                 disciplina: document.getElementById('disciplina').value.trim(),
                 classe: document.getElementById('classe').value.trim(),
                 turma: document.getElementById('turma').value.trim(),
                 periodo: document.getElementById('periodo').value,
-                // Campos que aparecerão como linhas vazias no PDF
-                unidade: '', // Unidade Temática
-                tema: '',    // Tema
-                tipo: '',    // Tipo de Aula
-                licao: '',   // Lição nº
-                duracao: '', // Duração
-                data: ''     // Data
+                unidade: '',
+                tema: '',
+                tipo: '',
+                licao: '',
+                duracao: '',
+                data: ''
             };
 
-            // Salvar no sessionStorage para o gratisunlock.html
-            sessionStorage.setItem('planoData', JSON.stringify(config.dados));
+            const planoConfig = {
+                tipo: 'bloco',
+                aulas: config.aulas, // Nome da variável CORRETA para downloadtemplate.html
+                dados: planoData
+            };
+
+            // Salvar no sessionStorage (formato compatível com downloadtemplate.html)
+            sessionStorage.setItem('planoData', JSON.stringify(planoData));
+            sessionStorage.setItem('planoConfig', JSON.stringify(planoConfig));
             
-            // Salvar também no localStorage para preview
-            localStorage.setItem('planoData', JSON.stringify(config.dados));
-            localStorage.setItem('planoConfig', JSON.stringify(config));
+            // Salvar também no localStorage para preview.html (se necessário)
+            localStorage.setItem('planoData', JSON.stringify(planoData));
+            localStorage.setItem('planoConfig', JSON.stringify(planoConfig));
             
-            // Redirecionar para pré-visualização
-            window.location.href = 'preview.html';
+            // Feedback de sucesso
+            mostrarMensagem("✅ Dados salvos! Redirecionando para pré-visualização...", "success");
+            
+            // Redirecionar para pré-visualização após 1 segundo
+            setTimeout(() => {
+                window.location.href = 'preview.html';
+            }, 1000);
         }
+
+        // Adicionar estilos CSS para animações
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes pulse-gold {
+                0% { 
+                    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.6),
+                                0 4px 12px rgba(255, 152, 0, 0.3);
+                }
+                70% { 
+                    box-shadow: 0 0 0 15px rgba(255, 152, 0, 0),
+                                0 4px 12px rgba(255, 152, 0, 0.3);
+                }
+                100% { 
+                    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0),
+                                0 4px 12px rgba(255, 152, 0, 0.3);
+                }
+            }
+            
+            /* Estilo para campo com erro */
+            .form-input:invalid {
+                border-color: var(--danger);
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Remover estilo de erro quando o usuário começar a digitar
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.style.borderColor = '';
+            });
+        });
     </script>
 </body>
 </html>
