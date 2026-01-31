@@ -528,7 +528,7 @@ button.confirmar-btn:hover {
     </div>
     
     <div class="aviso">
-      <i class="fas fa-clock"></i> Após a transferência, aguarde 2-5 minutos para receber o código via SMS.
+      <i class="fas fa-clock"></i> Após a transferência, aguarde alguns minutos para receber o código via SMS.
     </div>
     
     <div class="botoes-acao">
@@ -702,7 +702,7 @@ Valor: ${pacoteInfo.preco} MZN
 
 Poderia me ajudar?`;
   
-  const url = `https://wa.me/258848960732?text=${encodeURIComponent(mensagem)}`;
+  const url = `https://wa.me/258864920606?text=${encodeURIComponent(mensagem)}`;
   window.open(url, '_blank');
 }
 
@@ -978,15 +978,15 @@ function createDeclaracaoPage(doc, planoData) {
     "Este Bloco de Planificação pertence ao(a) Professor(a) acima identificado(a).",
     "O conteúdo aqui apresentado destina-se ao uso pessoal, profissional e pedagógico",
     "do(a) docente, servindo como instrumento de apoio à planificação, organização,",
-    "acompanhamento e execução das atividades letivas.",
+    "acompanhamento e execução das actividades lectivas.",
     "",
     "Este documento é considerado INTRANSMISSÍVEL, não devendo ser copiado,",
     "partilhado, reproduzido ou utilizado por terceiros sem a autorização expressa",
     "do seu titular, respeitando-se os princípios éticos, pedagógicos e profissionais",
-    "que regem a atividade docente.",
+    "que regem a actividade docente.",
     "",
-    "A utilização deste Bloco de Planificação tem como objetivo contribuir para a",
-    "melhoria da qualidade do ensino, assegurar o cumprimento dos objetivos",
+    "A utilização deste Bloco de Planificação tem como objectivo contribuir para a",
+    "melhoria da qualidade do ensino, assegurar o cumprimento dos objectivos",
     "curriculares e fortalecer práticas pedagógicas responsáveis, conscientes e",
     "eficazes."
   ];
@@ -1029,10 +1029,10 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const larguraUtil = pageWidth - (2 * margemLateral);
   
-  const colWidths = [15, 30, 71, 55, 55, 25, 25];
-  const headerHeight = 15;
+  const colWidths = [15, 25, 71, 60, 60, 25, 20];
+  const headerHeight = 13;
   const alturaLinha1 = 45;
-  const alturaLinha2 = 45;
+  const alturaLinha2 = 47;
   
   doc.setFont("times", "normal");
   doc.setFontSize(12);
@@ -1040,7 +1040,7 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   
   doc.setFontSize(14);
   doc.setFont("times", "bold");
-  doc.text("PLANO DE AULA (MODELO PARA PREENCHIMENTO MANUAL)", pageWidth/2, 15, { align: "center" });
+  doc.text("PLANO DE AULA", pageWidth/2, 15, { align: "center" });
   doc.setFontSize(12);
   doc.setFont("times", "normal");
   
@@ -1068,7 +1068,7 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   doc.text("Lição nº: ______", meioPagina, yPos + 12);
   doc.text("Duração: __________________________", meioPagina, yPos + 18);
   mostrarCampo("Período", planoData.periodo, meioPagina, yPos + 24, 45);
-  doc.text("Data: __________________________", meioPagina, yPos + 30);
+  doc.text("Data: _______/______________/_____", meioPagina, yPos + 30);
   
   yPos += 38;
   
@@ -1182,7 +1182,7 @@ function createPagina2Aula(doc, aulaNum) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const larguraUtil = pageWidth - (2 * margemLateral);
   
-  const colWidths = [15, 30, 71, 55, 55, 25, 25];
+  const colWidths = [15, 25, 71, 60, 60, 25, 20];
   const headerHeight = 15;
   const alturaLinha3 = 45;
   const alturaLinha4 = 45;
