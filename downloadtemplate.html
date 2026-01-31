@@ -152,7 +152,6 @@ h3 {
   margin: 15px 0 8px 0;
 }
 
-/* Telas */
 .tela {
   display: none;
   animation: fadeIn 0.5s ease;
@@ -167,7 +166,6 @@ h3 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Info do Plano */
 .info-plano {
   background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
   border-radius: 8px;
@@ -194,7 +192,6 @@ h3 {
   font-weight: 700;
 }
 
-/* Instruções */
 .instrucoes {
   background: #f8f9fa;
   border-radius: 8px;
@@ -213,7 +210,6 @@ h3 {
   line-height: 1.4;
 }
 
-/* Carteiras */
 .carteiras {
   display: flex;
   flex-wrap: wrap;
@@ -277,7 +273,6 @@ h3 {
   background: var(--primary-dark);
 }
 
-/* Nome de referência */
 .nome-referencia {
   text-align: center;
   background: #fff3cd;
@@ -292,7 +287,6 @@ h3 {
   font-size: 1rem;
 }
 
-/* Botões de ação */
 .botoes-acao {
   display: flex;
   flex-direction: column;
@@ -341,7 +335,6 @@ h3 {
   background: var(--light);
 }
 
-/* Tela do código */
 .input-container {
   display: flex;
   justify-content: center;
@@ -440,7 +433,6 @@ button.confirmar-btn:hover {
   transition: width 0.3s ease;
 }
 
-/* Aviso */
 .aviso {
   background: #fff3cd;
   border: 1px solid #ffeaa7;
@@ -452,7 +444,6 @@ button.confirmar-btn:hover {
   font-size: 0.9rem;
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
   main { padding: 15px; margin: 15px; }
   .carteira { min-width: 100%; }
@@ -463,16 +454,16 @@ button.confirmar-btn:hover {
 </style>
 <script>
 (function() {
-  // Google AdSense
   var metaAd = document.createElement('meta');
   metaAd.name = "google-adsense-account";
   metaAd.content = "ca-pub-8468056906401026";
   document.head.appendChild(metaAd);
-  // Google Analytics
+  
   var gaScript = document.createElement('script');
   gaScript.async = true;
   gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0";
   document.head.appendChild(gaScript);
+  
   var gaInline = document.createElement('script');
   gaInline.innerHTML = `
     window.dataLayer = window.dataLayer || [];
@@ -490,12 +481,10 @@ button.confirmar-btn:hover {
 </header>
 
 <main>
-  <!-- TELA 1: PAGAMENTO -->
   <div id="tela-pagamento" class="tela active">
     <h2><i class="fas fa-shopping-cart"></i> Escolha seu Pacote</h2>
     
     <div class="info-plano" id="info-plano">
-      <!-- Preenchido pelo JavaScript -->
     </div>
     
     <h3><i class="fas fa-graduation-cap"></i> Como funciona:</h3>
@@ -510,7 +499,6 @@ button.confirmar-btn:hover {
     
     <h3><i class="fas fa-wallet"></i> Carteiras para Pagamento:</h3>
     <div class="carteiras">
-      <!-- Emola -->
       <div class="carteira">
         <img src="icon/carteiras/emola.png" alt="Emola" id="emola-icon">
         <div class="detalhes-carteira">
@@ -522,7 +510,6 @@ button.confirmar-btn:hover {
         </div>
       </div>
       
-      <!-- M-Pesa -->
       <div class="carteira">
         <img src="icon/carteiras/mpesa.png" alt="M-Pesa" id="mpesa-icon">
         <div class="detalhes-carteira">
@@ -554,7 +541,6 @@ button.confirmar-btn:hover {
     </div>
   </div>
   
-  <!-- TELA 2: INSERIR CÓDIGO -->
   <div id="tela-codigo" class="tela">
     <h2><i class="fas fa-key"></i> Inserir Código de Desbloqueio</h2>
     
@@ -588,16 +574,12 @@ button.confirmar-btn:hover {
 </main>
 
 <script>
-// ====================================================
-// VARIÁVEIS GLOBAIS E CONFIGURAÇÕES
-// ====================================================
 const URL_APP = "https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec";
 let planoData = null;
 let planoConfig = null;
 let numAulas = 0;
 let pacoteInfo = { nome: '', preco: 0 };
 
-// Elementos DOM
 const inputCodigo = document.getElementById('codigo-acesso');
 const feedback = document.getElementById('feedback-codigo');
 const progressContainer = document.getElementById('progress-container');
@@ -606,13 +588,9 @@ const progressStatus = document.getElementById('progress-status');
 const telaPagamento = document.getElementById('tela-pagamento');
 const telaCodigo = document.getElementById('tela-codigo');
 
-// ====================================================
-// INICIALIZAÇÃO
-// ====================================================
 document.addEventListener('DOMContentLoaded', function() {
-  // Carregar dados do plano
   const planoDataJSON = sessionStorage.getItem("planoData");
-  const planoConfigJSON = localStorage.getItem("planoConfig");
+  const planoConfigJSON = sessionStorage.getItem("planoConfig");
   
   if (!planoDataJSON || !planoConfigJSON) {
     mostrarErro("Nenhum plano encontrado. Gere o plano antes de tentar desbloquear.");
@@ -623,22 +601,11 @@ document.addEventListener('DOMContentLoaded', function() {
   planoConfig = JSON.parse(planoConfigJSON);
   numAulas = planoConfig.aulas || 1;
   
-  // Calcular pacote
   calcularPacote();
-  
-  // Atualizar interface
   atualizarInfoPlano();
-  
-  // Configurar eventos
   configurarEventos();
-  
-  // Verificar se já tem código válido
-  verificarCodigoSalvo();
 });
 
-// ====================================================
-// FUNÇÕES DA INTERFACE
-// ====================================================
 function calcularPacote() {
   if (numAulas >= 10 && numAulas <= 20) {
     pacoteInfo = { nome: '10-20 Planos', preco: 25 };
@@ -672,7 +639,6 @@ function atualizarInfoPlano() {
 }
 
 function configurarEventos() {
-  // Input do código
   inputCodigo.addEventListener('input', function() {
     let valor = inputCodigo.value.toUpperCase();
     const novoValor = valor.replace(/[^A-Z0-9]/g, '');
@@ -684,7 +650,6 @@ function configurarEventos() {
     inputCodigo.value = novoValor.slice(0, 8);
   });
   
-  // Enter para confirmar
   inputCodigo.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       validarCodigo();
@@ -692,46 +657,26 @@ function configurarEventos() {
   });
 }
 
-function verificarCodigoSalvo() {
-  // Verificar se já tem código válido salvo
-  const codigoSalvo = localStorage.getItem('codigoDesbloqueio');
-  const timestamp = localStorage.getItem('codigoTimestamp');
-  
-  if (codigoSalvo && timestamp) {
-    const tempoPassado = Date.now() - parseInt(timestamp);
-    const umDia = 24 * 60 * 60 * 1000;
-    
-    if (tempoPassado < umDia) {
-      // Código ainda válido (menos de 24 horas)
-      inputCodigo.value = codigoSalvo;
-      mostrarTelaCodigo();
-    }
-  }
-}
-
-// ====================================================
-// FUNÇÕES DE NAVEGAÇÃO
-// ====================================================
 function mostrarTelaCodigo() {
   telaPagamento.classList.remove('active');
   telaCodigo.classList.add('active');
   inputCodigo.focus();
+  inputCodigo.value = "";
+  feedback.innerText = "";
 }
 
 function voltarParaPagamento() {
   telaCodigo.classList.remove('active');
   telaPagamento.classList.add('active');
+  inputCodigo.value = "";
+  feedback.innerText = "";
 }
 
-// ====================================================
-// FUNÇÕES DE PAGAMENTO
-// ====================================================
 function copiarNumero(numero, carteira) {
   navigator.clipboard.writeText(numero).then(function() {
     feedback.innerText = `✅ Número da ${carteira} copiado: ${numero}`;
     feedback.style.color = '#28a745';
     
-    // Feedback visual
     const btn = event.target.closest('.btn-copiar');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
@@ -761,9 +706,6 @@ Poderia me ajudar?`;
   window.open(url, '_blank');
 }
 
-// ====================================================
-// FUNÇÕES DE VALIDAÇÃO
-// ====================================================
 function updateProgress(percent, message) {
   progressFill.style.width = percent + '%';
   progressStatus.textContent = message;
@@ -797,11 +739,6 @@ async function validarCodigo() {
     if (data && data.valido) {
       updateProgress(30, 'Código válido! Preparando bloco...');
       
-      // Salvar código no localStorage para futuras sessões
-      localStorage.setItem('codigoDesbloqueio', codigo);
-      localStorage.setItem('codigoTimestamp', Date.now());
-      
-      // Gerar o PDF
       await generateBlocoPDF(planoData, numAulas, data.restante);
       
       updateProgress(100, 'Bloco gerado com sucesso!');
@@ -828,9 +765,6 @@ function mostrarErro(mensagem) {
                    <i class="fas fa-home"></i> Voltar ao Início</button>`;
 }
 
-// ====================================================
-// FUNÇÕES DE GERAÇÃO DO PDF COMPLETAS
-// ====================================================
 async function generateBlocoPDF(planoData, numAulas, restante) {
   const { jsPDF } = window.jspdf;
   let doc = null;
@@ -846,11 +780,9 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   
-  // Fundo branco
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Títulos - TUDO PRETO
   doc.setFont("times", "bold");
   doc.setFontSize(28);
   doc.setTextColor(0, 0, 0);
@@ -859,23 +791,19 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   doc.setFontSize(22);
   doc.text('MINISTÉRIO DA EDUCAÇÃO', pageWidth / 2, 80, { align: 'center' });
   
-  // Linha divisória - PRETA
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(1);
   doc.line(30, 100, pageWidth - 30, 100);
   
-  // Título principal
   doc.setFontSize(32);
   doc.text('BLOCO DE PLANIFICAÇÃO', pageWidth / 2, 130, { align: 'center' });
   
-  // Informações
   doc.setFontSize(18);
   doc.setFont("times", "bold");
   
   let y = 160;
   const lineHeight = 12;
   
-  // Escola
   doc.text('ESCOLA:', pageWidth / 2, y, { align: 'center' });
   if (planoData.escola && planoData.escola.trim()) {
     doc.setFont("times", "normal");
@@ -884,7 +812,6 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   }
   y += lineHeight + 10;
   
-  // Professor
   doc.text('PROFESSOR:', pageWidth / 2, y, { align: 'center' });
   if (planoData.professor && planoData.professor.trim()) {
     doc.setFont("times", "normal");
@@ -893,7 +820,6 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   }
   y += lineHeight + 10;
   
-  // Disciplina
   doc.text('DISCIPLINA:', pageWidth / 2, y, { align: 'center' });
   if (planoData.disciplina && planoData.disciplina.trim()) {
     doc.setFont("times", "normal");
@@ -902,49 +828,35 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   }
   y += lineHeight + 10;
   
-  // Classe
   doc.text('CLASSE:', pageWidth / 2, y, { align: 'center' });
   if (planoData.classe && planoData.classe.trim()) {
     doc.setFont("times", "normal");
     doc.text(planoData.classe, pageWidth / 2, y + 6, { align: 'center' });
   }
   
-  // Rodapé - TUDO PRETO
   doc.setFontSize(12);
   doc.setFont("times", "normal");
   doc.setTextColor(0, 0, 0);
   doc.text(`Bloco com ${numAulas} aulas - ${(numAulas * 2) + 2} páginas`, pageWidth / 2, pageHeight - 40, { align: 'center' });
   doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
   
-  // ====================================================
-  // PÁGINA 2: DECLARAÇÃO PEDAGÓGICA
-  // ====================================================
   updateProgress(65, 'Criando declaração pedagógica...');
   doc.addPage([297, 210], 'portrait');
   createDeclaracaoPage(doc, planoData);
-  
-  // ====================================================
-  // GERAR PÁGINAS DE AULA
-  // ====================================================
   
   for (let aulaNum = 1; aulaNum <= numAulas; aulaNum++) {
     const progress = 65 + ((aulaNum / numAulas) * 30);
     updateProgress(progress, `Gerando aula ${aulaNum} de ${numAulas}...`);
     
-    // PÁGINA 1 DA AULA: Preliminares, Objetivos e 2 primeiras funções
     doc.addPage([297, 210], 'landscape');
     createPagina1Aula(doc, planoData, aulaNum);
     
-    // PÁGINA 2 DA AULA: 2 últimas funções e Anexo
     doc.addPage([297, 210], 'landscape');
     createPagina2Aula(doc, aulaNum);
     
     await new Promise(resolve => setTimeout(resolve, 50));
   }
   
-  // ====================================================
-  // FINALIZAR
-  // ====================================================
   updateProgress(98, 'Finalizando documento...');
   
   const disciplina = planoData.disciplina || "Plano";
@@ -952,7 +864,6 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   const professorNome = planoData.professor.replace(/\s+/g, '_').substring(0, 20);
   const nomeArquivo = `Bloco_Planificacao_${disciplina}_${classe}_${professorNome}.pdf`;
   
-  // Salvar no histórico
   const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
   historico.push({
     escola: planoData.escola,
@@ -1006,21 +917,16 @@ async function generateBlocoPDF(planoData, numAulas, restante) {
   progressContainer.style.display = 'none';
 }
 
-// ====================================================
-// PÁGINA DE DECLARAÇÃO PEDAGÓGICA
-// ====================================================
 function createDeclaracaoPage(doc, planoData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margem = 20;
   
-  // Título - PRETO
   doc.setFont("times", "bold");
   doc.setFontSize(24);
   doc.setTextColor(0, 0, 0);
   doc.text('DECLARAÇÃO PEDAGÓGICA', pageWidth / 2, 40, { align: 'center' });
   
-  // Texto introdutório - PRETO
   doc.setFont("times", "normal");
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
@@ -1039,12 +945,10 @@ function createDeclaracaoPage(doc, planoData) {
   
   yPos += 10;
   
-  // Quadro de informações - TUDO PRETO
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.5);
   doc.rect(margem, yPos, pageWidth - (2 * margem), 60);
   
-  // Informações do professor
   const infoY = yPos + 15;
   let infoYOffset = 0;
   
@@ -1063,7 +967,6 @@ function createDeclaracaoPage(doc, planoData) {
   addInfo('Classe', planoData.classe);
   addInfo('Disciplina', planoData.disciplina);
   
-  // Ano letivo (automático)
   const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
   const anoLetivo = `${currentYear}/${nextYear}`;
@@ -1071,7 +974,6 @@ function createDeclaracaoPage(doc, planoData) {
   
   yPos += 70;
   
-  // Texto da declaração - PRETO
   const textoDeclaracao = [
     "Este Bloco de Planificação pertence ao(a) Professor(a) acima identificado(a).",
     "O conteúdo aqui apresentado destina-se ao uso pessoal, profissional e pedagógico",
@@ -1100,24 +1002,20 @@ function createDeclaracaoPage(doc, planoData) {
   
   yPos += 15;
   
-  // Área de assinatura - PRETO
   doc.setFont("times", "bold");
   doc.setFontSize(14);
   doc.text('ASSINATURA DO DOCENTE', pageWidth / 2, yPos, { align: 'center' });
   
-  // Linha para assinatura - PRETA
   yPos += 10;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.8);
   doc.line(pageWidth / 2 - 50, yPos, pageWidth / 2 + 50, yPos);
   
-  // Nome do professor - PRETO
   yPos += 8;
   doc.setFont("times", "bold");
   doc.setFontSize(12);
   doc.text(planoData.professor, pageWidth / 2, yPos, { align: 'center' });
   
-  // Data - PRETA
   yPos += 15;
   doc.setFont("times", "italic");
   doc.setFontSize(10);
@@ -1125,37 +1023,27 @@ function createDeclaracaoPage(doc, planoData) {
   doc.text(`Documento gerado em: ${new Date().toLocaleDateString('pt-MZ')}`, pageWidth / 2, yPos, { align: 'center' });
 }
 
-// ====================================================
-// PÁGINA 1 DA AULA: Preliminares, Objetivos, 2 primeiras funções
-// ====================================================
 function createPagina1Aula(doc, planoData, aulaNum) {
-  // CONFIGURAÇÕES
   const margemLateral = 7;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const larguraUtil = pageWidth - (2 * margemLateral);
   
-  // LARGURAS DAS COLUNAS
   const colWidths = [15, 30, 71, 55, 55, 25, 25];
-  
-  // ALTURAS
   const headerHeight = 15;
   const alturaLinha1 = 45;
   const alturaLinha2 = 45;
   
-  // Fonte padrão - TUDO PRETO
   doc.setFont("times", "normal");
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   
-  // TÍTULO DO PLANO - PRETO
   doc.setFontSize(14);
   doc.setFont("times", "bold");
   doc.text("PLANO DE AULA (MODELO PARA PREENCHIMENTO MANUAL)", pageWidth/2, 15, { align: "center" });
   doc.setFontSize(12);
   doc.setFont("times", "normal");
   
-  // PRELIMINARES
   let yPos = 25;
   const meioPagina = pageWidth / 2;
   
@@ -1168,7 +1056,6 @@ function createPagina1Aula(doc, planoData, aulaNum) {
     }
   }
   
-  // COLUNA ESQUERDA
   mostrarCampo("Escola", planoData.escola, margemLateral, yPos, 50);
   mostrarCampo("Professor", planoData.professor, margemLateral, yPos + 6, 45);
   mostrarCampo("Disciplina", planoData.disciplina, margemLateral, yPos + 12, 45);
@@ -1176,7 +1063,6 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   doc.text("Tema: __________________________", margemLateral, yPos + 24);
   doc.text("Tipo de Aula: __________________________", margemLateral, yPos + 30);
   
-  // COLUNA DIREITA
   mostrarCampo("Classe", planoData.classe, meioPagina, yPos, 50);
   mostrarCampo("Turma", planoData.turma, meioPagina, yPos + 6, 50);
   doc.text("Lição nº: ______", meioPagina, yPos + 12);
@@ -1184,8 +1070,7 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   mostrarCampo("Período", planoData.periodo, meioPagina, yPos + 24, 45);
   doc.text("Data: __________________________", meioPagina, yPos + 30);
   
-  // OBJECTIVOS ESPECÍFICOS - ESPAÇO COMPRIMIDO
-  yPos += 38; // Reduzido de 40 para 38
+  yPos += 38;
   
   doc.setFont("times", "bold");
   doc.text("OBJECTIVOS ESPECÍFICOS:", margemLateral, yPos);
@@ -1196,10 +1081,8 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   doc.text("• " + linhaObjetivo, margemLateral + 5, yPos + 16);
   doc.text("• " + linhaObjetivo, margemLateral + 5, yPos + 24);
   
-  // TABELA - ESPAÇO COMPRIMIDO
-  yPos += 30; // Reduzido de 35 para 30
+  yPos += 30;
   
-  // CABEÇALHO
   doc.setFillColor(220, 220, 220);
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.2);
@@ -1237,7 +1120,6 @@ function createPagina1Aula(doc, planoData, aulaNum) {
     xPos += larguraCol;
   });
   
-  // LINHA 1: Introdução e Motivação - PRETO
   let currentY = yPos + headerHeight;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.2);
@@ -1264,7 +1146,6 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   
   currentY += alturaLinha1;
   
-  // LINHA 2: Mediação e Assimilação - PRETO
   doc.rect(margemLateral, currentY, larguraUtil, alturaLinha2);
   
   xPos = margemLateral;
@@ -1287,20 +1168,14 @@ function createPagina1Aula(doc, planoData, aulaNum) {
   });
   
   currentY += alturaLinha2;
-  
-  // Linha final - PRETA
   doc.line(margemLateral, currentY, margemLateral + larguraUtil, currentY);
   
-  // Rodapé - PRETO
   doc.setFont("times", "normal");
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.text(`Aula ${aulaNum} - Página 1/2`, pageWidth - margemLateral, pageHeight - 10, { align: "right" });
 }
 
-// ====================================================
-// PÁGINA 2 DA AULA: 2 últimas funções e Anexo
-// ====================================================
 function createPagina2Aula(doc, aulaNum) {
   const margemLateral = 7;
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -1316,10 +1191,8 @@ function createPagina2Aula(doc, aulaNum) {
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   
-  // SEM CABEÇALHO NA SEGUNDA PÁGINA
-  let currentY = 20; // Começar mais alto
+  let currentY = 20;
   
-  // LINHA 3: Domínio e Consolidação - PRETO
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.2);
   doc.rect(margemLateral, currentY, larguraUtil, alturaLinha3);
@@ -1345,7 +1218,6 @@ function createPagina2Aula(doc, aulaNum) {
   
   currentY += alturaLinha3;
   
-  // LINHA 4: Controlo e Avaliação - PRETO
   doc.rect(margemLateral, currentY, larguraUtil, alturaLinha4);
   
   xPos = margemLateral;
@@ -1370,35 +1242,28 @@ function createPagina2Aula(doc, aulaNum) {
   currentY += alturaLinha4;
   doc.line(margemLateral, currentY, margemLateral + larguraUtil, currentY);
   
-  // ====================================================
-  // ANEXO / QUADRO MORAL - ESPAÇO COMPRIMIDO
-  // ====================================================
-  currentY += 8; // Reduzido de 15 para 8
+  currentY += 8;
   
   doc.setFontSize(12);
   doc.setFont("times", "bold");
   doc.text("ANEXO / QUADRO MORAL", pageWidth/2, currentY, { align: "center" });
   doc.setFont("times", "normal");
   
-  currentY += 6; // Reduzido de 8 para 6
+  currentY += 6;
   
   const larguraAnexo = pageWidth - (2 * margemLateral);
-  const alturaAnexo = pageHeight - currentY - 15; // Reduzido de 20 para 15
+  const alturaAnexo = pageHeight - currentY - 15;
   
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.5);
   doc.rect(margemLateral, currentY, larguraAnexo, alturaAnexo);
   
-  // Rodapé - PRETO
   doc.setFont("times", "normal");
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.text(`Aula ${aulaNum} - Página 2/2`, pageWidth - margemLateral, pageHeight - 10, { align: "right" });
 }
 
-// ====================================================
-// FUNÇÕES DE DOWNLOAD
-// ====================================================
 function baixarPDF(blob, nome) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
