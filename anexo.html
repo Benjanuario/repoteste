@@ -1,8 +1,8 @@
 <!-- ================================================== -->
-<!-- ANEXO.HTML - INTERFACE DO USUÁRIO (ATUALIZADA) -->
+<!-- ANEXO.HTML - INTERFACE CORRIGIDA E COMPLETA -->
 <!-- ================================================== -->
 <style>
-  /* ===== VARIÁVEIS DE CORES ===== */
+  /* ===== VARIÁVEIS ===== */
   :root {
     --azul-principal: #2c5aa0;
     --azul-claro: #4a7bc8;
@@ -16,14 +16,13 @@
     --cinza-fundo: #f8f9fa;
     --vermelho-remover: #dc3545;
     --branco: #ffffff;
-    --roxo-formula: #7e57c2;
     --sombra: 0 4px 12px rgba(0, 0, 0, 0.08);
     --sombra-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
     --transicao: all 0.25s ease;
     --borda-arredondada: 10px;
   }
 
-  /* ===== CONTAINER PRINCIPAL ===== */
+  /* ===== CONTAINER ===== */
   #anexoInterface {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafd 100%);
     border: 2px solid var(--cinza-borda);
@@ -35,7 +34,6 @@
     overflow: hidden;
   }
 
-  /* Linha decorativa no topo */
   #anexoInterface::before {
     content: '';
     position: absolute;
@@ -43,7 +41,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--azul-principal), var(--azul-claro), var(--verde-ocr));
+    background: linear-gradient(90deg, var(--verde-ocr), var(--laranja-chatgpt), var(--azul-principal));
   }
 
   /* ===== CABEÇALHO ===== */
@@ -59,20 +57,7 @@
     border-bottom: 2px solid var(--azul-suave);
   }
 
-  /* ===== SUBTÍTULO ===== */
-  #anexoInterface > p[style*="font-style:italic"] {
-    color: var(--cinza-texto);
-    font-style: normal !important;
-    margin-bottom: 24px !important;
-    font-size: 1rem;
-    line-height: 1.5;
-    background: var(--azul-suave);
-    padding: 14px 16px;
-    border-radius: 8px;
-    border-left: 4px solid var(--azul-principal);
-  }
-
-  /* ===== BOTÕES DE TIPO (TABS) ===== */
+  /* ===== TABS ===== */
   .anexo-tabs-container {
     display: flex !important;
     gap: 12px !important;
@@ -97,7 +82,6 @@
     justify-content: center !important;
     gap: 10px !important;
     margin: 0 !important;
-    text-align: center !important;
   }
 
   .anexo-tab-btn:hover {
@@ -107,10 +91,9 @@
   }
 
   .anexo-tab-btn.ativo {
-    background: linear-gradient(135deg, var(--azul-principal), var(--azul-claro)) !important;
     color: var(--branco) !important;
-    border-color: var(--azul-principal) !important;
-    box-shadow: 0 4px 12px rgba(44, 90, 160, 0.2) !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
 
   .anexo-tab-btn:nth-child(1).ativo {
@@ -125,7 +108,7 @@
     background: linear-gradient(135deg, var(--azul-principal), var(--azul-claro)) !important;
   }
 
-  /* ===== PAINÉIS DE CONTEÚDO ===== */
+  /* ===== PAINÉIS ===== */
   .anexo-painel {
     background: var(--branco);
     border: 2px solid var(--cinza-borda);
@@ -137,17 +120,11 @@
   }
 
   @keyframes aparecer {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ===== TEXTAREA ULTRA MELHORADO ===== */
+  /* ===== TEXTAREAS ===== */
   .anexo-textarea-super {
     width: 100% !important;
     min-height: 200px !important;
@@ -172,17 +149,6 @@
     box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1) !important;
   }
 
-  .anexo-textarea-super:hover {
-    border-color: #adb5bd !important;
-  }
-
-  .anexo-textarea-super::placeholder {
-    color: #95a5a6 !important;
-    font-style: normal !important;
-    font-size: 0.95rem !important;
-  }
-
-  /* Textarea específico para OCR */
   #anexoOcr .anexo-textarea-super {
     border-color: var(--verde-ocr) !important;
     background: #f8fff8 !important;
@@ -193,22 +159,48 @@
     background: #fff8f0 !important;
   }
 
-  /* Scrollbar personalizada */
-  .anexo-textarea-super::-webkit-scrollbar {
+  .descricao-foto {
+    width: 100% !important;
+    min-height: 100px !important;
+    border: 2px solid var(--cinza-borda) !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    font-family: inherit !important;
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+    color: #2c3e50 !important;
+    background: var(--branco) !important;
+    transition: var(--transicao) !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+    margin-top: 15px !important;
+  }
+
+  .descricao-foto:focus {
+    border-color: var(--azul-principal) !important;
+    box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1) !important;
+  }
+
+  /* Scrollbar */
+  .anexo-textarea-super::-webkit-scrollbar,
+  .descricao-foto::-webkit-scrollbar {
     width: 10px;
   }
 
-  .anexo-textarea-super::-webkit-scrollbar-track {
+  .anexo-textarea-super::-webkit-scrollbar-track,
+  .descricao-foto::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
   }
 
-  .anexo-textarea-super::-webkit-scrollbar-thumb {
+  .anexo-textarea-super::-webkit-scrollbar-thumb,
+  .descricao-foto::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
 
-  .anexo-textarea-super::-webkit-scrollbar-thumb:hover {
+  .anexo-textarea-super::-webkit-scrollbar-thumb:hover,
+  .descricao-foto::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
 
@@ -222,8 +214,9 @@
     cursor: pointer !important;
     font-weight: 500 !important;
     transition: var(--transicao) !important;
-    display: inline-flex !important;
+    display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 10px !important;
     margin-bottom: 20px !important;
     font-size: 1rem !important;
@@ -235,22 +228,22 @@
     box-shadow: 0 6px 16px rgba(245, 124, 0, 0.25) !important;
   }
 
-  /* ===== BOTÕES DE FOTO (OCR) ===== */
-  .botoes-ocr-container {
+  .botoes-ocr-container,
+  .botoes-foto-container {
     display: flex;
     gap: 12px;
     margin-bottom: 20px;
     flex-wrap: wrap;
   }
 
-  .btn-ocr {
+  .btn-ocr,
+  .btn-foto {
     flex: 1;
     min-width: 160px;
     padding: 16px;
     background: var(--branco);
-    border: 2px solid var(--verde-ocr);
+    border: 2px solid;
     border-radius: 8px;
-    color: var(--verde-ocr);
     cursor: pointer;
     font-weight: 500;
     transition: var(--transicao);
@@ -259,6 +252,11 @@
     justify-content: center;
     gap: 10px;
     font-size: 0.95rem;
+  }
+
+  .btn-ocr {
+    border-color: var(--verde-ocr);
+    color: var(--verde-ocr);
   }
 
   .btn-ocr:hover {
@@ -268,30 +266,9 @@
     box-shadow: var(--sombra-hover);
   }
 
-  /* ===== BOTÕES DE FOTO (Recorte) ===== */
-  .botoes-foto-container {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
   .btn-foto {
-    flex: 1;
-    min-width: 160px;
-    padding: 16px;
-    background: var(--branco);
-    border: 2px solid var(--azul-principal);
-    border-radius: 8px;
+    border-color: var(--azul-principal);
     color: var(--azul-principal);
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transicao);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 0.95rem;
   }
 
   .btn-foto:hover {
@@ -301,15 +278,16 @@
     box-shadow: var(--sombra-hover);
   }
 
-  /* ===== PREVIEW DE OCR ===== */
-  #previewOcr {
+  /* ===== PREVIEWS ===== */
+  #previewOcr,
+  #previewFoto {
     background: var(--branco);
-    border: 3px dashed var(--verde-ocr);
+    border: 3px dashed;
     border-radius: var(--borda-arredondada);
     padding: 25px;
     text-align: center;
     margin: 25px 0;
-    min-height: 250px;
+    min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -317,12 +295,26 @@
     flex-direction: column;
   }
 
-  #previewOcr:hover {
-    border-color: #388e3c;
-    background: #f1f8e9;
+  #previewOcr {
+    border-color: var(--verde-ocr);
   }
 
-  #previewOcr img {
+  #previewOcr:hover {
+    background: #f1f8e9;
+    border-color: #388e3c;
+  }
+
+  #previewFoto {
+    border-color: var(--azul-principal);
+  }
+
+  #previewFoto:hover {
+    background: var(--azul-suave);
+    border-color: var(--azul-claro);
+  }
+
+  #previewOcr img,
+  #previewFoto img {
     max-width: 100% !important;
     max-height: 300px !important;
     border-radius: 8px;
@@ -330,60 +322,23 @@
     object-fit: contain;
   }
 
-  /* ===== PREVIEW DE FOTO ===== */
-  #previewFoto {
-    background: var(--branco);
-    border: 3px dashed var(--azul-principal);
+  /* ===== CONTROLES ===== */
+  .ocr-controls,
+  .cropper-controls {
     border-radius: var(--borda-arredondada);
-    padding: 30px;
-    text-align: center;
-    margin: 25px 0;
-    min-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transicao);
+    padding: 20px;
+    margin: 20px 0;
+    display: none;
   }
 
-  #previewFoto:hover {
-    border-color: var(--azul-claro);
-  }
-
-  #previewFoto img {
-    max-width: 100% !important;
-    max-height: 400px !important;
-    border-radius: 8px;
-    box-shadow: var(--sombra);
-    object-fit: contain;
-  }
-
-  /* ===== CONTROLES DO OCR ===== */
   .ocr-controls {
     background: #f1f8e9;
-    border-radius: var(--borda-arredondada);
-    padding: 20px;
-    margin: 20px 0;
     border: 1px solid var(--verde-ocr);
-    display: none;
   }
 
-  .ocr-info {
-    color: var(--verde-ocr);
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* ===== CONTROLES DO CROPPER ===== */
   .cropper-controls {
     background: var(--azul-suave);
-    border-radius: var(--borda-arredondada);
-    padding: 20px;
-    margin: 20px 0;
     border: 1px solid var(--azul-principal);
-    display: none;
   }
 
   .cropper-botoes-grid {
@@ -414,7 +369,6 @@
     color: var(--azul-principal);
   }
 
-  /* ===== BOTÃO SALVAR FOTO ===== */
   .btn-salvar-foto {
     padding: 16px 28px !important;
     background: linear-gradient(135deg, var(--verde-salvar), #34ce57) !important;
@@ -479,11 +433,6 @@
     box-shadow: var(--sombra-hover);
   }
 
-  /* ===== INPUTS OCULTOS ===== */
-  .input-oculto {
-    display: none !important;
-  }
-
   /* ===== MENSAGENS ===== */
   .mensagem-info {
     background: var(--azul-suave);
@@ -508,32 +457,12 @@
     color: #e65100;
   }
 
-  /* ===== FÓRMULAS MATEMÁTICAS ===== */
-  .formula {
-    font-family: "Times New Roman", serif;
-    font-style: italic;
-    background: #f0f8ff;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid #d0e0ff;
-    color: var(--roxo-formula);
-    font-weight: 500;
+  /* ===== INPUTS ===== */
+  .input-oculto {
+    display: none !important;
   }
 
-  sup, sub {
-    font-size: 0.8em;
-    line-height: 0;
-  }
-
-  sup {
-    vertical-align: super;
-  }
-
-  sub {
-    vertical-align: sub;
-  }
-
-  /* ===== RESPONSIVIDADE ===== */
+  /* ===== RESPONSIVO ===== */
   @media (max-width: 768px) {
     #anexoInterface {
       padding: 18px;
@@ -571,7 +500,7 @@
     
     #previewOcr,
     #previewFoto {
-      min-height: 200px;
+      min-height: 180px;
       padding: 20px;
     }
   }
@@ -597,7 +526,7 @@
   }
 </style>
 
-<!-- ===== HTML DA INTERFACE ===== -->
+<!-- ===== INTERFACE HTML ===== -->
 <div id="anexoInterface">
   <!-- Cabeçalho -->
   <h3>
@@ -610,27 +539,27 @@
     Escolha como deseja adicionar o anexo:
   </p>
 
-  <!-- Tabs Atualizadas -->
+  <!-- Tabs -->
   <div class="anexo-tabs-container">
     <button type="button" class="anexo-tab-btn ativo" onclick="mostrarAnexoTexto()">
-      <i class="fas fa-font" style="color: var(--verde-ocr);"></i>
+      <i class="fas fa-font"></i>
       Extrair de Material
     </button>
     <button type="button" class="anexo-tab-btn" onclick="mostrarAnexoChatGPT()">
-      <i class="fas fa-robot" style="color: var(--laranja-chatgpt);"></i>
+      <i class="fas fa-robot"></i>
       Gerar com IA
     </button>
     <button type="button" class="anexo-tab-btn" onclick="mostrarAnexoFoto()">
-      <i class="fas fa-camera" style="color: var(--azul-principal);"></i>
+      <i class="fas fa-camera"></i>
       Foto do Livro
     </button>
   </div>
 
-  <!-- Painel de OCR (Substitui o antigo de texto) -->
+  <!-- Painel OCR -->
   <div id="anexoOcr" class="anexo-painel">
     <div class="mensagem-info mensagem-ocr">
-      <i class="fas fa-info-circle"></i>
-      <strong>Sistema OCR Inteligente:</strong> Tire foto do material impresso (livros, exercícios, anotações) e o sistema extrairá o texto preservando fórmulas matemáticas e formatação.
+      <i class="fas fa-magic"></i>
+      <strong>Sistema de extração inteligente:</strong> Tire foto do material impresso (livros, exercícios, fórmulas) e o sistema extrairá o texto automaticamente.
     </div>
     
     <div class="botoes-ocr-container">
@@ -653,14 +582,14 @@
         <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
         <p style="margin: 0; font-size: 0.95rem;">Carregue uma foto para extrair texto</p>
         <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: var(--verde-ocr);">
-          <i class="fas fa-lightbulb"></i> Funciona com livros, exercícios e fórmulas
+          <i class="fas fa-lightbulb"></i> Arraste e solte uma imagem aqui
         </p>
       </div>
     </div>
 
     <!-- Controles OCR -->
     <div id="ocrControls" class="ocr-controls">
-      <div class="ocr-info">
+      <div style="color: var(--verde-ocr); font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
         <i class="fas fa-check-circle"></i>
         Texto extraído com sucesso! Edite abaixo se necessário:
       </div>
@@ -673,26 +602,26 @@
     ></textarea>
     
     <div style="font-size: 0.85rem; color: var(--cinza-texto); margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-magic"></i>
-      <span>Fórmulas matemáticas, químicas e físicas são preservadas automaticamente.</span>
+      <i class="fas fa-info-circle"></i>
+      <span>Fórmulas matemáticas, químicas e físicas são detectadas automaticamente.</span>
     </div>
   </div>
 
-  <!-- Painel do ChatGPT (Aprimorado) -->
+  <!-- Painel ChatGPT -->
   <div id="anexoChatGPT" class="anexo-painel">
     <div class="mensagem-info mensagem-chatgpt">
       <i class="fas fa-robot"></i>
-      <strong>Geração Automática com IA:</strong> O sistema criará um prompt otimizado e tentará preencher automaticamente no ChatGPT.
+      <strong>Geração automática:</strong> O sistema criará um prompt otimizado e tentará preencher automaticamente no ChatGPT.
     </div>
     
     <button type="button" class="btn-chatgpt" onclick="abrirChatGPT()">
       <i class="fas fa-external-link-alt"></i>
-      Abrir ChatGPT (Preenchimento Automático)
+      Abrir ChatGPT com Prompt
     </button>
     
     <div style="font-size: 0.9rem; color: var(--laranja-chatgpt); margin-bottom: 15px; padding: 12px; background: #fff8e1; border-radius: 8px; border-left: 4px solid var(--laranja-chatgpt);">
       <i class="fas fa-lightbulb"></i>
-      <strong>Instrução:</strong> Após o ChatGPT gerar o conteúdo, copie e cole abaixo. O sistema removerá automaticamente emojis e formatações indesejadas.
+      <strong>Instrução:</strong> O prompt será copiado automaticamente. Cole no ChatGPT, aguarde a resposta e cole abaixo.
     </div>
     
     <textarea 
@@ -701,41 +630,45 @@
       oninput="sanitizeTextarea(this)"
     ></textarea>
     
-    <div style="font-size: 0.85rem; color: var(--cinza-texto); margin-top: 10px;">
-      <i class="fas fa-info-circle"></i>
-      Conteúdo será formatado automaticamente com títulos destacados e sem marcas de IA.
+    <div style="font-size: 0.85rem; color: var(--cinza-texto); margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-shield-alt"></i>
+      <span>Emojis e asteriscos serão removidos automaticamente.</span>
     </div>
   </div>
 
-  <!-- Painel de Foto (Mantido) -->
+  <!-- Painel Foto -->
   <div id="anexoFoto" class="anexo-painel">
     <div class="mensagem-info">
-      <i class="fas fa-info-circle"></i>
-      Selecione uma foto do seu dispositivo ou tire uma nova foto. Suporta imagens de até 8MB.
+      <i class="fas fa-images"></i>
+      <strong>Foto com descrição:</strong> Carregue uma imagem e adicione uma descrição ou observação.
     </div>
 
     <div class="botoes-foto-container">
       <button type="button" class="btn-foto" onclick="document.getElementById('fotoCamera').click()">
         <i class="fas fa-camera"></i>
-        Abrir Câmera
+        Tirar Foto
       </button>
       <button type="button" class="btn-foto" onclick="document.getElementById('fotoGaleria').click()">
         <i class="fas fa-folder-open"></i>
-        Selecionar Foto
+        Selecionar da Galeria
       </button>
     </div>
 
     <input id="fotoCamera" type="file" accept="image/*" capture="environment" class="input-oculto" onchange="carregarFoto(event)">
     <input id="fotoGaleria" type="file" accept="image/*" class="input-oculto" onchange="carregarFoto(event)">
 
+    <!-- Preview Foto -->
     <div id="previewFoto">
       <div style="color: var(--cinza-texto);">
         <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
         <p style="margin: 0; font-size: 0.95rem;">Pré-visualização da imagem</p>
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: var(--azul-principal);">
+          <i class="fas fa-lightbulb"></i> Arraste e solte uma imagem aqui
+        </p>
       </div>
     </div>
 
-    <!-- Controles do Cropper (aparecem dinamicamente) -->
+    <!-- Controles Cropper -->
     <div id="cropperControls" class="cropper-controls" style="display: none;">
       <div class="cropper-botoes-grid">
         <button type="button" class="btn-cropper" onclick="rotateLeft()">
@@ -767,7 +700,7 @@
     </div>
   </div>
 
-  <!-- Rodapé com Ações -->
+  <!-- Rodapé -->
   <div class="anexo-rodape">
     <button type="button" class="btn-acao btn-salvar" onclick="salvarAnexo()">
       <i class="fas fa-save"></i>
@@ -780,8 +713,8 @@
   </div>
 </div>
 
-<!-- Bibliotecas necessárias -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@v3.0.3/dist/tesseract.min.js"></script>
+<!-- Bibliotecas -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

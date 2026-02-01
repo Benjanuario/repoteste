@@ -1,57 +1,51 @@
 // ==================================================
-// ANEXO.JS - TODA A LÓGICA DO SISTEMA (ATUALIZADO)
+// ANEXO.JS - SISTEMA COMPLETO CORRIGIDO
 // ==================================================
 
-// Variáveis globais (MANTIDAS PARA COMPATIBILIDADE)
+// Variáveis globais
 let cropper = null;
 let currentImgEl = null;
-let currentTab = 'texto'; // Agora será 'ocr' ao invés de 'texto'
+let currentTab = 'ocr';
 let editingMode = false;
-let currentAnexoId = null;
-
-// Nova variável para controle de OCR
 let ocrResult = null;
 
 // ==================================================
-// FUNÇÕES DE SANITIZAÇÃO E SEGURANÇA (APRIMORADAS)
+// FUNÇÕES DE SANITIZAÇÃO E SEGURANÇA
 // ==================================================
 
-/**
- * Sanitiza o conteúdo do textarea removendo emojis e scripts
- * APRIMORADO: Preserva fórmulas matemáticas e formatação educacional
- */
 function sanitizeTextarea(textarea) {
   if (!textarea || !textarea.value) return;
   
   const original = textarea.value;
   let sanitized = original;
   
-  // Remove emojis e caracteres especiais problemáticos
+  // Remove emojis
   const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
   sanitized = sanitized.replace(emojiRegex, '');
   
-  // Remove scripts maliciosos
+  // Remove scripts
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/on\w+\s*=/gi, '');
   
-  // Remove tags HTML perigosas mas permite algumas tags seguras para formatação
-  const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'];
+  // Remove asteriscos de negrito (ChatGPT)
+  sanitized = sanitized.replace(/\*\*(.*?)\*\*/g, '$1');
+  sanitized = sanitized.replace(/\*(.*?)\*/g, '$1');
+  
+  // Remove tags perigosas mas permite formatação básica
+  const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
   const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
   sanitized = sanitized.replace(tagRegex, (match, tagName) => {
     if (allowedTags.includes(tagName.toLowerCase())) {
-      return match; // Mantém tags permitidas
+      return match;
     }
-    return ''; // Remove tags não permitidas
+    return '';
   });
   
-  // Remove marcações de IA (ChatGPT típico)
-  sanitized = sanitized.replace(/^(Assistente|ChatGPT|IA|OpenAI|Resposta):\s*/gmi, '');
-  sanitized = sanitized.replace(/^(Espero que isso ajude|Isso deve ajudar|Aqui está|Conteúdo gerado):.*$/gmi, '');
-  sanitized = sanitized.replace(/^(Lembre-se que|Nota:|Observação:).*$/gmi, '');
-  
-  // Remove asteriscos usados como marcadores
-  sanitized = sanitized.replace(/^\*\s+/gm, '• ');
+  // Remove marcações de IA
+  sanitized = sanitized.replace(/^(Assistente|ChatGPT|IA|OpenAI|Resposta|Modelo):\s*/gmi, '');
+  sanitized = sanitized.replace(/^(Espero que isso ajude|Isso deve ajudar|Aqui está|Conteúdo gerado|Lembre-se que|Nota:|Observação:|Importante:).*$/gmi, '');
+  sanitized = sanitized.replace(/^(\*+\s*)+/gm, '• ');
   
   if (sanitized !== original) {
     const cursorPos = textarea.selectionStart;
@@ -61,9 +55,6 @@ function sanitizeTextarea(textarea) {
   }
 }
 
-/**
- * Escapa caracteres HTML para evitar XSS
- */
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -74,56 +65,54 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-/**
- * Aplica formatação educacional ao texto (para exibição no preview)
- */
 function formatarTextoEducacional(texto) {
   if (!texto) return '';
   
   let formatado = escapeHtml(texto);
   
-  // Converte quebras de linha em <br> e parágrafos
-  formatado = formatado.replace(/\n\n+/g, '</p><p>');
+  // Converte títulos (linhas sem pontuação no final e curtas)
+  formatado = formatado.replace(/^(.{1,60})(?=\n|$)/gm, function(match, p1) {
+    if (!p1.match(/[.,;:!?]$/) && p1.trim().length > 3) {
+      return `<strong style="font-size: 1.1em; display: block; margin-top: 15px; color: var(--azul-principal);">${p1}</strong>`;
+    }
+    return p1;
+  });
+  
+  // Converte quebras de linha
+  formatado = formatado.replace(/\n\n+/g, '</p><p style="margin: 10px 0;">');
   formatado = formatado.replace(/\n/g, '<br>');
   
-  // Adiciona formatação para fórmulas matemáticas simples
+  // Formata listas
+  formatado = formatado.replace(/^•\s+(.*?)(?=<br>|$)/gm, '<li style="margin: 5px 0 5px 20px;">$1</li>');
+  formatado = formatado.replace(/^(\d+\.)\s+(.*?)(?=<br>|$)/gm, '<li style="margin: 5px 0 5px 20px;" value="$1">$2</li>');
+  
+  // Fórmulas matemáticas
   formatado = formatado.replace(/(\$\$)(.*?)\1/g, '<span class="formula">$2</span>');
   formatado = formatado.replace(/(\$)(.*?)\1/g, '<span class="formula-inline">$2</span>');
   
-  // Melhora listas
-  formatado = formatado.replace(/^•\s+(.*?)(?=<br>|$)/gm, '<li>$1</li>');
-  formatado = formatado.replace(/^(\d+\.)\s+(.*?)(?=<br>|$)/gm, '<li value="$1">$2</li>');
-  
-  // Envolve em parágrafo se necessário
-  if (!formatado.startsWith('<p>') && !formatado.startsWith('<li>')) {
-    formatado = '<p>' + formatado + '</p>';
+  if (!formatado.startsWith('<p>') && !formatado.startsWith('<li>') && !formatado.startsWith('<strong')) {
+    formatado = '<p style="margin: 10px 0;">' + formatado + '</p>';
   }
   
   return formatado;
 }
 
 // ==================================================
-// FUNÇÕES DE NAVEGAÇÃO ENTRE TABS (ATUALIZADAS)
+// FUNÇÕES DE NAVEGAÇÃO
 // ==================================================
 
-/**
- * Atualiza a tab ativa visualmente
- */
 function atualizarTabAtiva(tab) {
   currentTab = tab;
   
-  // Remove classe 'ativo' de todos os botões
   const botoes = document.querySelectorAll('.anexo-tab-btn');
   botoes.forEach(btn => btn.classList.remove('ativo'));
   
-  // Esconde todos os painéis
   const paineis = ['anexoOcr', 'anexoChatGPT', 'anexoFoto'];
   paineis.forEach(id => {
     const painel = document.getElementById(id);
     if (painel) painel.style.display = 'none';
   });
   
-  // Ativa o botão correto
   let botaoIndex;
   switch(tab) {
     case 'ocr': botaoIndex = 0; break;
@@ -137,15 +126,11 @@ function atualizarTabAtiva(tab) {
   }
 }
 
-/**
- * Mostra o painel de OCR (substitui o antigo de texto)
- */
 function mostrarAnexoTexto() {
   atualizarTabAtiva('ocr');
   const painel = document.getElementById('anexoOcr');
   if (painel) {
     painel.style.display = 'block';
-    // Foca no textarea se já houver conteúdo
     setTimeout(() => {
       const textarea = painel.querySelector('.anexo-textarea-super');
       if (textarea && textarea.value) textarea.focus();
@@ -153,15 +138,11 @@ function mostrarAnexoTexto() {
   }
 }
 
-/**
- * Mostra o painel do ChatGPT
- */
 function mostrarAnexoChatGPT() {
   atualizarTabAtiva('chatgpt');
   const painel = document.getElementById('anexoChatGPT');
   if (painel) {
     painel.style.display = 'block';
-    // Foca no textarea
     setTimeout(() => {
       const textarea = painel.querySelector('.anexo-textarea-super');
       if (textarea) textarea.focus();
@@ -169,24 +150,23 @@ function mostrarAnexoChatGPT() {
   }
 }
 
-/**
- * Mostra o painel de foto
- */
 function mostrarAnexoFoto() {
   atualizarTabAtiva('foto');
   const painel = document.getElementById('anexoFoto');
   if (painel) {
     painel.style.display = 'block';
+    // Foca no textarea de descrição se existir
+    setTimeout(() => {
+      const textarea = painel.querySelector('.descricao-foto');
+      if (textarea) textarea.focus();
+    }, 100);
   }
 }
 
 // ==================================================
-// FUNÇÕES PRINCIPAIS DA INTERFACE (MANTIDAS)
+// FUNÇÕES PRINCIPAIS
 // ==================================================
 
-/**
- * Abre o painel de anexos
- */
 function abrirAnexo() {
   console.log('📂 Abrindo painel de anexos...');
   
@@ -196,34 +176,25 @@ function abrirAnexo() {
     return;
   }
   
-  // Verifica se estamos em modo de edição
   editingMode = window.anexoSalvo !== null;
   
-  // Mostra o container
   container.style.display = 'block';
   container.scrollIntoView({ behavior: 'smooth', block: 'center' });
   
-  // Esconde o botão "Adicionar Anexo"
   const btnAdd = document.getElementById('btnAdicionarAnexo');
   if (btnAdd) btnAdd.style.display = 'none';
   
-  // Se estiver editando, carrega o conteúdo existente
   if (editingMode && window.anexoSalvo) {
     carregarAnexoExistente();
   } else {
-    // Limpa os campos
     limparCamposAnexo();
   }
   
-  // Garante que a tab correta está ativa
   setTimeout(() => {
     if (!currentTab) mostrarAnexoTexto();
   }, 50);
 }
 
-/**
- * Carrega anexo existente para edição
- */
 function carregarAnexoExistente() {
   if (!window.anexoSalvo) return;
   
@@ -231,17 +202,15 @@ function carregarAnexoExistente() {
   
   switch(tipo) {
     case 'texto':
-      // Carrega no painel OCR
       mostrarAnexoTexto();
       const textareaOcr = document.querySelector('#anexoOcr .anexo-textarea-super');
       if (textareaOcr) {
         textareaOcr.value = data;
-        showToast('📝 Modo edição ativado. Edite o texto conforme necessário.', 'info');
+        showToast('📝 Modo edição ativado.', 'info');
       }
       break;
       
     case 'imagem':
-      // Carrega no painel de foto
       mostrarAnexoFoto();
       const preview = document.getElementById('previewFoto');
       if (preview) {
@@ -250,20 +219,14 @@ function carregarAnexoExistente() {
             <img src="${data}" 
                  style="max-width:100%; max-height:400px; border-radius:8px; box-shadow: var(--sombra);"
                  alt="Foto existente">
-            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
-              Imagem existente
-            </div>
           </div>
         `;
-        showToast('🖼️ Modo edição de imagem ativado.', 'info');
+        showToast('🖼️ Modo edição ativado.', 'info');
       }
       break;
   }
 }
 
-/**
- * Fecha o painel de anexos
- */
 function fecharAnexo() {
   console.log('📂 Fechando painel de anexos...');
   
@@ -272,7 +235,6 @@ function fecharAnexo() {
   
   container.style.display = 'none';
   
-  // Mostra o botão "Adicionar Anexo" se não houver anexo salvo
   if (!window.anexoSalvo) {
     const btnAdd = document.getElementById('btnAdicionarAnexo');
     if (btnAdd) btnAdd.style.display = 'inline-block';
@@ -281,45 +243,33 @@ function fecharAnexo() {
   editingMode = false;
 }
 
-/**
- * Limpa todos os campos do anexo
- */
 function limparCamposAnexo() {
   // Limpa textareas
-  const textareas = document.querySelectorAll('.anexo-textarea-super');
+  const textareas = document.querySelectorAll('.anexo-textarea-super, .descricao-foto');
   textareas.forEach(ta => ta.value = '');
   
-  // Limpa preview de imagem OCR
-  const previewOcr = document.getElementById('previewOcr');
-  if (previewOcr) {
-    previewOcr.innerHTML = `
-      <div style="color: var(--cinza-texto);">
-        <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
-        <p style="margin: 0; font-size: 0.95rem;">Carregue uma foto para extrair texto</p>
-      </div>
-    `;
-  }
+  // Limpa previews
+  const previews = ['previewOcr', 'previewFoto'];
+  previews.forEach(id => {
+    const preview = document.getElementById(id);
+    if (preview) {
+      preview.innerHTML = `
+        <div style="color: var(--cinza-texto); text-align: center; padding: 20px;">
+          <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
+          <p style="margin: 0; font-size: 0.95rem;">${id === 'previewOcr' ? 'Carregue uma foto para extrair texto' : 'Pré-visualização da imagem'}</p>
+        </div>
+      `;
+    }
+  });
   
-  // Limpa preview de foto
-  const previewFoto = document.getElementById('previewFoto');
-  if (previewFoto) {
-    previewFoto.innerHTML = `
-      <div style="color: var(--cinza-texto);">
-        <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
-        <p style="margin: 0; font-size: 0.95rem;">Pré-visualização da imagem</p>
-      </div>
-    `;
-  }
+  // Esconde controles
+  const controles = ['cropperControls', 'ocrControls'];
+  controles.forEach(id => {
+    const controle = document.getElementById(id);
+    if (controle) controle.style.display = 'none';
+  });
   
-  // Esconde controles do cropper
-  const cropperControls = document.getElementById('cropperControls');
-  if (cropperControls) cropperControls.style.display = 'none';
-  
-  // Esconde controles OCR
-  const ocrControls = document.getElementById('ocrControls');
-  if (ocrControls) ocrControls.style.display = 'none';
-  
-  // Destrói o cropper se existir
+  // Destrói cropper
   if (cropper) {
     cropper.destroy();
     cropper = null;
@@ -330,18 +280,13 @@ function limparCamposAnexo() {
 }
 
 // ==================================================
-// FUNÇÕES DO CHATGPT (APRIMORADAS)
+// FUNÇÕES DO CHATGPT (CORRIGIDAS)
 // ==================================================
 
-/**
- * Abre o ChatGPT com o prompt copiado AUTOMATICAMENTE
- * MELHORIA: Tenta preencher automaticamente o prompt
- */
 async function abrirChatGPT() {
-  console.log('🤖 Abrindo ChatGPT com preenchimento automático...');
+  console.log('🤖 Abrindo ChatGPT...');
   
   try {
-    // Obtém o tema do formulário
     const form = document.forms['planoForm'];
     let tema = '';
     
@@ -353,66 +298,70 @@ async function abrirChatGPT() {
       tema = 'Tema não definido';
     }
     
-    // Cria o prompt otimizado e melhorado
+    // Prompt melhorado (sem asteriscos para negrito)
     const prompt = `COMO ESPECIALISTA EM EDUCAÇÃO, GERE UM CONTEÚDO DIDÁTICO SOBRE: "${tema}"
 
 CRITÉRIOS ESTRITOS:
-1. FORMATO DE SAÍDA: Apenas conteúdo educacional puro, sem introduções, sem conclusões, sem assinaturas.
+1. FORMATO: Apenas conteúdo educacional puro, SEM introduções, SEM conclusões, SEM assinaturas.
 2. ESTRUTURA:
-   - TÍTULO PRINCIPAL (fonte maior, negrito)
+   - TÍTULO PRINCIPAL (apenas texto, SEM asteriscos)
    - CONCEITO CHAVE (explicação objetiva)
    - PONTOS IMPORTANTES (lista com marcadores •)
    - EXEMPLOS PRÁTICOS (2-3 exemplos aplicáveis)
-   - ATIVIDADE SUGERIDA (1 sugestão de atividade)
+   - ATIVIDADE SUGERIDA (1 sugestão simples)
 3. RESTRIÇÕES:
    - NÃO use emojis
-   - NÃO use asteriscos (*) como marcadores
+   - NÃO use asteriscos (*) de qualquer tipo
    - NÃO use expressões como "espero que ajude"
    - NÃO inclua "ChatGPT", "IA" ou "OpenAI"
    - NÃO faça introduções ou conclusões
    - USE português de Portugal ou Moçambique
 4. FORMATAÇÃO:
-   - Títulos em negrito e tamanho maior
-   - Listas com marcadores (•)
-   - Parágrafos curtos e objetivos
+   - NÃO use negrito com asteriscos
+   - Listas com marcadores (•) apenas
+   - Parágrafos curtos
    - Linguagem clara e acessível
 
 GERE APENAS O CONTEÚDO, SEM COMENTÁRIOS ADICIONAIS.`;
 
-    // Abre o ChatGPT em nova aba
-    const chatGPTWindow = window.open('https://chat.openai.com/', '_blank');
+    // Método 1: Tentar copiar para clipboard
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(prompt);
+      copied = true;
+      console.log('✅ Prompt copiado para área de transferência');
+    } catch (e) {
+      console.warn('⚠️ Clipboard API falhou, usando fallback');
+    }
     
-    // Tenta métodos diferentes para preencher automaticamente
-    setTimeout(async () => {
-      try {
-        // Método 1: Tentar usar a API do navegador para autopreenchimento
-        if (navigator.clipboard && window.clipboardData === undefined) {
-          await navigator.clipboard.writeText(prompt);
-          showToast('📋 Prompt copiado! Cole no ChatGPT.', 'success');
-          
-          // Dá instruções para colar
-          setTimeout(() => {
-            if (chatGPTWindow && !chatGPTWindow.closed) {
-              try {
-                chatGPTWindow.focus();
-                // Não podemos injetar diretamente, mas damos instruções
-                alert('Cole o prompt (Ctrl+V) na caixa de entrada do ChatGPT.');
-              } catch (e) {
-                // Ignora erro de cross-origin
-              }
-            }
-          }, 1000);
+    // Método 2: Abrir nova janela com tentativa de autopreenchimento
+    const chatGPTUrl = 'https://chat.openai.com/';
+    const novaJanela = window.open(chatGPTUrl, '_blank');
+    
+    // Mostrar mensagem amigável
+    if (copied) {
+      showToast('📋 Prompt copiado! Abrindo ChatGPT...', 'success');
+      
+      // Espera um pouco e mostra instruções
+      setTimeout(() => {
+        if (novaJanela && !novaJanela.closed) {
+          try {
+            // Tenta focar na nova janela
+            novaJanela.focus();
+            
+            // Mostra alerta com instruções
+            setTimeout(() => {
+              alert('✅ Prompt copiado!\n\n1. Vá para o ChatGPT\n2. Clique na caixa de texto\n3. Cole com Ctrl+V\n4. Pressione Enter');
+            }, 1500);
+          } catch (e) {
+            // Cross-origin, não podemos interagir diretamente
+          }
         }
-      } catch (clipboardError) {
-        console.warn('⚠️ Não foi possível copiar automaticamente', clipboardError);
-        
-        // Método 2: Fallback - mostra o prompt para copiar manualmente
-        showToast('📋 Copie manualmente o prompt abaixo.', 'warning');
-        
-        // Mostra o prompt em um modal
-        mostrarModalPrompt(prompt);
-      }
-    }, 2000); // Espera 2 segundos para o ChatGPT carregar
+      }, 1000);
+    } else {
+      // Fallback: mostra modal com prompt
+      mostrarModalPrompt(prompt);
+    }
     
   } catch (error) {
     console.error('❌ Erro ao abrir ChatGPT:', error);
@@ -420,9 +369,6 @@ GERE APENAS O CONTEÚDO, SEM COMENTÁRIOS ADICIONAIS.`;
   }
 }
 
-/**
- * Mostra modal com prompt para copiar manualmente
- */
 function mostrarModalPrompt(prompt) {
   const modalHtml = `
     <div id="promptModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; display:flex; align-items:center; justify-content:center;">
@@ -433,11 +379,13 @@ function mostrarModalPrompt(prompt) {
         <p style="color:var(--cinza-texto); margin-bottom:20px;">
           Copie este prompt e cole no ChatGPT:
         </p>
-        <textarea id="promptText" style="width:100%; height:300px; padding:15px; border:2px solid var(--cinza-borda); border-radius:8px; font-family:monospace; font-size:14px; line-height:1.5; resize:none; margin-bottom:20px;">${prompt}</textarea>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-          <button onclick="copiarPrompt()" style="padding:12px 24px; background:var(--verde-salvar); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:500; display:flex; align-items:center; gap:8px;">
-            <i class="fas fa-copy"></i> Copiar Prompt
+        <div style="position: relative;">
+          <textarea id="promptText" style="width:100%; height:300px; padding:15px; border:2px solid var(--cinza-borda); border-radius:8px; font-family:monospace; font-size:14px; line-height:1.5; resize:none; margin-bottom:20px;">${prompt}</textarea>
+          <button onclick="copiarPromptEAbrir()" style="position:absolute; top:10px; right:10px; padding:8px 15px; background:var(--verde-salvar); color:white; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.9rem;">
+            <i class="fas fa-copy"></i> Copiar & Abrir
           </button>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
           <button onclick="fecharPromptModal()" style="padding:12px 24px; background:var(--cinza-texto); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:500;">
             Fechar
           </button>
@@ -449,17 +397,30 @@ function mostrarModalPrompt(prompt) {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-function copiarPrompt() {
+function copiarPromptEAbrir() {
   const textarea = document.getElementById('promptText');
   textarea.select();
   textarea.setSelectionRange(0, 99999);
   
+  let copied = false;
   try {
     navigator.clipboard.writeText(textarea.value);
-    showToast('✅ Prompt copiado para área de transferência!', 'success');
+    copied = true;
   } catch (err) {
     document.execCommand('copy');
-    showToast('✅ Prompt copiado!', 'success');
+    copied = true;
+  }
+  
+  if (copied) {
+    showToast('✅ Prompt copiado! Abrindo ChatGPT...', 'success');
+    
+    // Abre ChatGPT em nova janela
+    window.open('https://chat.openai.com/', '_blank');
+    
+    // Fecha o modal após 1 segundo
+    setTimeout(() => {
+      fecharPromptModal();
+    }, 1000);
   }
 }
 
@@ -469,57 +430,80 @@ function fecharPromptModal() {
 }
 
 // ==================================================
-// FUNÇÕES DE OCR INTELIGENTE (NOVO SISTEMA)
+// FUNÇÕES DE OCR CORRIGIDAS
 // ==================================================
 
-/**
- * Inicializa o sistema OCR
- */
 async function initOCR() {
-  console.log('🔍 Inicializando sistema OCR...');
+  console.log('🔍 Verificando suporte OCR...');
   
-  // Verifica se Tesseract está disponível
+  // Verifica se Tesseract está carregado
   if (typeof Tesseract === 'undefined') {
-    console.warn('⚠️ Tesseract.js não carregado. Usando fallback manual.');
-    showToast('⚠️ OCR avançado não disponível. Use extração manual.', 'warning');
-    return false;
+    console.warn('⚠️ Tesseract.js não encontrado');
+    
+    // Carrega Tesseract dinamicamente se necessário
+    return carregarTesseract();
   }
   
   return true;
 }
 
-/**
- * Processa OCR avançado com detecção de fórmulas
- */
+function carregarTesseract() {
+  return new Promise((resolve) => {
+    console.log('📦 Carregando Tesseract.js...');
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@v3.0.3/dist/tesseract.min.js';
+    script.onload = () => {
+      console.log('✅ Tesseract.js carregado');
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error('❌ Falha ao carregar Tesseract.js');
+      showToast('⚠️ OCR avançado não disponível. Use extração manual.', 'warning');
+      resolve(false);
+    };
+    
+    document.head.appendChild(script);
+  });
+}
+
 async function processarOCRInteligente(imageDataUrl) {
-  console.log('🧠 Processando OCR inteligente...');
+  console.log('🧠 Iniciando OCR...');
   
-  showToast('🔍 Analisando imagem...', 'info');
+  // Verifica se Tesseract está disponível
+  if (typeof Tesseract === 'undefined') {
+    throw new Error('Tesseract não carregado');
+  }
   
   try {
-    // 1. Primeiro, OCR básico com Tesseract
-    const worker = await Tesseract.createWorker('por+eng'); // Português e Inglês
-    await worker.setParameters({
-      preserve_interword_spaces: '1',
-      tessedit_pageseg_mode: '6', // Assume um bloco uniforme de texto
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?()[]{}\"\'+-*/=<>$%&@# \n\u03B1\u03B2\u03B3\u03B4\u03B5\u03B6\u03B7\u03B8\u03B9\u03B0\u0391\u0392\u0393\u0394\u0395\u0396\u0397\u0398\u0399' // Inclui letras gregas
+    // Usa worker local para evitar problemas de CORS
+    const worker = Tesseract.createWorker({
+      workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v3.0.3/dist/worker.min.js',
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v4.0.3/tesseract-core.wasm.js',
     });
     
+    await worker.load();
+    await worker.loadLanguage('por');
+    await worker.initialize('por');
+    
+    // Configurações otimizadas para material educativo
+    await worker.setParameters({
+      tessedit_pageseg_mode: '6', // Assume bloco uniforme
+      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?()[]{}\"\'+-*/=<>$%&@# \n',
+      preserve_interword_spaces: '1'
+    });
+    
+    console.log('📸 Processando imagem...');
     const { data: { text, confidence } } = await worker.recognize(imageDataUrl);
     await worker.terminate();
     
-    console.log(`📊 Confiança do OCR: ${confidence}%`);
+    console.log(`📊 Confiança: ${confidence}%`);
     
-    // 2. Pós-processamento inteligente
+    // Pós-processamento
     let processedText = posProcessarTextoOCR(text, confidence);
-    
-    // 3. Detectar e marcar fórmulas matemáticas
     processedText = detectarFormulasMatematicas(processedText);
-    
-    // 4. Filtrar rodapés e cabeçalhos
     processedText = filtrarRodapesCabeçalhos(processedText);
-    
-    // 5. Estruturar o texto
     processedText = estruturarTextoEducacional(processedText);
     
     ocrResult = {
@@ -533,90 +517,112 @@ async function processarOCRInteligente(imageDataUrl) {
     
   } catch (error) {
     console.error('❌ Erro no OCR:', error);
-    showToast('❌ Erro no processamento OCR.', 'error');
-    throw error;
+    
+    // Fallback: tenta OCR mais simples
+    return processarOCRFallback(imageDataUrl);
   }
 }
 
-/**
- * Pós-processamento do texto OCR
- */
+async function processarOCRFallback(imageDataUrl) {
+  console.log('🔄 Usando fallback OCR...');
+  
+  try {
+    // Cria worker simples
+    const worker = await Tesseract.createWorker();
+    await worker.loadLanguage('eng+por'); // Inglês e Português
+    await worker.initialize('eng+por');
+    
+    const { data: { text } } = await worker.recognize(imageDataUrl);
+    await worker.terminate();
+    
+    // Processamento básico
+    let processedText = text
+      .replace(/\s+/g, ' ')
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
+    
+    ocrResult = {
+      textoBruto: text,
+      textoProcessado: processedText,
+      confianca: 50, // Confiança baixa para fallback
+      imagem: imageDataUrl
+    };
+    
+    return ocrResult;
+    
+  } catch (fallbackError) {
+    console.error('❌ Fallback também falhou:', fallbackError);
+    throw new Error('OCR não disponível. Digite o texto manualmente.');
+  }
+}
+
 function posProcessarTextoOCR(texto, confianca) {
   let processado = texto;
   
-  // Corrigir erros comuns de OCR
+  // Correções comuns
   const correcoes = {
-    'O': '0', // Letra O para número 0 (em contextos numéricos)
-    'l': '1', // Letra l para número 1
-    'I': '1', // Letra I para número 1
-    '|': '1', // Pipe para número 1
-    'Z': '2', // Letra Z para número 2
-    'S': '5', // Letra S para número 5
-    'B': '8', // Letra B para número 8
-    'rn': 'm', // rn para m
-    'vv': 'w', // vv para w
+    'rn': 'm',
+    'vv': 'w',
+    'cl': 'd',
+    'O': '0',
+    'l': '1',
+    'I': '1',
+    '|': '1',
+    'Z': '2',
+    'S': '5',
+    'B': '8',
   };
   
   Object.entries(correcoes).forEach(([erro, correcao]) => {
-    const regex = new RegExp(erro, 'g');
+    const regex = new RegExp(erro, 'gi');
     processado = processado.replace(regex, correcao);
   });
   
-  // Normalizar espaçamento
+  // Limpeza
   processado = processado.replace(/\s+/g, ' ');
   processado = processado.replace(/\n\s*\n/g, '\n\n');
+  processado = processado.trim();
   
   return processado;
 }
 
-/**
- * Detecta fórmulas matemáticas no texto
- */
 function detectarFormulasMatematicas(texto) {
   let marcado = texto;
   
-  // Padrões comuns de fórmulas
-  const padroesFormulas = [
+  const padroes = [
     // Frações
-    { regex: /(\d+)\/(\d+)/g, substituicao: '$1⁄$2' },
+    { regex: /(\d+)\s*\/\s*(\d+)/g, substituicao: '$1⁄$2' },
     
     // Expoentes
-    { regex: /(\w+)\^(\d+)/g, substituicao: '$1<sup>$2</sup>' },
+    { regex: /(\w+)\s*\^\s*(\d+)/g, substituicao: '$1<sup>$2</sup>' },
     
     // Subscritos
-    { regex: /(\w+)_(\d+)/g, substituicao: '$1<sub>$2</sub>' },
+    { regex: /(\w+)\s*_\s*(\d+)/g, substituicao: '$1<sub>$2</sub>' },
     
-    // Raízes quadradas (aproximação)
-    { regex: /sqrt\(([^)]+)\)/g, substituicao: '√($1)' },
-    
-    // Símbolos matemáticos comuns
+    // Símbolos
     { regex: /!=/g, substituicao: '≠' },
     { regex: /<=/g, substituicao: '≤' },
     { regex: />=/g, substituicao: '≥' },
     { regex: /->/g, substituicao: '→' },
-    { regex: /pi/g, substituicao: 'π' },
+    { regex: /pi/gi, substituicao: 'π' },
     
-    // Fórmulas químicas
-    { regex: /([A-Z][a-z]?)(\d+)/g, substituicao: '$1<sub>$2</sub>' },
-    { regex: /H2O/g, substituicao: 'H<sub>2</sub>O' },
-    { regex: /CO2/g, substituicao: 'CO<sub>2</sub>' },
+    // Químicas
+    { regex: /H\s*2\s*O/g, substituicao: 'H₂O' },
+    { regex: /C\s*O\s*2/g, substituicao: 'CO₂' },
+    { regex: /(\w)\s*(\d+)/g, substituicao: '$1<sub>$2</sub>' },
     
-    // Fórmulas físicas
+    // Físicas
     { regex: /F\s*=\s*m\s*a/g, substituicao: 'F = m·a' },
-    { regex: /E\s*=\s*m\s*c\^2/g, substituicao: 'E = m·c<sup>2</sup>' },
-    { regex: /v\s*=\s*d\/t/g, substituicao: 'v = d/t' },
+    { regex: /v\s*=\s*d\s*\/\s*t/g, substituicao: 'v = d/t' },
   ];
   
-  padroesFormulas.forEach(({ regex, substituicao }) => {
+  padroes.forEach(({ regex, substituicao }) => {
     marcado = marcado.replace(regex, substituicao);
   });
   
   return marcado;
 }
 
-/**
- * Filtra rodapés e cabeçalhos
- */
 function filtrarRodapesCabeçalhos(texto) {
   const linhas = texto.split('\n');
   const filtradas = [];
@@ -624,7 +630,7 @@ function filtrarRodapesCabeçalhos(texto) {
   for (let i = 0; i < linhas.length; i++) {
     const linha = linhas[i].trim();
     
-    // Ignora linhas muito curtas que provavelmente são números de página
+    // Ignora números de página
     if (linha.length <= 3 && /^\d+$/.test(linha)) {
       continue;
     }
@@ -636,60 +642,36 @@ function filtrarRodapesCabeçalhos(texto) {
       continue;
     }
     
-    // Ignora cabeçalhos de capítulos repetidos
-    if (i > 0 && linhas[i-1] && linha === linhas[i-1].trim()) {
-      continue;
-    }
-    
-    filtradas.push(linhas[i]); // Mantém a linha original (com espaços)
+    filtradas.push(linhas[i]);
   }
   
   return filtradas.join('\n');
 }
 
-/**
- * Estrutura o texto para formato educacional
- */
 function estruturarTextoEducacional(texto) {
-  let estruturado = texto;
-  
-  // Detecta títulos (linhas curtas e em maiúsculas ou com pontuação forte)
-  const linhas = estruturado.split('\n');
+  const linhas = texto.split('\n');
   const resultado = [];
   
   for (let i = 0; i < linhas.length; i++) {
     const linha = linhas[i];
-    const proximaLinha = linhas[i + 1] || '';
+    const proxima = linhas[i + 1] || '';
     
-    // Se linha é curta e próxima linha começa com letra minúscula, provavelmente é título
-    if (linha.length < 60 && 
-        proximaLinha.length > 20 && 
-        /^[A-ZÀ-Ú0-9]/.test(linha) &&
-        !linha.endsWith('.') && 
-        !linha.endsWith(',') &&
-        !linha.endsWith(';')) {
-      resultado.push(`## ${linha}`);
+    // Detecta títulos (linhas curtas sem pontuação)
+    if (linha.length > 10 && linha.length < 80 && 
+        !linha.match(/[.,;:!?]$/) &&
+        proxima.length > 20) {
+      resultado.push(linha);
     } else {
       resultado.push(linha);
     }
   }
   
-  estruturado = resultado.join('\n');
-  
-  return estruturado;
+  return resultado.join('\n');
 }
 
-/**
- * Carrega imagem para OCR
- */
 function carregarImagemOCR(event) {
-  console.log('📸 Carregando imagem para OCR...');
-  
-  const file = event.target.files && event.target.files[0];
-  if (!file) {
-    console.log('❌ Nenhum arquivo selecionado');
-    return;
-  }
+  const file = event.target.files[0];
+  if (!file) return;
   
   // Validação
   const maxSizeMB = 10;
@@ -700,9 +682,9 @@ function carregarImagemOCR(event) {
     return;
   }
   
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
   if (!validTypes.includes(file.type)) {
-    showToast('⚠️ Formato não suportado! Use JPG, PNG ou WebP.', 'warning');
+    showToast('⚠️ Formato não suportado! Use JPG, PNG.', 'warning');
     return;
   }
   
@@ -710,9 +692,10 @@ function carregarImagemOCR(event) {
   const preview = document.getElementById('previewOcr');
   if (preview) {
     preview.innerHTML = `
-      <div style="color: var(--azul-principal); text-align: center;">
+      <div style="color: var(--azul-principal); text-align: center; padding: 30px;">
         <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--azul-principal); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
-        <p style="margin: 0; font-size: 0.95rem;">Carregando imagem...</p>
+        <p style="margin: 0; font-size: 0.95rem;">Processando imagem...</p>
+        <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: var(--cinza-texto);">Isso pode levar alguns segundos</p>
       </div>
     `;
   }
@@ -722,114 +705,95 @@ function carregarImagemOCR(event) {
   reader.onload = async function(e) {
     const imageDataUrl = e.target.result;
     
-    // Mostra a imagem carregada
-    if (preview) {
-      preview.innerHTML = `
-        <div style="position: relative; text-align: center;">
-          <img src="${imageDataUrl}" 
-               style="max-width:100%; max-height:300px; border-radius:8px; box-shadow: var(--sombra);"
-               alt="Imagem para OCR">
-          <div style="margin-top: 10px; color: var(--cinza-texto); font-size: 0.9rem;">
-            <i class="fas fa-sync-alt fa-spin"></i> Processando OCR...
-          </div>
-        </div>
-      `;
-    }
-    
-    // Processa OCR
     try {
+      // Processa OCR
       const resultado = await processarOCRInteligente(imageDataUrl);
       
-      // Mostra controles OCR
-      const ocrControls = document.getElementById('ocrControls');
-      if (ocrControls) {
-        ocrControls.style.display = 'block';
-      }
-      
-      // Preenche o textarea com o resultado
-      const textarea = document.querySelector('#anexoOcr .anexo-textarea-super');
-      if (textarea) {
-        textarea.value = resultado.textoProcessado;
-        showToast(`✅ OCR concluído! Confiança: ${resultado.confianca.toFixed(1)}%`, 'success');
-      }
-      
-      // Atualiza preview com imagem e texto lado a lado
+      // Atualiza preview
       if (preview) {
         preview.innerHTML = `
-          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px;">
-              <h4 style="color: var(--azul-principal); margin-top: 0;">
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="text-align: center;">
+              <h4 style="color: var(--azul-principal); margin: 0 0 10px 0;">
                 <i class="fas fa-image"></i> Imagem Original
               </h4>
               <img src="${imageDataUrl}" 
-                   style="max-width:100%; max-height:250px; border-radius:8px; box-shadow: var(--sombra);"
-                   alt="Imagem original">
+                   style="max-width:100%; max-height:200px; border-radius:8px; box-shadow: var(--sombra);"
+                   alt="Imagem carregada">
             </div>
-            <div style="flex: 2; min-width: 300px;">
-              <h4 style="color: var(--azul-principal); margin-top: 0;">
+            <div style="text-align: center;">
+              <h4 style="color: var(--verde-ocr); margin: 0 0 10px 0;">
                 <i class="fas fa-font"></i> Texto Extraído
-                <span style="font-size: 0.8rem; color: ${resultado.confianca > 85 ? 'var(--verde-salvar)' : resultado.confianca > 70 ? 'var(--laranja-chatgpt)' : 'var(--vermelho-remover)'}">
-                  (${resultado.confianca.toFixed(1)}% confiança)
+                <span style="font-size: 0.8rem; color: ${resultado.confianca > 70 ? 'var(--verde-salvar)' : 'var(--laranja-chatgpt)'}; margin-left: 10px;">
+                  (${resultado.confianca.toFixed(0)}% confiança)
                 </span>
               </h4>
-              <div style="background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 8px; padding: 15px; max-height: 250px; overflow-y: auto; font-size: 0.95rem; line-height: 1.6;">
-                ${formatarTextoEducacional(resultado.textoProcessado)}
+              <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; max-height: 200px; overflow-y: auto; text-align: left; font-size: 0.9rem; line-height: 1.5;">
+                ${resultado.textoProcessado.split('\n').slice(0, 10).join('<br>')}
+                ${resultado.textoProcessado.split('\n').length > 10 ? '<br>...' : ''}
               </div>
             </div>
           </div>
         `;
       }
       
+      // Preenche textarea
+      const textarea = document.querySelector('#anexoOcr .anexo-textarea-super');
+      if (textarea) {
+        textarea.value = resultado.textoProcessado;
+        showToast(`✅ OCR concluído! (${resultado.confianca.toFixed(0)}% confiança)`, 'success');
+      }
+      
+      // Mostra controles
+      const ocrControls = document.getElementById('ocrControls');
+      if (ocrControls) ocrControls.style.display = 'block';
+      
     } catch (error) {
       console.error('Erro no OCR:', error);
-      showToast('❌ Erro no processamento OCR. Tente novamente.', 'error');
       
       // Fallback: mostra apenas a imagem
       if (preview) {
         preview.innerHTML = `
           <div style="text-align: center;">
+            <h4 style="color: var(--azul-principal); margin: 0 0 15px 0;">
+              <i class="fas fa-image"></i> Imagem Carregada
+            </h4>
             <img src="${imageDataUrl}" 
                  style="max-width:100%; max-height:300px; border-radius:8px; box-shadow: var(--sombra);"
                  alt="Imagem carregada">
-            <p style="color: var(--vermelho-remover); margin-top: 10px;">
-              <i class="fas fa-exclamation-triangle"></i> Erro no OCR. Use a caixa de texto para digitar manualmente.
+            <p style="color: var(--cinza-texto); margin-top: 15px; font-size: 0.9rem;">
+              <i class="fas fa-edit"></i> Digite o texto manualmente na caixa abaixo
             </p>
           </div>
         `;
       }
+      
+      showToast('ℹ️ Digite o texto manualmente ou tente outra imagem.', 'info');
     }
   };
   
   reader.onerror = function() {
     console.error('❌ Erro ao ler arquivo');
-    showToast('⚠️ Erro ao ler o arquivo. Tente novamente.', 'error');
+    showToast('⚠️ Erro ao carregar imagem.', 'error');
   };
   
   reader.readAsDataURL(file);
 }
 
 // ==================================================
-// FUNÇÕES DE MANIPULAÇÃO DE FOTOS (MANTIDAS)
+// FUNÇÕES DE FOTO COM TEXTO (CORRIGIDAS)
 // ==================================================
 
-/**
- * Carrega uma foto para edição (para a tab de foto)
- */
 function carregarFoto(event) {
-  console.log('📸 Carregando foto para recorte...');
+  const file = event.target.files[0];
+  if (!file) return;
   
-  const file = event.target.files && event.target.files[0];
-  if (!file) {
-    console.log('❌ Nenhum arquivo selecionado');
-    return;
-  }
-  
-  // Validação do arquivo
+  // Validação
   const maxSizeMB = 8;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   
   if (file.size > maxSizeBytes) {
-    alert(`⚠️ A imagem é muito grande! Tamanho máximo: ${maxSizeMB}MB`);
+    alert(`⚠️ Imagem muito grande! Máximo: ${maxSizeMB}MB`);
     return;
   }
   
@@ -843,7 +807,7 @@ function carregarFoto(event) {
   const preview = document.getElementById('previewFoto');
   if (preview) {
     preview.innerHTML = `
-      <div style="color: var(--azul-principal);">
+      <div style="color: var(--azul-principal); text-align: center; padding: 20px;">
         <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--azul-principal); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
         <p style="margin: 0; font-size: 0.9rem;">Carregando imagem...</p>
       </div>
@@ -853,19 +817,15 @@ function carregarFoto(event) {
   const reader = new FileReader();
   
   reader.onload = function(e) {
-    console.log('✅ Imagem carregada com sucesso');
+    const imageDataUrl = e.target.result;
     
-    if (!preview) {
-      alert('Erro: Área de preview não encontrada.');
-      return;
-    }
+    if (!preview) return;
     
-    // Limpa o preview
+    // Limpa e mostra a imagem
     preview.innerHTML = '';
     
-    // Cria container para a imagem
+    // Cria container para imagem
     const wrapper = document.createElement('div');
-    wrapper.id = 'cropperWrapper';
     wrapper.style.cssText = `
       max-width: 100%;
       max-height: 60vh;
@@ -876,10 +836,10 @@ function carregarFoto(event) {
     `;
     preview.appendChild(wrapper);
     
-    // Cria a imagem
+    // Cria imagem
     const img = document.createElement('img');
     img.id = 'imgCrop';
-    img.src = e.target.result;
+    img.src = imageDataUrl;
     img.style.cssText = `
       max-width: 100%;
       max-height: 60vh;
@@ -896,33 +856,26 @@ function carregarFoto(event) {
       cropperControls.style.display = 'block';
     }
     
-    // Inicializa o Cropper quando a imagem carregar
+    // Inicializa cropper quando imagem carregar
     img.onload = function() {
-      console.log('🎨 Inicializando editor de imagem...');
+      if (typeof Cropper === 'undefined') {
+        console.warn('Cropper não carregado');
+        return;
+      }
       
       try {
-        // Destrói cropper existente
         if (cropper) {
           cropper.destroy();
           cropper = null;
         }
         
-        // Verifica se o Cropper está disponível
-        if (typeof Cropper === 'undefined') {
-          throw new Error('Biblioteca de edição não carregada');
-        }
-        
-        // Cria novo cropper
         cropper = new Cropper(img, {
           viewMode: 1,
           dragMode: 'crop',
-          initialAspectRatio: 4/3,
-          aspectRatio: null, // Livre
-          preview: null,
+          aspectRatio: null,
+          autoCropArea: 0.8,
           responsive: true,
           restore: true,
-          checkCrossOrigin: false,
-          checkOrientation: true,
           modal: true,
           guides: true,
           center: true,
@@ -930,102 +883,34 @@ function carregarFoto(event) {
           cropBoxMovable: true,
           cropBoxResizable: true,
           toggleDragModeOnDblclick: true,
-          autoCropArea: 0.8,
-          minCanvasWidth: 100,
-          minCanvasHeight: 100,
-          minCropBoxWidth: 50,
-          minCropBoxHeight: 50,
           ready: function() {
-            console.log('✅ Editor de imagem pronto');
+            console.log('✅ Cropper pronto');
           }
         });
-        
       } catch (error) {
-        console.error('❌ Erro ao inicializar editor:', error);
-        alert('⚠️ Não foi possível carregar o editor de imagem. Tente novamente.');
-        
-        // Mostra a imagem sem cropper
-        preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:400px; border-radius:8px;">`;
-        
-        // Esconde controles do cropper
-        if (cropperControls) {
-          cropperControls.style.display = 'none';
-        }
+        console.error('❌ Erro no cropper:', error);
+        // Continua sem cropper
       }
     };
-    
-    // Tratamento de erro na carga da imagem
-    img.onerror = function() {
-      console.error('❌ Erro ao carregar imagem');
-      alert('⚠️ Erro ao carregar a imagem. Tente novamente.');
-      preview.innerHTML = `
-        <div style="color: var(--vermelho-remover);">
-          <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
-          <p>Erro ao carregar imagem</p>
-        </div>
-      `;
-    };
-  };
-  
-  reader.onerror = function() {
-    console.error('❌ Erro ao ler arquivo');
-    alert('⚠️ Erro ao ler o arquivo. Tente novamente.');
   };
   
   reader.readAsDataURL(file);
 }
 
-/**
- * Funções de controle do Cropper
- */
-function rotateLeft() {
-  if (cropper) {
-    cropper.rotate(-90);
-    console.log('↪️ Rotacionado -90°');
-  }
-}
+// Funções do cropper (mantidas)
+function rotateLeft() { if (cropper) cropper.rotate(-90); }
+function rotateRight() { if (cropper) cropper.rotate(90); }
+function zoomIn() { if (cropper) cropper.zoom(0.1); }
+function zoomOut() { if (cropper) cropper.zoom(-0.1); }
+function resetCropper() { if (cropper) cropper.reset(); }
 
-function rotateRight() {
-  if (cropper) {
-    cropper.rotate(90);
-    console.log('↩️ Rotacionado +90°');
-  }
-}
-
-function zoomIn() {
-  if (cropper) {
-    cropper.zoom(0.1);
-    console.log('➕ Zoom aumentado');
-  }
-}
-
-function zoomOut() {
-  if (cropper) {
-    cropper.zoom(-0.1);
-    console.log('➖ Zoom reduzido');
-  }
-}
-
-function resetCropper() {
-  if (cropper) {
-    cropper.reset();
-    console.log('🔄 Cropper resetado');
-  }
-}
-
-/**
- * Salva o recorte da foto
- */
 function salvarFotoPreview() {
-  console.log('💾 Salvando recorte...');
-  
   if (!cropper) {
-    alert('⚠️ Nenhuma imagem carregada para recortar.');
+    showToast('⚠️ Nenhuma imagem carregada.', 'warning');
     return;
   }
   
   try {
-    // Obtém o canvas recortado
     const canvas = cropper.getCroppedCanvas({
       maxWidth: 1600,
       maxHeight: 1600,
@@ -1035,67 +920,75 @@ function salvarFotoPreview() {
     });
     
     if (!canvas) {
-      throw new Error('Não foi possível criar o recorte');
+      throw new Error('Erro ao criar recorte');
     }
     
-    // Converte para data URL (JPEG com 85% qualidade)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     const preview = document.getElementById('previewFoto');
     
-    if (!preview) {
-      throw new Error('Área de preview não encontrada');
-    }
+    if (!preview) return;
     
-    // Atualiza o preview com a imagem recortada
-    preview.innerHTML = `
+    // Atualiza preview mantendo textarea
+    preview.innerHTML = '';
+    
+    // Imagem recortada
+    const imgContainer = document.createElement('div');
+    imgContainer.style.cssText = 'text-align: center; margin-bottom: 20px;';
+    imgContainer.innerHTML = `
       <div style="position: relative; display: inline-block;">
         <img src="${dataUrl}" 
-             style="max-width:100%; max-height:400px; border-radius:8px; box-shadow: var(--sombra);"
+             style="max-width:100%; max-height:350px; border-radius:8px; box-shadow: var(--sombra);"
              alt="Foto recortada">
         <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
           ${Math.round(dataUrl.length / 1024)} KB
         </div>
       </div>
     `;
+    preview.appendChild(imgContainer);
     
-    // Destrói o cropper
+    // Textarea para descrição
+    const descricaoContainer = document.createElement('div');
+    descricaoContainer.style.cssText = 'margin-top: 15px;';
+    descricaoContainer.innerHTML = `
+      <label style="display: block; color: var(--azul-principal); font-weight: 500; margin-bottom: 8px; font-size: 0.95rem;">
+        <i class="fas fa-font"></i> Descrição da foto (opcional):
+      </label>
+      <textarea class="descricao-foto" 
+                placeholder="Adicione uma descrição, legenda ou observação sobre esta foto..."
+                style="width:100%; min-height:100px; padding:12px; border:2px solid var(--cinza-borda); border-radius:8px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
+    `;
+    preview.appendChild(descricaoContainer);
+    
+    // Destrói cropper
     if (cropper) {
       cropper.destroy();
       cropper = null;
     }
     
-    // Esconde controles do cropper
+    // Esconde controles
     const cropperControls = document.getElementById('cropperControls');
-    if (cropperControls) {
-      cropperControls.style.display = 'none';
-    }
+    if (cropperControls) cropperControls.style.display = 'none';
     
-    console.log('✅ Recorte salvo com sucesso');
-    showToast('✅ Foto recortada salva!', 'success');
+    showToast('✅ Foto recortada salva! Adicione uma descrição se quiser.', 'success');
     
   } catch (error) {
     console.error('❌ Erro ao salvar recorte:', error);
-    showToast('⚠️ Erro ao salvar o recorte. Tente novamente.', 'error');
+    showToast('⚠️ Erro ao salvar recorte.', 'error');
   }
 }
 
 // ==================================================
-// FUNÇÕES DE SALVAR E REMOVER ANEXO (APRIMORADAS)
+// FUNÇÕES DE SALVAR ANEXO (ATUALIZADAS)
 // ==================================================
 
-/**
- * Salva o anexo no plano (APRIMORADA para permitir edição)
- */
 function salvarAnexo() {
-  console.log('💾 Salvando anexo...');
-  
   const planoPreview = document.getElementById('anexoPreview');
   if (!planoPreview) {
-    alert('❌ Erro: Área de preview do plano não encontrada.');
+    alert('❌ Área de preview não encontrada.');
     return;
   }
   
-  // Prepara o container do anexo com botão de edição
+  // Prepara container
   planoPreview.innerHTML = `
     <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafd 100%); border-radius: var(--borda-arredondada); padding: 20px; margin-top: 20px; border: 2px solid var(--azul-suave); box-shadow: var(--sombra); position: relative;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid var(--azul-suave); padding-bottom: 10px;">
@@ -1114,9 +1007,8 @@ function salvarAnexo() {
   
   let conteudoHTML = '';
   let tipo = '';
-  let dados = '';
+  let dados = {};
   
-  // Obtém conteúdo baseado na tab ativa
   switch(currentTab) {
     case 'ocr': {
       const painel = document.getElementById('anexoOcr');
@@ -1129,15 +1021,14 @@ function salvarAnexo() {
       }
       
       tipo = 'texto';
-      dados = texto;
+      dados = { texto, tipo: 'ocr' };
       
-      // Formatação especial para OCR
       conteudoHTML = `
-        <div style="background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 8px; padding: 20px; line-height: 1.7; font-family: inherit; color: #2c3e50;">
-          <div style="font-size: 0.9rem; color: var(--cinza-texto); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-font"></i> Texto extraído/editado
+        <div style="background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 0.9rem; color: var(--verde-ocr); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-font"></i> Texto extraído de material
           </div>
-          <div style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+          <div style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 10px; background: #f8f9fa; border-radius: 6px; line-height: 1.6;">
             ${formatarTextoEducacional(texto)}
           </div>
         </div>
@@ -1151,20 +1042,19 @@ function salvarAnexo() {
       const texto = textarea ? textarea.value.trim() : '';
       
       if (!texto) {
-        showToast('⚠️ Cole o conteúdo gerado no ChatGPT antes de salvar.', 'warning');
+        showToast('⚠️ Cole o conteúdo gerado antes de salvar.', 'warning');
         return;
       }
       
       tipo = 'texto';
-      dados = texto;
+      dados = { texto, tipo: 'chatgpt' };
       
-      // Formatação especial para conteúdo gerado por IA
       conteudoHTML = `
-        <div style="background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 8px; padding: 20px; line-height: 1.7; font-family: inherit; color: #2c3e50;">
-          <div style="font-size: 0.9rem; color: var(--cinza-texto); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+        <div style="background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 0.9rem; color: var(--laranja-chatgpt); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-robot"></i> Conteúdo gerado por IA
           </div>
-          <div style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 10px; background: #fff8e1; border-radius: 6px; border-left: 4px solid var(--laranja-chatgpt);">
+          <div style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 10px; background: #fff8e1; border-radius: 6px; line-height: 1.6;">
             ${formatarTextoEducacional(texto)}
           </div>
         </div>
@@ -1175,50 +1065,58 @@ function salvarAnexo() {
     case 'foto': {
       const painel = document.getElementById('anexoFoto');
       const previewImg = painel ? painel.querySelector('#previewFoto img') : null;
+      const textareaDesc = painel ? painel.querySelector('.descricao-foto') : null;
+      const descricao = textareaDesc ? textareaDesc.value.trim() : '';
       
-      if (!previewImg || !previewImg.src || previewImg.src.includes('data:image/svg')) {
-        showToast('⚠️ Selecione e salve uma foto antes de continuar.', 'warning');
+      if (!previewImg || !previewImg.src) {
+        showToast('⚠️ Carregue uma foto antes de salvar.', 'warning');
         return;
       }
       
       tipo = 'imagem';
-      dados = previewImg.src;
+      dados = { imagem: previewImg.src, descricao };
+      
       const tamanhoKB = Math.round(previewImg.src.length / 1024);
       
       conteudoHTML = `
-        <div style="text-align: center; padding: 10px;">
-          <div style="font-size: 0.9rem; color: var(--cinza-texto); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fas fa-image"></i> Imagem anexada
+        <div style="text-align: center;">
+          <div style="font-size: 0.9rem; color: var(--azul-principal); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-image"></i> Imagem anexada • ${tamanhoKB} KB
           </div>
           <img src="${previewImg.src}" 
                style="max-width:100%; max-height:350px; border-radius:8px; box-shadow: var(--sombra); object-fit: contain;"
                alt="Anexo de imagem">
-          <p style="color: var(--cinza-texto); font-size: 0.9rem; margin-top: 10px;">
-            ${tamanhoKB} KB • Clique em "Editar" para substituir
-          </p>
+          ${descricao ? `
+            <div style="margin-top: 20px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--azul-principal);">
+              <div style="font-size: 0.9rem; color: var(--azul-principal); margin-bottom: 8px; font-weight: 500;">
+                <i class="fas fa-comment-alt"></i> Descrição:
+              </div>
+              <div style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">${escapeHtml(descricao).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
         </div>
       `;
       break;
     }
     
     default:
-      showToast('⚠️ Selecione um tipo de anexo antes de salvar.', 'warning');
+      showToast('⚠️ Selecione um tipo de anexo.', 'warning');
       return;
   }
   
   // Salva globalmente
   window.anexoSalvo = { tipo, data: dados };
   
-  // Adiciona conteúdo ao preview
+  // Adiciona conteúdo
   const anexoContent = planoPreview.querySelector('#anexoContent');
   if (anexoContent) {
     anexoContent.innerHTML = conteudoHTML;
   }
   
-  // Garante que o preview está visível
+  // Mostra preview
   planoPreview.style.display = 'block';
   
-  // Adiciona botão de remover
+  // Botão remover
   let btnRemover = document.getElementById('btnRemoverAnexoVisible');
   if (!btnRemover) {
     btnRemover = document.createElement('button');
@@ -1250,33 +1148,28 @@ function salvarAnexo() {
     btnRemover.style.display = 'inline-flex';
   }
   
-  // Adiciona evento ao botão de editar
+  // Botão editar
   const btnEditar = document.getElementById('btnEditarAnexo');
   if (btnEditar) {
     btnEditar.onclick = function() {
-      console.log('✏️ Editando anexo...');
-      abrirAnexo(); // Reabre o painel com conteúdo existente
+      abrirAnexo();
     };
   }
   
-  // Esconde botão "Adicionar Anexo"
+  // Esconde botão adicionar
   const btnAdd = document.getElementById('btnAdicionarAnexo');
   if (btnAdd) btnAdd.style.display = 'none';
   
-  // Fecha o painel
+  // Fecha painel
   fecharAnexo();
   
-  // Atualiza sessionStorage
+  // Session storage
   atualizarSessionStorage(tipo, dados);
   
-  // Feedback ao usuário
-  console.log('✅ Anexo salvo com sucesso');
-  showToast('✅ Anexo salvo no plano! Clique em "Editar" para modificar.', 'success');
+  // Feedback
+  showToast('✅ Anexo salvo! Clique em "Editar" para modificar.', 'success');
 }
 
-/**
- * Atualiza o sessionStorage com os dados do anexo
- */
 function atualizarSessionStorage(tipo, dados) {
   try {
     let planoData = {};
@@ -1286,79 +1179,54 @@ function atualizarSessionStorage(tipo, dados) {
       planoData = JSON.parse(planoDataJSON);
     }
     
-    // Atualiza dados do anexo
     planoData.anexoTipo = tipo;
     
     if (tipo === 'imagem') {
-      planoData.anexoImagem = dados;
+      planoData.anexoImagem = dados.imagem;
+      planoData.anexoDescricao = dados.descricao || '';
       planoData.anexoTexto = '';
     } else {
-      planoData.anexoTexto = dados;
+      planoData.anexoTexto = dados.texto;
       planoData.anexoImagem = null;
+      planoData.anexoDescricao = '';
     }
     
-    // Atualiza HTML do plano se disponível
-    const planoFinal = document.getElementById('planoFinal');
-    if (planoFinal && !planoData.html) {
-      planoData.html = planoFinal.innerHTML;
-    }
-    
-    // Salva no sessionStorage
     sessionStorage.setItem('planoData', JSON.stringify(planoData));
     
-    console.log('💾 Dados salvos no sessionStorage');
-    
   } catch (error) {
-    console.warn('⚠️ Erro ao atualizar sessionStorage:', error);
+    console.warn('⚠️ Erro sessionStorage:', error);
   }
 }
 
-/**
- * Remove o anexo do plano
- */
 function removerAnexoVisivel() {
-  console.log('🗑️ Removendo anexo...');
-  
-  // Remove do preview
   const planoPreview = document.getElementById('anexoPreview');
   if (planoPreview) {
     planoPreview.style.display = 'none';
   }
   
-  // Limpa variável global
   window.anexoSalvo = null;
   
-  // Esconde botão de remover
   const btnRemover = document.getElementById('btnRemoverAnexoVisible');
   if (btnRemover) {
     btnRemover.style.display = 'none';
   }
   
-  // Mostra botão de adicionar
   const btnAdd = document.getElementById('btnAdicionarAnexo');
   if (btnAdd) {
     btnAdd.style.display = 'inline-block';
   }
   
-  // Fecha o painel se estiver aberto
   const container = document.getElementById('anexoContainerContent');
   if (container) {
     container.style.display = 'none';
   }
   
-  // Limpa sessionStorage
   limparSessionStorage();
-  
-  // Limpa campos
   limparCamposAnexo();
   
-  console.log('✅ Anexo removido');
   showToast('🗑️ Anexo removido!', 'info');
 }
 
-/**
- * Limpa os dados do anexo do sessionStorage
- */
 function limparSessionStorage() {
   try {
     const planoDataJSON = sessionStorage.getItem('planoData');
@@ -1367,34 +1235,31 @@ function limparSessionStorage() {
       delete planoData.anexoTipo;
       delete planoData.anexoImagem;
       delete planoData.anexoTexto;
+      delete planoData.anexoDescricao;
       sessionStorage.setItem('planoData', JSON.stringify(planoData));
-      console.log('🗑️ Dados removidos do sessionStorage');
     }
   } catch (error) {
-    console.warn('⚠️ Erro ao limpar sessionStorage:', error);
+    console.warn('⚠️ Erro ao limpar storage:', error);
   }
 }
 
 // ==================================================
-// INICIALIZAÇÃO E EXPORTAÇÃO
+// INICIALIZAÇÃO
 // ==================================================
 
-/**
- * Inicializa a interface do anexo
- */
 function initAnexoInterface() {
-  console.log('🚀 Inicializando interface do anexo...');
+  console.log('🚀 Inicializando sistema de anexo...');
   
-  // Adiciona event listeners para sanitização
-  const textareas = document.querySelectorAll('.anexo-textarea-super');
+  // Event listeners para sanitização
+  const textareas = document.querySelectorAll('.anexo-textarea-super, .descricao-foto');
   textareas.forEach(textarea => {
     textarea.addEventListener('input', function() {
       sanitizeTextarea(this);
     });
   });
   
-  // Adiciona efeitos hover aos botões
-  const todosBotoes = document.querySelectorAll('.anexo-tab-btn, .btn-foto, .btn-cropper, .btn-acao');
+  // Hover effects
+  const todosBotoes = document.querySelectorAll('.anexo-tab-btn, .btn-ocr, .btn-foto, .btn-cropper, .btn-acao');
   todosBotoes.forEach(btn => {
     btn.addEventListener('mouseenter', function() {
       if (!this.classList.contains('ativo')) {
@@ -1409,82 +1274,63 @@ function initAnexoInterface() {
     });
   });
   
-  // Configura drag and drop para fotos OCR
+  // Drag and drop OCR
   const previewOcr = document.getElementById('previewOcr');
   if (previewOcr) {
-    previewOcr.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--azul-principal)';
-      this.style.background = 'var(--azul-suave)';
-    });
-    
-    previewOcr.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--cinza-borda)';
-      this.style.background = 'var(--branco)';
-    });
-    
-    previewOcr.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--cinza-borda)';
-      this.style.background = 'var(--branco)';
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0 && files[0].type.startsWith('image/')) {
-        const event = { target: { files: files } };
-        carregarImagemOCR(event);
-      }
-    });
+    setupDragAndDrop(previewOcr, carregarImagemOCR);
   }
   
-  // Configura drag and drop para fotos normais
+  // Drag and drop foto
   const previewFoto = document.getElementById('previewFoto');
   if (previewFoto) {
-    previewFoto.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--azul-principal)';
-      this.style.background = 'var(--azul-suave)';
-    });
-    
-    previewFoto.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--cinza-borda)';
-      this.style.background = 'var(--branco)';
-    });
-    
-    previewFoto.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--cinza-borda)';
-      this.style.background = 'var(--branco)';
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0 && files[0].type.startsWith('image/')) {
-        const event = { target: { files: files } };
-        carregarFoto(event);
-      }
-    });
+    setupDragAndDrop(previewFoto, carregarFoto);
   }
   
-  // Garante que o painel OCR está ativo por padrão
+  // Mostra tab OCR por padrão
   setTimeout(() => {
     if (!document.querySelector('.anexo-painel[style*="block"]')) {
       mostrarAnexoTexto();
     }
   }, 100);
   
-  // Inicializa OCR
-  setTimeout(() => {
-    initOCR();
-  }, 500);
-  
-  console.log('✅ Interface do anexo inicializada');
+  console.log('✅ Sistema de anexo inicializado');
 }
 
-/**
- * Mostra toast de notificação
- */
+function setupDragAndDrop(element, callback) {
+  element.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.style.borderColor = 'var(--azul-principal)';
+    this.style.background = 'var(--azul-suave)';
+  });
+  
+  element.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '';
+    this.style.background = '';
+  });
+  
+  element.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '';
+    this.style.background = '';
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+      const event = { target: { files: files } };
+      callback(event);
+    }
+  });
+}
+
 function showToast(mensagem, tipo = 'info') {
+  // Remove toast existente
+  const toastExistente = document.querySelector('.toast-anexo');
+  if (toastExistente) {
+    toastExistente.remove();
+  }
+  
   const toast = document.createElement('div');
+  toast.className = 'toast-anexo';
   toast.style.cssText = `
     position: fixed;
     top: 20px;
@@ -1500,7 +1346,6 @@ function showToast(mensagem, tipo = 'info') {
     align-items: center;
     gap: 10px;
     max-width: 400px;
-    min-width: 300px;
   `;
   
   const cores = {
@@ -1534,18 +1379,17 @@ function showToast(mensagem, tipo = 'info') {
 }
 
 // ==================================================
-// EXPORTAÇÃO PARA ESCOPO GLOBAL (MANTENDO COMPATIBILIDADE)
+// EXPORTAÇÃO
 // ==================================================
 
-// Exporta todas as funções para acesso global (MESMOS NOMES)
-window.mostrarAnexoTexto = mostrarAnexoTexto; // Agora mostra OCR
+window.mostrarAnexoTexto = mostrarAnexoTexto;
 window.mostrarAnexoChatGPT = mostrarAnexoChatGPT;
 window.mostrarAnexoFoto = mostrarAnexoFoto;
 window.abrirAnexo = abrirAnexo;
 window.fecharAnexo = fecharAnexo;
 window.abrirChatGPT = abrirChatGPT;
-window.carregarFoto = carregarFoto; // Para tab de foto
-window.carregarImagemOCR = carregarImagemOCR; // Nova função para OCR
+window.carregarFoto = carregarFoto;
+window.carregarImagemOCR = carregarImagemOCR;
 window.salvarFotoPreview = salvarFotoPreview;
 window.salvarAnexo = salvarAnexo;
 window.removerAnexoVisivel = removerAnexoVisivel;
@@ -1557,24 +1401,20 @@ window.zoomOut = zoomOut;
 window.resetCropper = resetCropper;
 window.initAnexoInterface = initAnexoInterface;
 window.showToast = showToast;
-
-// Novas funções exportadas
-window.copiarPrompt = copiarPrompt;
+window.copiarPromptEAbrir = copiarPromptEAbrir;
 window.fecharPromptModal = fecharPromptModal;
 
 // ==================================================
 // INICIALIZAÇÃO AUTOMÁTICA
 // ==================================================
 
-// Aguarda o DOM estar pronto
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initAnexoInterface);
 } else {
-  // DOM já está pronto
   initAnexoInterface();
 }
 
-// Adiciona CSS para animações
+// CSS para animações
 const style = document.createElement('style');
 style.textContent = `
   @keyframes spin {
@@ -1599,6 +1439,7 @@ style.textContent = `
     padding: 2px 6px;
     border-radius: 4px;
     border: 1px solid #d0e0ff;
+    color: #7e57c2;
   }
   
   .formula-inline {
@@ -1606,32 +1447,19 @@ style.textContent = `
     font-style: italic;
   }
   
-  .fa-spin {
-    animation: spin 1s linear infinite;
+  sup, sub {
+    font-size: 0.8em;
+    line-height: 0;
   }
   
-  .tabela-extraida {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
+  sup {
+    vertical-align: super;
   }
   
-  .tabela-extraida th,
-  .tabela-extraida td {
-    border: 1px solid var(--cinza-borda);
-    padding: 8px 12px;
-    text-align: left;
-  }
-  
-  .tabela-extraida th {
-    background: var(--azul-suave);
-    font-weight: 600;
-  }
-  
-  .tabela-extraida tr:nth-child(even) {
-    background: #f8f9fa;
+  sub {
+    vertical-align: sub;
   }
 `;
 document.head.appendChild(style);
 
-console.log('✅ anexo.js carregado com sucesso! Sistema OCR inteligente ativo.');
+console.log('✅ anexo.js carregado!');
