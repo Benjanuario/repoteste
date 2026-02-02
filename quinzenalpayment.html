@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+  (function () {
+    'use strict';
+    function isMobile() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const mobile = /Android.*Mobile|iPhone|IEMobile|WPDesktop|BlackBerry|Opera Mini/i;
+      const tablet = /iPad|Android(?!.*Mobile)|Silk|Kindle|Tablet/i;
+      return mobile.test(ua) && !tablet.test(ua);
+    }
+    if (!isMobile()) {
+      document.documentElement.innerHTML = `
+        <!DOCTYPE html>
+        <html lang="pt">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Acesso Restrito</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+              background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+              color: #2c3e50;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              padding: 20px;
+              overflow: hidden;
+            }
+            .box {
+              max-width: 500px;
+              width: 100%;
+              background: white;
+              border-radius: 16px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+              padding: 40px 30px;
+              opacity: 0;
+              transform: translateY(20px);
+              animation: fadeInUp 0.6s ease-out forwards;
+            }
+            .icon {
+              font-size: 3em;
+              margin-bottom: 24px;
+              opacity: 0;
+              animation: bounceIn 0.8s ease-out 0.2s forwards;
+            }
+            h1 {
+              font-size: 1.8em;
+              margin-bottom: 16px;
+              color: #e74c3c;
+              opacity: 0;
+              animation: fadeIn 0.6s ease-out 0.4s forwards;
+            }
+            p {
+              font-size: 1.1em;
+              line-height: 1.6;
+              color: #555;
+              margin-bottom: 12px;
+              opacity: 0;
+              animation: fadeIn 0.6s ease-out 0.6s forwards;
+            }
+
+            @keyframes fadeIn {
+              to { opacity: 1; }
+            }
+            @keyframes fadeInUp {
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            @keyframes bounceIn {
+              0% { transform: scale(0.3); opacity: 0; }
+              50% { transform: scale(1.1); }
+              70% { transform: scale(0.9); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="box">
+            <div class="icon">⚠️📱⚠️</div>
+            <h1>Acesso permitido apenas por smartphone</h1>
+            <p>Este site foi projectado exclusivamente para uso em <strong>celulares</strong>.</p>
+            <p>Por favor, abra esta página no seu telefone para continuar.</p>
+          </div>
+        </body>
+        </html>
+      `;
+      throw new Error('Desktop access blocked');
+    }
+  })();
+  </script>
+  <script src="/security/blocks.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagamento - Plano Quinzenal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+body { font-family: Times, sans-serif; background:#f4f4f9; padding:20px; text-align:center; }
+h2 { color:#007bff; }
+button { padding:12px 20px; font-size:16px; font-weight:bold; border:none; border-radius:12px; background:#007bff; color:white; cursor:pointer; transition:0.3s; }
+button:hover { background:#0056b3; }
+#mensagem { margin-top:15px; font-size:15px; font-weight:bold; }
+#formPagamento { margin-top:20px; display:none; }
+#formEmola { margin-top:20px; display:none; text-align: left; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 400px; margin-left: auto; margin-right: auto; }
+#formEmola p { margin: 8px 0; font-size: 15px; }
+#formEmola ol { text-align: left; margin: 12px 0; padding-left: 20px; }
+#formEmola ol li { margin-bottom: 6px; }
+.copyable { background: #f0f0f0; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; user-select: all; }
+.copyable:hover { background: #e0e0e0; }
+input[type="tel"], input[type="text"] { 
+  padding:10px; font-size:16px; width:220px; border:2px solid #007bff; border-radius:8px; text-align:center; 
+  text-transform: uppercase;
+}
+.benja-spinner { width: 0.30cm; height: 0.75cm; border: 0.12cm solid rgba(0, 123, 255, 0.25); border-top: 0.12cm solid #007BFF; border-radius: 50%; display: inline-block; animation: benja-spin 0.9s linear infinite; vertical-align: middle; margin-right: 10px; }
+@keyframes benja-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.benja-loading { width: auto; display: inline-flex; align-items: center; color: #007BFF; font-family: Times; font-size: 16px; }
+a { text-decoration: none; }
+</style>
+  <script>
+(function() {
+  // Google AdSense
+  var metaAd = document.createElement('meta');
+  metaAd.name = "google-adsense-account";
+  metaAd.content = "ca-pub-8468056906401026";
+  document.head.appendChild(metaAd);
+
+  // Google Analytics
+  var gaScript = document.createElement('script');
+  gaScript.async = true;
+  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0";
+  document.head.appendChild(gaScript);
+
+  var gaInline = document.createElement('script');
+  gaInline.innerHTML = `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-02K874D1P0');
+  `;
+  document.head.appendChild(gaInline);
+})();
+  </script>
+</head>
+<body>
+  <h2 id="tituloPagamento">Pagamento Necessário para Baixar o Plano Quinzenal em PDF</h2>
+  <p id="textoPagamento1">Para exportar o PDF do seu Plano Quinzenal, efectue o pagamento de <strong>5 MTs</strong>.</p>
+  <p id="textoPagamento2">Escolha o Método de Pagamento mais ideal para ti👇.</p>
+
+  <button id="btnPagar" onclick="mostrarFormulario(); ocultarElementos('btnEmola')" 
+    style="background-color: #4CAF50; color: black; font-size: 16px; font-family: 'Times New Roman', Times, serif; font-weight: bold; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.3s ease; display: block; margin-bottom: 1cm;"
+    onmouseover="this.style.backgroundColor='#45a049'; this.style.transform='scale(1.05)';"
+    onmouseout="this.style.backgroundColor='#4CAF50'; this.style.transform='scale(1)';">
+    💳 Fazer Pagamento Automático via Mpesa
+  </button>
+
+  <a id="btnEmola" 
+     onclick="ocultarElementos('btnPagar')"
+     style="display: inline-block; background-color: #FFD700; color: #000; font-weight: bold; font-size: 16px; padding: 12px 24px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.3s ease;"
+     onmouseover="this.style.backgroundColor='#FFC107'; this.style.transform='scale(1.05)';"
+     onmouseout="this.style.backgroundColor='#FFD700'; this.style.transform='scale(1)';">
+     💰 Fazer Pagamento Manual via Emola
+  </a>
+
+  <div id="formPagamento">
+    <p>Digite o número do seu <strong>Mpesa</strong> (84 / 85):</p>
+    <input type="tel" id="numeroMpesa" placeholder="Ex: 84xxx..." maxlength="9" pattern="8[45][0-9]{7}" autocomplete="off">
+    <br><br>
+    <button onclick="confirmarPagamento()">Confirmar</button>
+  </div>
+
+  <div id="formEmola">
+    <p><strong>Instruções para Pagamento via Emola:</strong></p>
+    <ol>
+      <li>Transfere <strong>5 meticais</strong> via Emola para o número abaixo;</li>
+      <li>Vai receber um <strong>código de desbloqueio</strong> via SMS;</li>
+      <li>Insira o código recebido no campo abaixo;</li>
+      <li>Clique em <strong>Confirmar</strong> e aguarde a verificação ✅.</li>
+    </ol>
+    <p><strong>Número de Emola:</strong><br>
+      <span class="copyable" onclick="copiarNumero()">864920606</span>
+      <br><small>(Clique para copiar)</small>
+    </p>
+    <p>
+      <a href="tel:*898*864920606*5#" style="display:inline-block; margin-top:6px; color:#1e88e5; font-weight:bold; text-decoration:underline;">
+        📱 Pagar agora via USSD
+      </a>
+    </p>
+    <p><strong>Nome de Confirmação:</strong><br>Benjamim Januário Paulino</p>
+    <br>
+    <p>Insira o código de desbloqueio (8 caracteres):</p>
+    <input type="text" id="codigoEmola" placeholder="Código Emola" maxlength="8" 
+           oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+           style="text-transform: uppercase;">
+    <br><br>
+    <button id="btnValidarEmola" style="padding:10px 18px; border-radius:8px; border: none; background:#f39c12; color:black; font-weight:bold;">Confirmar Código</button>
+  </div>
+
+  <div id="mensagem"></div>
+
+  <!-- Json para Termos de Responzabilidade -->
+  <div id="x1" data-v="ZjcyMzMyN2M0OWRjNzI3ZjA1MTVkMjk3NTZmNWQ2OTE=" style="display:none"></div>
+  <div id="x2" data-v="Y2I2MzFkMGU1NzM4MWE5MmViNTE5M2RlMGU5ZTg2Yjc=" style="display:none"></div>
+  <div id="x3" data-v="ODVlOGFhOTA5NDMwMzRiNjQ4YjY1MzM3OTkwYzdiMWI=" style="display:none"></div>
+  <div id="x4" data-v="NDliNDZlNmJhOWM4ZGJjZWE4Y2E5MTg1YmQwOTdhMDQ=" style="display:none"></div>
+  <div id="w" data-v="NTQ4ZjYxMTctY2I2NS00ZmFmLTk2NjUtMzU2MWQxM2E0YmEz" style="display:none"></div>
+
+  <script>
+    function getApiKey() {
+      const p1 = atob(document.getElementById('x1').dataset.v);
+      const p2 = atob(document.getElementById('x2').dataset.v);
+      const p3 = atob(document.getElementById('x3').dataset.v);
+      const p4 = atob(document.getElementById('x4').dataset.v);
+      return [p1, p2, p3, p4].join('');
+    }
+    function getWalletId() {
+      return atob(document.getElementById('w').dataset.v);
+    }
+
+    function ocultarElementos(idOutro) {
+      document.getElementById(idOutro).style.display = 'none';
+      document.getElementById('textoPagamento2').style.display = 'none';
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("btnPagar").style.display = "none";
+      document.getElementById("formPagamento").style.display = "block";
+    }
+
+    function copiarNumero() {
+      const text = "864920606";
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => alert("Número copiado: " + text));
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert("Número copiado: " + text);
+      }
+    }
+
+    function baixarPDF(pdfBlob, nome) {
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nome;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+async function gerarPDF(meta = {}) {
+  const planoDataJSON = sessionStorage.getItem("planoData");
+  if (!planoDataJSON) {
+    alert("❌ Nenhum plano encontrado. Gere o plano antes.");
+    return null;
+  }
+  let planoData;
+  try {
+    planoData = JSON.parse(planoDataJSON);
+  } catch (e) {
+    console.error('Erro ao parsear planoData:', e);
+    alert("❌ Dados do plano estão corrompidos.");
+    return null;
+  }
+
+  const html = planoData.html || '';
+  const parser = new DOMParser();
+  const docHtml = parser.parseFromString(html, 'text/html');
+
+  // Cabeçalhos fixos (garantem que sempre apareçam)
+  let headers = ['SEMANA','U.TEMÁTICA','OBJECTIVOS ESPECÍFICOS','CONTEÚDOS','COMPETÊNCIAS BÁSICAS','C.H'];
+  let rows = [];
+
+  const tabela = docHtml.querySelector('#tabelaPlano');
+  if (tabela) {
+    const thead = tabela.querySelector('thead');
+    const tbody = tabela.querySelector('tbody');
+    if (thead && tbody) {
+      const ths = thead.querySelectorAll('th');
+      if (ths.length >= 6) {
+        headers = Array.from(ths).map(th => th.textContent.trim() || 'Col');
+      }
+      const trs = tbody.querySelectorAll('tr');
+      rows = Array.from(trs).map(tr => {
+        const tds = tr.querySelectorAll('td');
+        return Array.from(tds).map(td => {
+          let text = td.innerHTML
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]*>/g, '')
+            .trim();
+          if (text.includes('•')) {
+            text = text.replace(/•/g, '\n•').replace(/^\n/, '');
+          }
+          return text;
+        });
+      });
+    }
+  }
+
+  // Fallback
+  if (rows.length === 0 && planoData.semanas && Array.isArray(planoData.semanas)) {
+    rows = planoData.semanas.map(s => [
+      s.numero || '',
+      s.u. tematica || '',
+      s.objetivo_especifico || '',
+      s.conteudo || '',
+      s.competencia_basica || '',
+      s.carga_horaria || ''
+    ].map(val => {
+      if (typeof val === 'string' && val.includes('•')) {
+        return val.replace(/•/g, '\n•').replace(/^\n/, '');
+      }
+      return val || '';
+    }));
+  }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    doc.setFont("times", "normal");
+    doc.setTextColor(0, 0, 0);
+
+    // === Cabeçalho do documento ===
+    const titleY = 12;
+    doc.setFontSize(16);
+    doc.text("PLANO QUINZENAL", 148, titleY, { align: 'center' });
+
+    const zipLine = `ZIP: ${planoData.zipNumero || ''} - ${planoData.zipNome || ''}`;
+    doc.setFontSize(12);
+    doc.text(zipLine, 148, titleY + 7, { align: 'center' });
+
+    const dosagemLine = `Dosificação Quinzenal de "${planoData.disciplina || ''}" - "${planoData.classe || ''}" - ${planoData.trimestre || ''}`;
+    doc.setFontSize(10);
+    const splitLine = doc.splitTextToSize(dosagemLine, 250);
+    doc.text(splitLine, 148, titleY + 14, { align: 'center' });
+
+    // === Tabela ===
+    if (headers.length > 0 && rows.length > 0) {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = { left: 7, right: 7 };
+      const tableWidth = pageWidth - margin.left - margin.right;
+
+      // Proporções ajustadas para preencher 100% da largura
+      const ratios = [0.08, 0.08, 0.25, 0.30, 0.25, 0.04]; // soma = 1.0
+      const columnStyles = {};
+      ratios.forEach((ratio, i) => {
+        columnStyles[i] = { cellWidth: tableWidth * ratio };
+      });
+
+      doc.autoTable({
+        startY: titleY + 23, // ≈ 0,9 cm abaixo do último texto (12 + 23 = 35mm → margem topo ~10mm + 25mm de conteúdo)
+        head: [headers],
+        body: rows,
+        styles: {
+          font: 'times',
+          fontSize: 11,
+          cellPadding: 2.5,
+          overflow: 'linebreak',
+          valign: 'top',
+          halign: 'left',
+          textColor: [0, 0, 0],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.2
+        },
+        headStyles: {
+          fillColor: [180, 180, 180],       // fundo cinza 
+          textColor: [0, 0, 0], // texto preto
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        columnStyles: columnStyles,
+        margin: { top: 10, bottom: 10, left: 7, right: 7 },
+        tableWidth: 'wrap',
+        showHead: 'firstPage'
+      });
+    }
+
+    // === Nome do arquivo ===
+    const disciplina = planoData.disciplina || 'Disciplina';
+    const classe = planoData.classe || 'Classe';
+    const trimestre = planoData.trimestre || 'Trimestre';
+    const nomeArquivo = `Plano Quinzenal de ${disciplina} - ${classe}, ${trimestre}.pdf`;
+
+    // === Histórico ===
+  try {
+    const historico = JSON.parse(localStorage.getItem("historicoPlanos") || "[]");
+
+// Monta o título automaticamente
+    const titulo = `Dosificação Quinzenal de "${planoData.disciplina}", ${planoData.classe}ª Classe, ${planoData.trimestre}º Trimestre / ${new Date().getFullYear()}`;
+
+   historico.push({
+     timestamp: new Date().toISOString(),
+     titulo, // título formatado
+     zipNome: planoData.zipNome || null,
+     zipNumero: planoData.zipNumero || null,
+     classe: planoData.classe || null,
+     disciplina: planoData.disciplina || null,
+     trimestre: planoData.trimestre || null,
+     filename: nomeArquivo
+});
+
+// Grava o histórico atualizado
+localStorage.setItem("historicoPlanos", JSON.stringify(historico));
+} catch (e) {
+  console.error('Erro ao gravar histórico:', e);
+  }
+
+    return { blob: doc.output('blob'), nome: nomeArquivo };
+  } catch (err) {
+    console.error('Erro ao gerar PDF:', err);
+    alert('Erro ao gerar o PDF. Veja o console para detalhes.');
+    return null;
+  }
+}
+
+    function exibirBotaoDownload(blob, nome) {
+      const msg = document.getElementById('mensagem');
+      msg.style.color = "#28a745";
+      msg.innerHTML = `
+        ✅ Pagamento confirmado!<br>
+        Se o download não iniciou automaticamente, clique no botão abaixo:<br><br>
+        <button onclick="baixarPDFFromMessage()" 
+                style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
+                onmouseover="this.style.background='#218838';"
+                onmouseout="this.style.background='#28a745';">
+          📥 Baixar o Plano Agora
+        </button>
+      `;
+      window.__ultimoPDFBlob = blob;
+      window.__ultimoPDFNome = nome;
+      setTimeout(() => {
+        try { baixarPDF(blob, nome); } catch (e) { console.warn("Auto-download bloqueado"); }
+      }, 300);
+    }
+
+    function baixarPDFFromMessage() {
+      if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
+        baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
+      }
+    }
+
+    async function confirmarPagamento() {
+      const phoneInput = document.getElementById("numeroMpesa").value.trim();
+      const msg = document.getElementById("mensagem");
+
+      if (!/^8(4|5)\d{7}$/.test(phoneInput)) {
+        msg.style.color = "#dc3545";
+        msg.innerText = "⚠️ Insira um número válido de Mpesa começando com 84 ou 85.";
+        return;
+      }
+
+      msg.style.color = "#007BFF";
+      msg.innerHTML = `
+        <span class="benja-loading">
+          <span class="benja-spinner" aria-hidden="true"></span>
+          <span>Processando Pagamento para ${phoneInput}</span>
+        </span>
+      `;
+      document.getElementById("numeroMpesa").value = "";
+
+      try {
+        const response = await fetch("https://gibrapay.online/v1/transfer ", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "API-Key": getApiKey()
+          },
+          body: JSON.stringify({
+            wallet_id: getWalletId(),
+            amount: 5,
+            number_phone: phoneInput
+          })
+        });
+
+        const data = await response.json();
+        if (data.status === "success") {
+          const result = await gerarPDF({ metodo: 'mpesa' });
+          if (result) {
+            exibirBotaoDownload(result.blob, result.nome);
+          } else {
+            msg.style.color = "#dc3545";
+            msg.innerText = "❌ Erro ao gerar PDF.";
+          }
+        } else {
+          msg.style.color = "#dc3545";
+          msg.innerText = "❌ " + (data.message || "Falha no pagamento.");
+        }
+      } catch (err) {
+        console.error("Erro:", err);
+        msg.style.color = "#dc3545";
+        msg.innerText = "❌ Erro de conexão com o servidor.";
+      }
+    }
+
+    (function setupEmolaHandler() {
+      const URL_APP = 'https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec';
+      const btnEmola = document.getElementById('btnEmola');
+      const formEmolaDiv = document.getElementById('formEmola');
+      const mensagemEl = document.getElementById('mensagem');
+
+      btnEmola.addEventListener('click', function (e) {
+        e.preventDefault();
+        ocultarElementos('btnPagar');
+        formEmolaDiv.style.display = 'block';
+        document.getElementById('formPagamento').style.display = 'none';
+        mensagemEl.innerText = '';
+        btnEmola.style.display = 'none';
+      });
+
+      document.getElementById('btnValidarEmola').addEventListener('click', async function () {
+        const codigoEl = document.getElementById('codigoEmola');
+        let codigo = codigoEl.value.trim();
+        codigo = codigo.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        codigoEl.value = codigo;
+
+        if (codigo.length !== 8) {
+          mensagemEl.style.color = "#dc3545";
+          mensagemEl.innerText = "❌ O código deve ter exatamente 8 caracteres alfanuméricos.";
+          return;
+        }
+
+        mensagemEl.style.color = "#007BFF";
+        mensagemEl.innerHTML = '🔍 Verificando o Código <span class="benja-spinner"></span>';
+
+        try {
+          const res = await fetch(`${URL_APP}?codigo=${encodeURIComponent(codigo)}`, { method:'GET', mode:'cors' });
+          if (!res.ok) throw new Error('Serviço indisponível');
+          const data = await res.json();
+          const valido = (data && (data.valido === true || data.valido === 'true'));
+          if (valido) {
+            const planoDataJSON = sessionStorage.getItem("planoData");
+            if (!planoDataJSON) {
+              alert("❌ Nenhum plano encontrado. Gere o plano antes.");
+              mensagemEl.style.color = "#dc3545";
+              mensagemEl.innerText = "❌ Nenhum plano encontrado.";
+              return;
+            }
+            const result = await gerarPDF({ metodo: 'emola', restante: data.restante, codigo });
+            if (result) {
+              mensagemEl.innerHTML = `
+                ✅ Código válido! Créditos restantes: ${data.restante !== undefined ? data.restante : 'N/A'}<br>
+                Se o download não iniciou, clique abaixo:<br><br>
+                <button onclick="baixarPDFFromMessage()" 
+                        style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
+                        onmouseover="this.style.background='#218838';"
+                        onmouseout="this.style.background='#28a745';">
+                  📥 Baixar o Plano Agora
+                </button>
+              `;
+              window.__ultimoPDFBlob = result.blob;
+              window.__ultimoPDFNome = result.nome;
+              setTimeout(() => {
+                try { baixarPDF(result.blob, result.nome); } catch (e) {}
+              }, 300);
+            } else {
+              mensagemEl.style.color = "#dc3545";
+              mensagemEl.innerText = "❌ Erro ao gerar PDF.";
+            }
+          } else {
+            mensagemEl.style.color = "#dc3545";
+            mensagemEl.innerText = `❌ ${data && data.msg ? data.msg : 'Código inválido'}`;
+          }
+        } catch (err) {
+          console.error(err);
+          mensagemEl.style.color = "#dc3545";
+          mensagemEl.innerText = "❌ Erro ao validar código. Tente novamente.";
+        }
+      });
+    })();
+ </script>
+</body>
+</html>
