@@ -666,6 +666,102 @@
             return "258" + numeroLimpo;
         }
 
+        // ===================== SISTEMA DE RASTREAMENTO INTEGRADO =====================
+        // USANDO OS DADOS EXISTENTES DO SEU SISTEMA
+
+        const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec"; // Substitua pela URL do seu GAS
+
+        // 🔹 FUNÇÃO 1: OBTER DADOS DO USUÁRIO DO localStorage (MESMO SISTEMA)
+        function obterDadosUsuarioAtual() {
+            try {
+                const usuarioData = localStorage.getItem("usuario");
+                if (!usuarioData) return { existe: false, dados: null };
+                
+                const usuario = JSON.parse(usuarioData);
+                return {
+                    existe: true,
+                    dados: {
+                        nome: usuario.nome,
+                        telefone: usuario.telefone,
+                        // Gera ID baseado no telefone (MESMO PADRÃO DO SEU SISTEMA)
+                        id: usuario.telefone ? 'USR_' + usuario.telefone.replace(/\D/g, '').substring(3, 9) : null
+                    }
+                };
+            } catch (error) {
+                return { existe: false, dados: null };
+            }
+        }
+
+        // 🔹 FUNÇÃO 2: RASTREAR ACESSO (USANDO DADOS EXISTENTES)
+        function rastrearAcesso(acao, detalhes = {}) {
+            try {
+                const usuarioInfo = obterDadosUsuarioAtual();
+                
+                // Preparar dados para envio
+                const dadosParaEnvio = new URLSearchParams();
+                
+                // Se usuário existe, usar seus dados
+                if (usuarioInfo.existe && usuarioInfo.dados) {
+                    dadosParaEnvio.append("action", "registrar_log");
+                    dadosParaEnvio.append("usuario_id", usuarioInfo.dados.id || "N/D");
+                    dadosParaEnvio.append("nome", usuarioInfo.dados.nome || "N/D");
+                    dadosParaEnvio.append("telefone", usuarioInfo.dados.telefone || "N/D");
+                    dadosParaEnvio.append("acao", acao);
+                    dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
+                    dadosParaEnvio.append("detalhes", JSON.stringify(detalhes));
+                } else {
+                    // Visitante (sem cadastro)
+                    dadosParaEnvio.append("action", "registrar_log");
+                    dadosParaEnvio.append("usuario_id", "VISITANTE");
+                    dadosParaEnvio.append("nome", "VISITANTE");
+                    dadosParaEnvio.append("telefone", "N/D");
+                    dadosParaEnvio.append("acao", acao);
+                    dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
+                    dadosParaEnvio.append("detalhes", JSON.stringify({...detalhes, visitante: true}));
+                }
+                
+                // Enviar de forma assíncrona (não bloqueante)
+                fetch(TRACKING_URL, {
+                    method: "POST",
+                    body: dadosParaEnvio,
+                    mode: "no-cors" // Para evitar problemas de CORS
+                }).catch(error => {
+                    // Silenciar erro - não afeta o usuário
+                    console.log("Erro no rastreamento (não crítico):", error.message);
+                });
+                
+            } catch (error) {
+                console.log("Erro no rastreamento:", error);
+            }
+        }
+
+        // 🔹 FUNÇÃO 3: RASTREAR CADASTRO (QUANDO O USUÁRIO SE CADASTRA)
+        function rastrearCadastroUsuario(nome, telefone, status) {
+            try {
+                const dadosParaEnvio = new URLSearchParams();
+                
+                dadosParaEnvio.append("action", "registrar_usuario");
+                dadosParaEnvio.append("nome", nome);
+                dadosParaEnvio.append("telefone", telefone);
+                dadosParaEnvio.append("status", status); // "salvo" ou "existe"
+                dadosParaEnvio.append("pagina", "index.html");
+                dadosParaEnvio.append("tipo", status === "salvo" ? "NOVO" : "EXISTENTE");
+                
+                fetch(TRACKING_URL, {
+                    method: "POST",
+                    body: dadosParaEnvio,
+                    mode: "no-cors"
+                }).catch(error => {
+                    console.log("Erro ao rastrear cadastro (não crítico):", error.message);
+                });
+                
+            } catch (error) {
+                console.log("Erro ao rastrear cadastro:", error);
+            }
+        }
+
+        // ===================== CÓDIGO ORIGINAL (MODIFICADO) =====================
+        
         // Verificar se usuário já está autenticado
         window.onload = () => {
             createParticles();
@@ -685,6 +781,20 @@
                     document.getElementById('nome').focus();
                 }, 300);
             }
+            
+            // RASTREAR ACESSO À PÁGINA
+            setTimeout(() => {
+                const usuarioInfo = obterDadosUsuarioAtual();
+                
+                if (usuarioInfo.existe) {
+                    rastrearAcesso("ACESSO_USUARIO_LOGADO", {
+                        nome: usuarioInfo.dados.nome.substring(0, 10) + "...",
+                        telefone_mascarado: usuarioInfo.dados.telefone.substring(0, 6) + "****"
+                    });
+                } else {
+                    rastrearAcesso("ACESSO_VISITANTE", { primeiro_acesso: true });
+                }
+            }, 1000);
         };
 
         // Criar partículas de fundo
@@ -793,7 +903,7 @@
             }
         });
 
-        // Função principal de submissão
+        // Função principal de submissão (MODIFICADA)
         function submeter() {
             const nome = document.getElementById("nome").value.trim();
             const telefone = document.getElementById("telefone").value.replace(/\D/g, '');
@@ -841,6 +951,15 @@
                             telefone: telefoneCompleto,
                             dataRegistro: new Date().toISOString()
                         }));
+                        
+                        // 🔹 RASTREAR O CADASTRO
+                        rastrearCadastroUsuario(nome, telefoneCompleto, resposta.status);
+                        
+                        // 🔹 RASTREAR O ACESSO
+                        rastrearAcesso(resposta.status === "salvo" ? "CADASTRO_NOVO" : "RELOGIN_SISTEMA", {
+                            nome_tamanho: nome.length,
+                            telefone_prefixo: telefoneCompleto.substring(0, 6)
+                        });
                         
                         // Esconder tela de login e mostrar tela de carregamento
                         document.getElementById('loginContainer').style.display = 'none';
@@ -972,214 +1091,49 @@
                 e.preventDefault();
             }
         });
-      // ===================== SISTEMA DE RASTREAMENTO INTEGRADO =====================
-// USANDO OS DADOS EXISTENTES DO SEU SISTEMA
 
-const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec"; // Substitua pela URL do seu GAS
-
-// 🔹 FUNÇÃO 1: OBTER DADOS DO USUÁRIO DO localStorage (MESMO SISTEMA)
-function obterDadosUsuarioAtual() {
-  try {
-    const usuarioData = localStorage.getItem("usuario");
-    if (!usuarioData) return { existe: false, dados: null };
-    
-    const usuario = JSON.parse(usuarioData);
-    return {
-      existe: true,
-      dados: {
-        nome: usuario.nome,
-        telefone: usuario.telefone,
-        // Gera ID baseado no telefone (MESMO PADRÃO DO SEU SISTEMA)
-        id: usuario.telefone ? 'USR_' + usuario.telefone.replace(/\D/g, '').substring(3, 9) : null
-      }
-    };
-  } catch (error) {
-    return { existe: false, dados: null };
-  }
-}
-
-// 🔹 FUNÇÃO 2: RASTREAR ACESSO (USANDO DADOS EXISTENTES)
-function rastrearAcesso(acao, detalhes = {}) {
-  try {
-    const usuarioInfo = obterDadosUsuarioAtual();
-    
-    // Preparar dados para envio
-    const dadosParaEnvio = new URLSearchParams();
-    
-    // Se usuário existe, usar seus dados
-    if (usuarioInfo.existe && usuarioInfo.dados) {
-      dadosParaEnvio.append("action", "registrar_log");
-      dadosParaEnvio.append("usuario_id", usuarioInfo.dados.id || "N/D");
-      dadosParaEnvio.append("nome", usuarioInfo.dados.nome || "N/D");
-      dadosParaEnvio.append("telefone", usuarioInfo.dados.telefone || "N/D");
-      dadosParaEnvio.append("acao", acao);
-      dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
-      dadosParaEnvio.append("detalhes", JSON.stringify(detalhes));
-    } else {
-      // Visitante (sem cadastro)
-      dadosParaEnvio.append("action", "registrar_log");
-      dadosParaEnvio.append("usuario_id", "VISITANTE");
-      dadosParaEnvio.append("nome", "VISITANTE");
-      dadosParaEnvio.append("telefone", "N/D");
-      dadosParaEnvio.append("acao", acao);
-      dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
-      dadosParaEnvio.append("detalhes", JSON.stringify({...detalhes, visitante: true}));
-    }
-    
-    // Enviar de forma assíncrona (não bloqueante)
-    fetch(TRACKING_URL, {
-      method: "POST",
-      body: dadosParaEnvio,
-      mode: "no-cors" // Para evitar problemas de CORS
-    }).catch(error => {
-      // Silenciar erro - não afeta o usuário
-      console.log("Erro no rastreamento (não crítico):", error.message);
-    });
-    
-  } catch (error) {
-    console.log("Erro no rastreamento:", error);
-  }
-}
-
-// 🔹 FUNÇÃO 3: RASTREAR CADASTRO (QUANDO O USUÁRIO SE CADASTRA)
-function rastrearCadastroUsuario(nome, telefone, status) {
-  try {
-    const dadosParaEnvio = new URLSearchParams();
-    
-    dadosParaEnvio.append("action", "registrar_usuario");
-    dadosParaEnvio.append("nome", nome);
-    dadosParaEnvio.append("telefone", telefone);
-    dadosParaEnvio.append("status", status); // "salvo" ou "existe"
-    dadosParaEnvio.append("pagina", "index.html");
-    dadosParaEnvio.append("tipo", status === "salvo" ? "NOVO" : "EXISTENTE");
-    
-    fetch(TRACKING_URL, {
-      method: "POST",
-      body: dadosParaEnvio,
-      mode: "no-cors"
-    }).catch(error => {
-      console.log("Erro ao rastrear cadastro (não crítico):", error.message);
-    });
-    
-  } catch (error) {
-    console.log("Erro ao rastrear cadastro:", error);
-  }
-}
-
-// ===================== INTEGRAÇÃO COM SEU CÓDIGO EXISTENTE =====================
-
-// 🔹 INTEGRAR COM A FUNÇÃO submeter() EXISTENTE
-// ENCONTRE NO SEU CÓDIGO A FUNÇÃO submeter() E MODIFIQUE:
-
-function submeter() {
-  const nome = document.getElementById("nome").value.trim();
-  const telefone = document.getElementById("telefone").value.replace(/\D/g, '');
-  const telefoneCompleto = formatarTelefoneParaEnvio(telefone);
-
-  // ... seu código existente de validação ...
-
-  setTimeout(() => {
-    const formData = new URLSearchParams();
-    formData.append("nome", nome);
-    formData.append("telefone", telefoneCompleto);
-
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      body: formData
-    })
-    .then(res => res.json())
-    .then(resposta => {
-      if(resposta.status === "salvo" || resposta.status === "existe") {
-        // 🔹 1. SALVAR NO localStorage (SEU CÓDIGO ORIGINAL)
-        localStorage.setItem("usuario", JSON.stringify({
-          nome: nome,
-          telefone: telefoneCompleto,
-          dataRegistro: new Date().toISOString()
-        }));
-        
-        // 🔹 2. RASTREAR O CADASTRO (ADICIONE ESTA LINHA)
-        rastrearCadastroUsuario(nome, telefoneCompleto, resposta.status);
-        
-        // 🔹 3. RASTREAR O ACESSO (ADICIONE ESTA LINHA)
-        rastrearAcesso(resposta.status === "salvo" ? "CADASTRO_NOVO" : "RELOGIN_SISTEMA", {
-          nome_tamanho: nome.length,
-          telefone_prefixo: telefoneCompleto.substring(0, 6)
+        // 🔹 RASTREAR INTERAÇÕES
+        document.addEventListener('DOMContentLoaded', function() {
+            // RASTREAR CLIQUE NO BOTÃO DE LOGIN
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    const usuarioInfo = obterDadosUsuarioAtual();
+                    
+                    rastrearAcesso("CLIQUE_LOGIN", {
+                        usuario_logado: usuarioInfo.existe,
+                        botao: "loginButton"
+                    });
+                });
+            }
+            
+            // RASTREAR PREENCHIMENTO DOS CAMPOS
+            ['nome', 'telefone'].forEach(campoId => {
+                const campo = document.getElementById(campoId);
+                if (campo) {
+                    campo.addEventListener('blur', function() {
+                        if (this.value.length > 2) {
+                            rastrearAcesso("PREENCHIMENTO_CAMPO", {
+                                campo: campoId,
+                                tamanho: this.value.length
+                            });
+                        }
+                    });
+                }
+            });
         });
-        
-        // Seu código existente continua...
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('welcomeContainer').style.display = 'block';
-        iniciarSistema();
-      } else {
-        throw new Error(resposta.mensagem);
-      }
-    })
-    .catch(err => {
-      alert("Erro ao enviar dados. Tente novamente.");
-      console.error(err);
-    });
-  }, 3000);
-}
 
-// 🔹 RASTREAR ACESSO À PÁGINA
-window.addEventListener('load', function() {
-  setTimeout(() => {
-    const usuarioInfo = obterDadosUsuarioAtual();
-    
-    if (usuarioInfo.existe) {
-      rastrearAcesso("ACESSO_USUARIO_LOGADO", {
-        nome: usuarioInfo.dados.nome.substring(0, 10) + "...",
-        telefone_mascarado: usuarioInfo.dados.telefone.substring(0, 6) + "****"
-      });
-    } else {
-      rastrearAcesso("ACESSO_VISITANTE", { primeiro_acesso: true });
-    }
-  }, 1000);
-});
+        // 🔹 RASTREAR SAÍDA DA PÁGINA
+        window.addEventListener('beforeunload', function() {
+            rastrearAcesso("SAIDA_PAGINA", {
+                tempo_carregamento: performance.now()
+            });
+        });
 
-// 🔹 RASTREAR INTERAÇÕES
-document.addEventListener('DOMContentLoaded', function() {
-  // RASTREAR CLIQUE NO BOTÃO DE LOGIN
-  const loginButton = document.getElementById('loginButton');
-  if (loginButton) {
-    loginButton.addEventListener('click', function() {
-      const usuarioInfo = obterDadosUsuarioAtual();
-      
-      rastrearAcesso("CLIQUE_LOGIN", {
-        usuario_logado: usuarioInfo.existe,
-        botao: "loginButton"
-      });
-    });
-  }
-  
-  // RASTREAR PREENCHIMENTO DOS CAMPOS
-  ['nome', 'telefone'].forEach(campoId => {
-    const campo = document.getElementById(campoId);
-    if (campo) {
-      campo.addEventListener('blur', function() {
-        if (this.value.length > 2) {
-          rastrearAcesso("PREENCHIMENTO_CAMPO", {
-            campo: campoId,
-            tamanho: this.value.length
-          });
-        }
-      });
-    }
-  });
-});
-
-// 🔹 RASTREAR SAÍDA DA PÁGINA
-window.addEventListener('beforeunload', function() {
-  rastrearAcesso("SAIDA_PAGINA", {
-    tempo_carregamento: performance.now()
-  });
-});
-
-// ===================== TESTE DO SISTEMA =====================
-console.log("✅ Sistema de rastreamento integrado carregado!");
-console.log("Usuário atual no localStorage:", obterDadosUsuarioAtual());
+        // ===================== TESTE DO SISTEMA =====================
+        console.log("✅ Sistema de rastreamento integrado carregado!");
+        console.log("Usuário atual no localStorage:", obterDadosUsuarioAtual());
     </script>
-    
     
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KXLPS5KA4WQ"></script>
