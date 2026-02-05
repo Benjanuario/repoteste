@@ -972,283 +972,212 @@
                 e.preventDefault();
             }
         });
-        // ===================== SISTEMA DE RASTREAMENTO ATUALIZADO =====================
-// Substitua esta URL pela URL do seu GAS publicado
-const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec";
+      // ===================== SISTEMA DE RASTREAMENTO INTEGRADO =====================
+// USANDO OS DADOS EXISTENTES DO SEU SISTEMA
 
-// 1. GERAR ID DE SESSÃO ÚNICO
-function gerarSessaoId() {
-  return 'SESS_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
+const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec"; // Substitua pela URL do seu GAS
 
-// 2. INICIAR SESSÃO
-function iniciarSessao() {
-  if (!localStorage.getItem('sessao_id')) {
-    const sessaoId = gerarSessaoId();
-    localStorage.setItem('sessao_id', sessaoId);
-    localStorage.setItem('sessao_inicio', new Date().toISOString());
-  }
-  return localStorage.getItem('sessao_id');
-}
-
-// 3. OBTER INFO DO DISPOSITIVO
-function obterInfoDispositivo() {
-  const ua = navigator.userAgent;
-  let dispositivo = "Desktop";
-  let navegador = "Desconhecido";
-  
-  if (/Android/i.test(ua)) dispositivo = "Android";
-  else if (/iPhone|iPad|iPod/i.test(ua)) dispositivo = "iOS";
-  else if (/Windows/i.test(ua)) dispositivo = "Windows";
-  else if (/Mac/i.test(ua)) dispositivo = "Mac";
-  
-  if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) navegador = "Chrome";
-  else if (/Firefox/i.test(ua)) navegador = "Firefox";
-  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) navegador = "Safari";
-  else if (/Edg/i.test(ua)) navegador = "Edge";
-  
-  return { dispositivo, navegador };
-}
-
-// 4. OBTER IP (simplificado - sem await)
-function obterIPUsuario(callback) {
-  // Usar API gratuita para IP
-  fetch('https://api.ipify.org?format=json')
-    .then(res => res.json())
-    .then(data => callback(data.ip))
-    .catch(() => callback('127.0.0.1'));
-}
-
-// 5. FUNÇÃO PRINCIPAL DE RASTREAMENTO
-function registrarAcessoRastreamento(acao, pagina, detalhes = {}) {
+// 🔹 FUNÇÃO 1: OBTER DADOS DO USUÁRIO DO localStorage (MESMO SISTEMA)
+function obterDadosUsuarioAtual() {
   try {
-    // Dados do usuário
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    const sessaoId = iniciarSessao();
-    const infoDispositivo = obterInfoDispositivo();
+    const usuarioData = localStorage.getItem("usuario");
+    if (!usuarioData) return { existe: false, dados: null };
+    
+    const usuario = JSON.parse(usuarioData);
+    return {
+      existe: true,
+      dados: {
+        nome: usuario.nome,
+        telefone: usuario.telefone,
+        // Gera ID baseado no telefone (MESMO PADRÃO DO SEU SISTEMA)
+        id: usuario.telefone ? 'USR_' + usuario.telefone.replace(/\D/g, '').substring(3, 9) : null
+      }
+    };
+  } catch (error) {
+    return { existe: false, dados: null };
+  }
+}
+
+// 🔹 FUNÇÃO 2: RASTREAR ACESSO (USANDO DADOS EXISTENTES)
+function rastrearAcesso(acao, detalhes = {}) {
+  try {
+    const usuarioInfo = obterDadosUsuarioAtual();
     
     // Preparar dados para envio
-    const dadosParaEnvio = {
-      action: 'registrar_log',
-      usuario_id: usuario.telefone ? 'USR_' + usuario.telefone.substring(3) : 'VISITANTE',
-      nome: usuario.nome ? usuario.nome.substring(0, 20) : 'N/D',
-      telefone: usuario.telefone || 'N/D',
-      acao: acao,
-      pagina: pagina,
-      dispositivo: infoDispositivo.dispositivo,
-      navegador: infoDispositivo.navegador,
-      detalhes: JSON.stringify(detalhes),
-      sessao_id: sessaoId,
-      tempo_sessao: calcularTempoSessao()
-    };
+    const dadosParaEnvio = new URLSearchParams();
     
-    // Obter IP e enviar
-    obterIPUsuario(function(ip) {
-      dadosParaEnvio.ip = ip;
-      
-      // Enviar usando URLSearchParams (mais compatível)
-      const params = new URLSearchParams();
-      for (const key in dadosParaEnvio) {
-        params.append(key, dadosParaEnvio[key]);
-      }
-      
-      // Envio ASSÍNCRONO - não bloqueia o usuário
-      fetch(TRACKING_URL, {
-        method: 'POST',
-        body: params,
-        mode: 'no-cors' // IMPORTANTE: evita problemas de CORS
-      }).catch(err => console.log('Erro no rastreamento (não crítico):', err));
+    // Se usuário existe, usar seus dados
+    if (usuarioInfo.existe && usuarioInfo.dados) {
+      dadosParaEnvio.append("action", "registrar_log");
+      dadosParaEnvio.append("usuario_id", usuarioInfo.dados.id || "N/D");
+      dadosParaEnvio.append("nome", usuarioInfo.dados.nome || "N/D");
+      dadosParaEnvio.append("telefone", usuarioInfo.dados.telefone || "N/D");
+      dadosParaEnvio.append("acao", acao);
+      dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
+      dadosParaEnvio.append("detalhes", JSON.stringify(detalhes));
+    } else {
+      // Visitante (sem cadastro)
+      dadosParaEnvio.append("action", "registrar_log");
+      dadosParaEnvio.append("usuario_id", "VISITANTE");
+      dadosParaEnvio.append("nome", "VISITANTE");
+      dadosParaEnvio.append("telefone", "N/D");
+      dadosParaEnvio.append("acao", acao);
+      dadosParaEnvio.append("pagina", window.location.pathname.split('/').pop() || "index.html");
+      dadosParaEnvio.append("detalhes", JSON.stringify({...detalhes, visitante: true}));
+    }
+    
+    // Enviar de forma assíncrona (não bloqueante)
+    fetch(TRACKING_URL, {
+      method: "POST",
+      body: dadosParaEnvio,
+      mode: "no-cors" // Para evitar problemas de CORS
+    }).catch(error => {
+      // Silenciar erro - não afeta o usuário
+      console.log("Erro no rastreamento (não crítico):", error.message);
     });
     
   } catch (error) {
-    console.log('Erro no sistema de rastreamento:', error);
+    console.log("Erro no rastreamento:", error);
   }
 }
 
-// 6. CALCULAR TEMPO DE SESSÃO
-function calcularTempoSessao() {
-  const inicio = localStorage.getItem('sessao_inicio');
-  if (!inicio) return 0;
-  
-  const inicioDate = new Date(inicio);
-  const agora = new Date();
-  return Math.floor((agora - inicioDate) / 1000);
+// 🔹 FUNÇÃO 3: RASTREAR CADASTRO (QUANDO O USUÁRIO SE CADASTRA)
+function rastrearCadastroUsuario(nome, telefone, status) {
+  try {
+    const dadosParaEnvio = new URLSearchParams();
+    
+    dadosParaEnvio.append("action", "registrar_usuario");
+    dadosParaEnvio.append("nome", nome);
+    dadosParaEnvio.append("telefone", telefone);
+    dadosParaEnvio.append("status", status); // "salvo" ou "existe"
+    dadosParaEnvio.append("pagina", "index.html");
+    dadosParaEnvio.append("tipo", status === "salvo" ? "NOVO" : "EXISTENTE");
+    
+    fetch(TRACKING_URL, {
+      method: "POST",
+      body: dadosParaEnvio,
+      mode: "no-cors"
+    }).catch(error => {
+      console.log("Erro ao rastrear cadastro (não crítico):", error.message);
+    });
+    
+  } catch (error) {
+    console.log("Erro ao rastrear cadastro:", error);
+  }
 }
 
-// ===================== INTEGRAÇÃO COM FUNÇÕES EXISTENTES =====================
+// ===================== INTEGRAÇÃO COM SEU CÓDIGO EXISTENTE =====================
 
-// A. RASTREAR ACESSO À PÁGINA
-window.addEventListener('load', function() {
-  setTimeout(() => {
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    const acao = usuario.nome ? 'RELOGIN_PAGINA' : 'PRIMEIRO_ACESSO';
-    
-    registrarAcessoRastreamento(acao, 'index.html', {
-      usuario_logado: !!usuario.nome,
-      tipo_pagina: 'login_cadastro'
-    });
-  }, 1500);
-});
+// 🔹 INTEGRAR COM A FUNÇÃO submeter() EXISTENTE
+// ENCONTRE NO SEU CÓDIGO A FUNÇÃO submeter() E MODIFIQUE:
 
-// B. INTEGRAR COM CADASTRO EXISTENTE
-// Guardar a função original de submissão
-const submeterOriginal = window.submeter;
-
-// Sobrescrever com rastreamento
-window.submeter = function() {
-  // Obter dados do formulário
+function submeter() {
   const nome = document.getElementById("nome").value.trim();
   const telefone = document.getElementById("telefone").value.replace(/\D/g, '');
-  
-  // RASTREAR: Cadastro enviado
-  registrarAcessoRastreamento('CADASTRO_ENVIADO', 'index.html', {
-    nome_tamanho: nome.length,
-    telefone_prefixo: telefone.substring(0, 3)
-  });
-  
-  // Chamar função original
-  if (submeterOriginal) {
-    return submeterOriginal.apply(this, arguments);
-  }
-  
-  return false;
-};
+  const telefoneCompleto = formatarTelefoneParaEnvio(telefone);
 
-// C. INTEGRAR COM INICIO DO SISTEMA
-const iniciarSistemaOriginal = window.iniciarSistema;
-window.iniciarSistema = function() {
-  // RASTREAR: Sistema iniciando
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-  
-  registrarAcessoRastreamento('SISTEMA_INICIADO', 'index.html', {
-    usuario: usuario.nome ? usuario.nome.substring(0, 10) + '...' : 'N/D',
-    etapa: 'inicio_carregamento'
-  });
-  
-  // Chamar função original
-  if (iniciarSistemaOriginal) {
-    return iniciarSistemaOriginal.apply(this, arguments);
-  }
-};
+  // ... seu código existente de validação ...
 
-// D. RASTREAR INTERAÇÕES DO USUÁRIO
-document.addEventListener('DOMContentLoaded', function() {
-  // RASTREAR: Foco nos campos
-  ['nome', 'telefone'].forEach(id => {
-    const campo = document.getElementById(id);
-    if (campo) {
-      campo.addEventListener('focus', function() {
-        registrarAcessoRastreamento('CAMPO_FOCADO', 'index.html', {
-          campo: id,
-          acao: 'focus'
+  setTimeout(() => {
+    const formData = new URLSearchParams();
+    formData.append("nome", nome);
+    formData.append("telefone", telefoneCompleto);
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(resposta => {
+      if(resposta.status === "salvo" || resposta.status === "existe") {
+        // 🔹 1. SALVAR NO localStorage (SEU CÓDIGO ORIGINAL)
+        localStorage.setItem("usuario", JSON.stringify({
+          nome: nome,
+          telefone: telefoneCompleto,
+          dataRegistro: new Date().toISOString()
+        }));
+        
+        // 🔹 2. RASTREAR O CADASTRO (ADICIONE ESTA LINHA)
+        rastrearCadastroUsuario(nome, telefoneCompleto, resposta.status);
+        
+        // 🔹 3. RASTREAR O ACESSO (ADICIONE ESTA LINHA)
+        rastrearAcesso(resposta.status === "salvo" ? "CADASTRO_NOVO" : "RELOGIN_SISTEMA", {
+          nome_tamanho: nome.length,
+          telefone_prefixo: telefoneCompleto.substring(0, 6)
         });
+        
+        // Seu código existente continua...
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('welcomeContainer').style.display = 'block';
+        iniciarSistema();
+      } else {
+        throw new Error(resposta.mensagem);
+      }
+    })
+    .catch(err => {
+      alert("Erro ao enviar dados. Tente novamente.");
+      console.error(err);
+    });
+  }, 3000);
+}
+
+// 🔹 RASTREAR ACESSO À PÁGINA
+window.addEventListener('load', function() {
+  setTimeout(() => {
+    const usuarioInfo = obterDadosUsuarioAtual();
+    
+    if (usuarioInfo.existe) {
+      rastrearAcesso("ACESSO_USUARIO_LOGADO", {
+        nome: usuarioInfo.dados.nome.substring(0, 10) + "...",
+        telefone_mascarado: usuarioInfo.dados.telefone.substring(0, 6) + "****"
       });
-      
-      campo.addEventListener('blur', function() {
-        registrarAcessoRastreamento('CAMPO_DESFOCADO', 'index.html', {
-          campo: id,
-          valor_tamanho: this.value.length
-        });
-      });
+    } else {
+      rastrearAcesso("ACESSO_VISITANTE", { primeiro_acesso: true });
     }
-  });
-  
-  // RASTREAR: Clique no botão
+  }, 1000);
+});
+
+// 🔹 RASTREAR INTERAÇÕES
+document.addEventListener('DOMContentLoaded', function() {
+  // RASTREAR CLIQUE NO BOTÃO DE LOGIN
   const loginButton = document.getElementById('loginButton');
   if (loginButton) {
     loginButton.addEventListener('click', function() {
-      registrarAcessoRastreamento('BOTAO_CLICADO', 'index.html', {
-        elemento: 'loginButton',
-        texto: this.textContent.trim()
+      const usuarioInfo = obterDadosUsuarioAtual();
+      
+      rastrearAcesso("CLIQUE_LOGIN", {
+        usuario_logado: usuarioInfo.existe,
+        botao: "loginButton"
       });
     });
   }
+  
+  // RASTREAR PREENCHIMENTO DOS CAMPOS
+  ['nome', 'telefone'].forEach(campoId => {
+    const campo = document.getElementById(campoId);
+    if (campo) {
+      campo.addEventListener('blur', function() {
+        if (this.value.length > 2) {
+          rastrearAcesso("PREENCHIMENTO_CAMPO", {
+            campo: campoId,
+            tamanho: this.value.length
+          });
+        }
+      });
+    }
+  });
 });
 
-// E. RASTREAR SAÍDA DA PÁGINA
+// 🔹 RASTREAR SAÍDA DA PÁGINA
 window.addEventListener('beforeunload', function() {
-  registrarAcessoRastreamento('SAIDA_PAGINA', 'index.html', {
-    tempo_total_sessao: calcularTempoSessao(),
-    destino: 'desconhecido'
+  rastrearAcesso("SAIDA_PAGINA", {
+    tempo_carregamento: performance.now()
   });
 });
 
-// ===================== FUNÇÃO PARA REGISTRAR DOWNLOADS =====================
-// Esta função será usada nas outras páginas (quinzenal, bloco, etc.)
-window.registrarDownloadRastreamento = function(tipo, nomeArquivo, detalhesAdicionais = {}) {
-  try {
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    const sessaoId = localStorage.getItem('sessao_id') || gerarSessaoId();
-    const infoDispositivo = obterInfoDispositivo();
-    
-    // Dados para envio
-    const dadosDownload = {
-      action: 'registrar_download',
-      usuario_id: usuario.telefone ? 'USR_' + usuario.telefone.substring(3) : 'VISITANTE',
-      nome: usuario.nome ? usuario.nome.substring(0, 20) : 'N/D',
-      telefone: usuario.telefone || 'N/D',
-      tipo_documento: tipo,
-      nome_arquivo: nomeArquivo.substring(0, 100),
-      tamanho_kb: Math.floor(Math.random() * 300) + 50,
-      metodo_pagamento: detalhesAdicionais.metodo_pagamento || 'CODIGO',
-      status_pagamento: detalhesAdicionais.status_pagamento || 'PAGO',
-      codigo_transacao: detalhesAdicionais.codigo_transacao || 'N/D',
-      disciplina: detalhesAdicionais.disciplina || 'N/D',
-      classe: detalhesAdicionais.classe || 'N/D',
-      trimestre: detalhesAdicionais.trimestre || 'N/D',
-      numero_aulas: detalhesAdicionais.numero_aulas || 0,
-      sessao_id: sessaoId,
-      dispositivo: infoDispositivo.dispositivo,
-      navegador: infoDispositivo.navegador
-    };
-    
-    // Obter IP e enviar
-    obterIPUsuario(function(ip) {
-      dadosDownload.ip = ip;
-      
-      const params = new URLSearchParams();
-      for (const key in dadosDownload) {
-        params.append(key, dadosDownload[key]);
-      }
-      
-      fetch(TRACKING_URL, {
-        method: 'POST',
-        body: params,
-        mode: 'no-cors'
-      }).catch(err => console.log('Erro ao registrar download:', err));
-    });
-    
-  } catch (error) {
-    console.log('Erro no registro de download:', error);
-  }
-};
-
-// ===================== TESTE DA CONEXÃO =====================
-// Testar se o sistema de rastreamento está funcionando
-function testarRastreamento() {
-  console.log('🔍 Testando sistema de rastreamento...');
-  
-  // Teste 1: Verificar localStorage
-  console.log('LocalStorage usuário:', localStorage.getItem('usuario'));
-  console.log('Sessão ID:', localStorage.getItem('sessao_id'));
-  
-  // Teste 2: Enviar evento de teste
-  registrarAcessoRastreamento('TESTE_SISTEMA', 'index.html', {
-    teste: true,
-    timestamp: new Date().toISOString()
-  });
-  
-  console.log('✅ Teste de rastreamento enviado!');
-}
-
-// Executar teste após 3 segundos (opcional)
-setTimeout(testarRastreamento, 3000);
-
-// ===================== MENSAGEM DE STATUS =====================
-// Mostrar status no console
-console.log('📊 Sistema de rastreamento carregado com sucesso!');
-console.log('URL do GAS:', TRACKING_URL);
-console.log('Sessão ID:', iniciarSessao());
+// ===================== TESTE DO SISTEMA =====================
+console.log("✅ Sistema de rastreamento integrado carregado!");
+console.log("Usuário atual no localStorage:", obterDadosUsuarioAtual());
     </script>
     
     
