@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+(function () {
+  'use strict';
+
+  function isMobileOrTablet() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isTouch = navigator.maxTouchPoints > 1;
+    return /Android|iPhone|iPad|Tablet|Silk|Kindle|PlayBook/i.test(ua) || isTouch;
+  }
+
+  if (!isMobileOrTablet()) {
+    document.documentElement.innerHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Access Restricted</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a1929 0%, #111827 100%);
+            color: #f9fafb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+          }
+          .box {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+          }
+          .icon {
+            font-size: 4em;
+            margin-bottom: 24px;
+            animation: float 3s ease-in-out infinite;
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          h1 {
+            font-size: 1.8em;
+            margin-bottom: 16px;
+            color: #f59e0b;
+          }
+          p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #d1d5db;
+            margin-bottom: 12px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="icon">📱</div>
+          <h1>Access allowed only on smartphone or tablet</h1>
+          <p>This site was designed exclusively for <strong>mobile</strong> devices.</p>
+          <p>Open this page on a phone or tablet to continue.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    throw new Error('Desktop access blocked');
+  }
+})();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlock Lesson Planning Block</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #0a5f2a;
+      --primary-dark: #084d22;
+      --primary-light: #0e7d32;
+      --secondary: #2563eb;
+      --accent: #f59e0b;
+      --accent-vibrant: #ff6b00;
+      --accent-dark: #d97706;
+      --dark: #111827;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --glass: rgba(255, 255, 255, 0.1);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.2);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a1929 0%, #111827 100%);
+      color: var(--light);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(10, 95, 42, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+      z-index: -1;
+    }
+
+    .app-container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header Futurista */
+    .header {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 25px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 800;
+      border-radius: var(--radius);
+      margin-bottom: 25px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+    }
+
+    .header i {
+      margin-right: 12px;
+      color: var(--accent);
+      font-size: 1.2em;
+    }
+
+    /* Progress Steps Futurista */
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0 30px;
+      position: relative;
+    }
+
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
+      background-size: 200% 100%;
+      animation: gradientShift 3s ease infinite;
+      z-index: 0;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      width: 33.33%;
+    }
+
+    .step-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      font-weight: 800;
+      color: white;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .step.completed .step-circle {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .step.active .step-circle {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 0 20px rgba(10, 95, 42, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .step.active .step-label {
+      color: white;
+      font-weight: 700;
+    }
+
+    /* Main Card Futurista */
+    .main-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--light);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-title i {
+      color: var(--accent);
+      font-size: 1.2em;
+      background: rgba(245, 158, 11, 0.1);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Screen Tabs Futurista */
+    .screen-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 6px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .screen-tab {
+      flex: 1;
+      padding: 14px;
+      text-align: center;
+      border-radius: 10px;
+      background: none;
+      border: none;
+      color: var(--gray);
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .screen-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 15px rgba(10, 95, 42, 0.4);
+    }
+
+    /* Info Grid Futurista */
+    .info-grid {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 25px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .info-label {
+      font-size: 14px;
+      color: #d1d5db;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-label i {
+      color: var(--accent);
+      font-size: 14px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--light);
+    }
+
+    .info-value.highlight {
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 900;
+      text-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Payment Methods Futurista */
+    .payment-methods {
+      display: grid;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .payment-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .payment-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+    }
+
+    .payment-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .payment-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .payment-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(10, 95, 42, 0.4);
+    }
+
+    .payment-name {
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--light);
+    }
+
+    .payment-number {
+      font-family: 'Courier New', monospace;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
+      margin: 15px 0;
+      letter-spacing: 2px;
+      text-align: center;
+      background: rgba(245, 158, 11, 0.1);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* Botão Vibrante para Código */
+    .vibrant-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--accent-vibrant), #ff8c00);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 16px;
+      box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 20px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vibrant-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+
+    .vibrant-btn:hover {
+      background: linear-gradient(135deg, #ff8c00, var(--accent-vibrant));
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(255, 107, 0, 0.6);
+    }
+
+    .vibrant-btn:hover::before {
+      left: 100%;
+    }
+
+    .vibrant-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .copy-btn:hover {
+      background: linear-gradient(135deg, var(--primary-dark), #073919);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(10, 95, 42, 0.4);
+    }
+
+    .reference-info {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(10, 95, 42, 0.1));
+      border-radius: 12px;
+      padding: 18px;
+      margin: 20px 0;
+      text-align: center;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .reference-label {
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .reference-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--light);
+    }
+
+    /* Code Input Futurista */
+    .code-input-container {
+      margin: 25px 0;
+    }
+
+    .code-input {
+      width: 100%;
+      padding: 22px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      color: var(--light);
+      margin-bottom: 12px;
+      transition: var(--transition);
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+    }
+
+    .code-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(10, 95, 42, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .code-feedback {
+      font-size: 13px;
+      text-align: center;
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    /* Loader Futurista */
+    .loader-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin: 25px 0;
+      display: none;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .loader {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 25px;
+      position: relative;
+    }
+
+    .loader-circle {
+      width: 100%;
+      height: 100%;
+      border: 4px solid transparent;
+      border-top: 4px solid var(--primary);
+      border-right: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      position: absolute;
+    }
+
+    .loader-circle:nth-child(2) {
+      border: 4px solid transparent;
+      border-top: 4px solid var(--accent);
+      border-right: 4px solid var(--accent);
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      animation: spin 0.8s linear infinite reverse;
+    }
+
+    .loader-circle:nth-child(3) {
+      border: 4px solid transparent;
+      border-top: 4px solid var(--secondary);
+      border-right: 4px solid var(--secondary);
+      width: 60%;
+      height: 60%;
+      top: 20%;
+      left: 20%;
+      animation: spin 1.2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loader-status {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--light);
+      margin-top: 15px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 100%;
+      animation: gradientShift 3s ease infinite;
+    }
+
+    /* Action Buttons Futurista */
+    .action-buttons {
+      display: grid;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .action-btn {
+      padding: 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--light);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 6px 20px rgba(10, 95, 42, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary-dark), #073919);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(10, 95, 42, 0.6);
+    }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: white;
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+    }
+
+    .btn-whatsapp:hover {
+      background: linear-gradient(135deg, #128C7E, #25D366);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(37, 211, 102, 0.6);
+    }
+
+    /* Success Message Futurista */
+    .success-message {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 95, 42, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: var(--radius);
+      padding: 25px;
+      margin: 25px 0;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .success-title {
+      color: var(--success);
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .success-details {
+      color: #d1d5db;
+      font-size: 15px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Botão Regras de Impressão */
+    .btn-regras {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 16px;
+      margin: 15px 0;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      text-decoration: none;
+    }
+
+    .btn-regras:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.6);
+    }
+
+    /* Alert Futurista */
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 18px 22px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      color: var(--light);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 1001;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      min-width: 300px;
+    }
+
+    .alert.show {
+      transform: translateX(0);
+    }
+
+    /* Footer Futurista */
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    /* Animação de entrada */
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .main-card, .header {
+      animation: slideUp 0.5s ease-out;
+    }
+
+    /* Test Connection Button */
+    .test-btn {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      color: var(--light);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .test-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .test-result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      text-align: center;
+      display: none;
+    }
+
+    .test-result.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+      display: block;
+    }
+
+    .test-result.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <i class="fas fa-lock-open"></i> UNLOCK LESSON PLANNING BLOCK
+      
+      <div class="progress-steps">
+        <div class="step completed">
+          <div class="step-circle">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="step-label">PREPARE</div>
+        </div>
+        
+        <div class="step completed">
+          <div class="step-circle">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="step-label">CONFIRM</div>
+        </div>
+        
+        <div class="step active">
+          <div class="step-circle">3</div>
+          <div class="step-label">PAY</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-card">
+      <div class="screen-tabs">
+        <button class="screen-tab active" onclick="showScreen('payment')">
+          <i class="fas fa-money-bill-wave"></i> PAYMENT
+        </button>
+        <button class="screen-tab" onclick="showScreen('code')">
+          <i class="fas fa-key"></i> CODE
+        </button>
+      </div>
+
+      <div id="screen-payment">
+        <h2 class="card-title"><i class="fas fa-shopping-cart"></i> YOUR PACKAGE</h2>
+        
+        <div class="info-grid" id="info-plano">
+          <!-- Filled by JavaScript -->
+        </div>
+
+        <!-- VIBRANT BUTTON TO INSERT CODE -->
+        <button class="vibrant-btn" onclick="showScreen('code')">
+          <i class="fas fa-key"></i> I'VE PAID, ENTER CODE NOW
+        </button>
+
+        <h2 class="card-title"><i class="fas fa-wallet"></i> PAYMENT METHODS</h2>
+        
+        <div class="payment-methods">
+          <div class="payment-card">
+            <div class="payment-header">
+              <div class="payment-icon">
+                <i class="fas fa-mobile-alt"></i>
+              </div>
+              <div class="payment-name">EMOLA</div>
+            </div>
+            <div class="payment-number">864920606</div>
+            <button class="copy-btn" onclick="copyNumber('864920606', 'Emola')">
+              <i class="far fa-copy"></i> COPY NUMBER
+            </button>
+          </div>
+
+          <div class="payment-card">
+            <div class="payment-header">
+              <div class="payment-icon">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="payment-name">M-PESA</div>
+            </div>
+            <div class="payment-number">848960732</div>
+            <button class="copy-btn" onclick="copyNumber('848960732', 'M-Pesa')">
+              <i class="far fa-copy"></i> COPY NUMBER
+            </button>
+          </div>
+        </div>
+
+        <div class="reference-info">
+          <div class="reference-label">REFERENCE NAME FOR TRANSFER:</div>
+          <div class="reference-value">Benjamim Januário Paulino</div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn btn-whatsapp" onclick="openWhatsApp()">
+            <i class="fab fa-whatsapp"></i> I NEED HELP WITH PAYMENT
+          </button>
+          <button class="action-btn btn-secondary" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i> BACK TO SUMMARY
+          </button>
+        </div>
+      </div>
+
+      <div id="screen-code" style="display: none;">
+        <h2 class="card-title"><i class="fas fa-sms"></i> UNLOCK CODE</h2>
+        
+        <p style="font-size: 14px; color: var(--gray); margin-bottom: 20px; text-align: center;">
+          Enter the 8-digit code received via SMS after payment.
+          <br>
+          <small style="color: var(--accent); font-weight: 600;">Check your SMS inbox and spam</small>
+        </p>
+
+        <div class="code-input-container">
+          <input type="text" id="code-input" class="code-input" 
+                 placeholder="XXXX-XXXX" maxlength="9" autocomplete="off"
+                 oninput="formatCode(this)">
+          <div class="code-feedback" id="code-feedback"></div>
+        </div>
+
+        <!-- Botão de teste de conexão -->
+        <button class="test-btn" onclick="testConnection()">
+          <i class="fas fa-wifi"></i> TEST CONNECTION TO SERVER
+        </button>
+        <div id="test-result" class="test-result"></div>
+
+        <div class="loader-container" id="loader-container">
+          <div class="loader">
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
+          </div>
+          <div class="loader-status" id="loader-status">Verifying code...</div>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="action-buttons">
+          <button class="action-btn btn-primary" onclick="validateCode()">
+            <i class="fas fa-unlock-alt"></i> UNLOCK AND DOWNLOAD BLOCK
+          </button>
+          <button class="action-btn btn-secondary" onclick="showScreen('payment')">
+            <i class="fas fa-arrow-left"></i> BACK TO PAYMENT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2026 Lesson Planning Block Generation System</p>
+      <p>Ministry of Education - Republic of Mozambique</p>
+    </footer>
+  </div>
+
+  <div class="alert" id="alert">
+    <i class="fas fa-check-circle"></i>
+    <span id="alert-message">Message</span>
+  </div>
+
+  <script>
+    // ========== CONFIGURAÇÃO ==========
+    const URL_APP = "https://script.google.com/macros/s/AKfycbwYpxBfI0Esl8rm73mSArHJuR-dfJ1Q-t5re7_iWIk6vJjy2VqevfKXBPbOhR_uFXQgaw/exec";
+    
+    let planoData = null;
+    let planoConfig = null;
+    let numLessons = 0;
+    let packageInfo = { name: '', price: 0 };
+
+    const codeInput = document.getElementById('code-input');
+    const feedback = document.getElementById('code-feedback');
+    const loaderContainer = document.getElementById('loader-container');
+    const loaderStatus = document.getElementById('loader-status');
+
+    // ========== FUNCTIONS TO DETERMINE PACKAGE ==========
+    function getPackageByLessons(numLessons) {
+        if (numLessons >= 40 && numLessons <= 50) return 'BASIC';
+        else if (numLessons >= 51 && numLessons <= 75) return 'ADVANCED';
+        else return 'COMPLETE'; // 76-100
+    }
+
+    function getPriceByLessons(numLessons) {
+        if (numLessons >= 40 && numLessons <= 50) return 50;
+        else if (numLessons >= 51 && numLessons <= 75) return 75;
+        else return 100; // 76-100
+    }
+
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      const planoDataJSON = sessionStorage.getItem("planoData");
+      const planoConfigJSON = sessionStorage.getItem("planoConfig");
+      
+      if (!planoDataJSON || !planoConfigJSON) {
+        showAlert("No plan found. Generate the plan before trying to unlock.", "error");
+        setTimeout(() => window.location.href = 'bling.html', 2000);
+        return;
+      }
+      
+      planoData = JSON.parse(planoDataJSON);
+      planoConfig = JSON.parse(planoConfigJSON);
+      numLessons = planoConfig.aulas || 40;
+      
+      calculatePackage();
+      updateInfoPlano();
+      setupEvents();
+      
+      // Animate elements
+      document.querySelectorAll('.payment-card, .info-item').forEach((el, i) => {
+        el.style.animation = `slideUp 0.5s ease-out ${i * 0.1}s both`;
+      });
+    });
+
+    function calculatePackage() {
+      packageInfo = {
+        name: getPackageByLessons(numLessons),
+        price: getPriceByLessons(numLessons)
+      };
+    }
+
+    function updateInfoPlano() {
+      const infoPlano = document.getElementById('info-plano');
+      const totalPages = (numLessons * 2) + 2;
+      
+      infoPlano.innerHTML = `
+        <div class="info-item">
+          <span class="info-label"><i class="fas fa-chalkboard-teacher"></i> Lessons:</span>
+          <span class="info-value">${numLessons}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label"><i class="fas fa-file-alt"></i> Pages:</span>
+          <span class="info-value">${totalPages}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label"><i class="fas fa-tag"></i> Package:</span>
+          <span class="info-value">${packageInfo.name}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label"><i class="fas fa-money-bill-wave"></i> Price:</span>
+          <span class="info-value highlight">${packageInfo.price} MT</span>
+        </div>
+      `;
+    }
+
+    function setupEvents() {
+      codeInput.addEventListener('input', function() {
+        let value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        value = value.slice(0, 8);
+        
+        // Format with hyphen
+        if (value.length > 4) {
+          value = value.slice(0, 4) + '-' + value.slice(4);
+        }
+        codeInput.value = value;
+        
+        if (value.replace('-', '').length !== 8 && value.replace('-', '').length > 0) {
+          feedback.textContent = "Code must have 8 characters";
+          feedback.style.color = "#ef4444";
+        } else {
+          feedback.textContent = "";
+        }
+      });
+      
+      codeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          validateCode();
+        }
+      });
+    }
+
+    function formatCode(input) {
+      let value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (value.length > 4) {
+        value = value.slice(0, 4) + '-' + value.slice(4, 8);
+      }
+      input.value = value;
+    }
+
+    function showScreen(screen) {
+      document.getElementById('screen-payment').style.display = screen === 'payment' ? 'block' : 'none';
+      document.getElementById('screen-code').style.display = screen === 'code' ? 'block' : 'none';
+      
+      document.querySelectorAll('.screen-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      if (screen === 'payment') {
+        document.querySelector('.screen-tab:nth-child(1)').classList.add('active');
+      } else {
+        document.querySelector('.screen-tab:nth-child(2)').classList.add('active');
+        setTimeout(() => codeInput.focus(), 300);
+      }
+    }
+
+    function copyNumber(number, wallet) {
+      const cleanNumber = number.replace(/\s/g, '');
+      navigator.clipboard.writeText(cleanNumber).then(() => {
+        showAlert(`✅ ${wallet} number copied: ${cleanNumber}`, "success");
+      }).catch(() => {
+        showAlert(`❌ Copy manually: ${cleanNumber}`, "error");
+      });
+    }
+
+    function openWhatsApp() {
+      const message = `Hello! I need help with the payment for the lesson planning block. Lessons: ${numLessons}, Price: ${packageInfo.price} MT`;
+      window.open(`https://wa.me/258864920606?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function updateLoader(message) {
+      loaderStatus.textContent = message;
+    }
+
+    // ========== TEST CONNECTION FUNCTION ==========
+    async function testConnection() {
+      const testResult = document.getElementById('test-result');
+      testResult.className = 'test-result';
+      testResult.innerHTML = 'Testing connection...';
+      testResult.style.display = 'block';
+      
+      try {
+        // Try a simple fetch request with no-cors mode to test connectivity
+        const response = await fetch(URL_APP, { 
+          method: 'GET', 
+          mode: 'no-cors'
+        });
+        
+        // With no-cors, we can't read response, but if it doesn't throw, connection works
+        testResult.className = 'test-result success';
+        testResult.innerHTML = '✅ Server is reachable! You can try your code.';
+        
+      } catch (error) {
+        testResult.className = 'test-result error';
+        testResult.innerHTML = `❌ Connection failed: ${error.message}. Check your internet.`;
+        console.error('Test connection error:', error);
+      }
+    }
+
+    // ========== VALIDATE CODE FUNCTION ==========
+    // ========== VALIDATE CODE FUNCTION - CORRIGIDA ==========
+async function validateCode() {
+  const code = codeInput.value.trim().toUpperCase().replace(/-/g, '');
+  const msg = document.getElementById('message');
+  
+  if (code.length !== 8) {
+    showAlert("❌ Code must have 8 characters", "error");
+    codeInput.focus();
+    return;
+  }
+  
+  // Get current package based on number of lessons
+  const currentPackage = getPackageByLessons(numLessons);
+  
+  loaderContainer.style.display = 'block';
+  updateLoader('Verifying code...');
+  msg.innerHTML = '';
+  
+  try {
+    // Build URL with parameters
+    const url = `${URL_APP}?codigo=${encodeURIComponent(code)}&pacote=${encodeURIComponent(currentPackage)}`;
+    
+    console.log("Calling URL:", url);
+    
+    // Usar fetch com modo cors (mais simples que JSONP)
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log("Response from GAS:", result);
+    
+    // CORREÇÃO: Verificar a estrutura exata da resposta do GS
+    // O GS retorna { valido: true, msg: "...", restante: X }
+    
+    if (result && result.valido === true) {
+      updateLoader('Valid code! Preparing block...');
+      
+      await generateBlockPDF(planoData, numLessons, result.restante || 0);
+      
+      updateLoader('Block generated successfully!');
+      
+    } else {
+      // More specific error message
+      let errorMessage = result && result.msg ? result.msg : 'Invalid or already used code';
+      
+      // If package mismatch error, show clearer message
+      if (result && result.pacote_correto) {
+        errorMessage = `❌ This code is for the ${result.pacote_correto} package. You are generating ${currentPackage}.`;
+      }
+      
+      showAlert(errorMessage, "error");
+      loaderContainer.style.display = 'none';
+      codeInput.focus();
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showAlert("❌ Error validating code. Check your connection.", "error");
+    loaderContainer.style.display = 'none';
+  }
+}
+    // JSONP helper to bypass CORS
+    function jsonpRequest(url) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          resolve(data);
+        };
+        
+        const script = document.createElement('script');
+        // Add callback parameter to URL
+        const separator = url.includes('?') ? '&' : '?';
+        script.src = url + separator + 'callback=' + callbackName;
+        
+        script.onerror = function(error) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          reject(new Error('JSONP request failed'));
+        };
+        
+        document.body.appendChild(script);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          if (window[callbackName]) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            reject(new Error('Request timeout'));
+          }
+        }, 10000);
+      });
+    }
+
+    function showAlert(message, type = 'info') {
+      const alert = document.getElementById('alert');
+      const alertMessage = document.getElementById('alert-message');
+      const icon = alert.querySelector('i');
+      
+      alertMessage.textContent = message;
+      
+      // Configure style based on type
+      if (type === 'success') {
+        alert.style.borderLeftColor = '#10b981';
+        icon.className = 'fas fa-check-circle';
+        icon.style.color = '#10b981';
+      } else if (type === 'warning') {
+        alert.style.borderLeftColor = '#f59e0b';
+        icon.className = 'fas fa-exclamation-triangle';
+        icon.style.color = '#f59e0b';
+      } else if (type === 'error') {
+        alert.style.borderLeftColor = '#ef4444';
+        icon.className = 'fas fa-times-circle';
+        icon.style.color = '#ef4444';
+      } else {
+        alert.style.borderLeftColor = '#3b82f6';
+        icon.className = 'fas fa-info-circle';
+        icon.style.color = '#3b82f6';
+      }
+      
+      alert.classList.add('show');
+      
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 4000);
+    }
+
+    // ========== PDF GENERATION FUNCTIONS ==========
+    async function loadImageInfo(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const base64 = canvas.toDataURL('image/png');
+          resolve({ base64, width: img.width, height: img.height });
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function generateBlockPDF(planoData, numLessons, remaining) {
+      const { jsPDF } = window.jspdf;
+      let doc = null;
+
+      // --- LOAD EMBLEM ---
+      let emblemaInfo = null;
+      try {
+        updateLoader('Loading emblem...');
+        emblemaInfo = await loadImageInfo('icons/emblema.png');
+      } catch (e) {
+        console.warn('Emblem not found. Continuing without it.');
+      }
+      
+      updateLoader('Creating cover...');
+      
+      doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      // --- DRAW EMBLEM ---
+      if (emblemaInfo) {
+        const imgHeight = 25;
+        const imgWidth = (emblemaInfo.width / emblemaInfo.height) * imgHeight;
+        const x = (pageWidth - imgWidth) / 2;
+        const y = 25;
+        doc.addImage(emblemaInfo.base64, 'PNG', x, y, imgWidth, imgHeight);
+      }
+      
+      // --- DECORATIVE BORDER ON COVER ---
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(1.5);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
+      
+      doc.setFont("times", "bold");
+      doc.setFontSize(28);
+      doc.setTextColor(0, 0, 0);
+      doc.text('REPÚBLICA DE MOÇAMBIQUE', pageWidth / 2, 60, { align: 'center' });
+      
+      doc.setFontSize(22);
+      doc.text('MINISTÉRIO DA EDUCAÇÃO', pageWidth / 2, 80, { align: 'center' });
+      
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(1);
+      doc.line(30, 100, pageWidth - 30, 100);
+      
+      doc.setFontSize(32);
+      doc.text('BLOCO DE PLANIFICAÇÃO', pageWidth / 2, 130, { align: 'center' });
+      
+      doc.setFontSize(18);
+      doc.setFont("times", "bold");
+      
+      let y = 160;
+      const lineHeight = 12;
+      
+      doc.text('ESCOLA:', pageWidth / 2, y, { align: 'center' });
+      if (planoData.escola && planoData.escola.trim()) {
+        doc.setFont("times", "normal");
+        doc.text(planoData.escola, pageWidth / 2, y + 6, { align: 'center' });
+        doc.setFont("times", "bold");
+      }
+      y += lineHeight + 10;
+      
+      doc.text('PROFESSOR(A):', pageWidth / 2, y, { align: 'center' });
+      if (planoData.professor && planoData.professor.trim()) {
+        doc.setFont("times", "normal");
+        doc.text(planoData.professor, pageWidth / 2, y + 6, { align: 'center' });
+        doc.setFont("times", "bold");
+      }
+      y += lineHeight + 10;
+      
+      doc.text('DISCIPLINA(S):', pageWidth / 2, y, { align: 'center' });
+      if (planoData.disciplina && planoData.disciplina.trim()) {
+        doc.setFont("times", "normal");
+        doc.text(planoData.disciplina, pageWidth / 2, y + 6, { align: 'center' });
+        doc.setFont("times", "bold");
+      }
+      y += lineHeight + 10;
+      
+      doc.text('CLASSE:', pageWidth / 2, y, { align: 'center' });
+      if (planoData.classe && planoData.classe.trim()) {
+        doc.setFont("times", "normal");
+        doc.text(planoData.classe, pageWidth / 2, y + 6, { align: 'center' });
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont("times", "normal");
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Bloco com ${numLessons} aulas - ${(numLessons * 2) + 2} páginas`, pageWidth / 2, pageHeight - 40, { align: 'center' });
+      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-MZ')}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
+      
+      updateLoader('Creating pedagogical declaration...');
+      doc.addPage();
+      createDeclaracaoPage(doc, planoData);
+      
+      for (let lessonNum = 1; lessonNum <= numLessons; lessonNum++) {
+        updateLoader(`Generating lesson ${lessonNum} of ${numLessons}...`);
+        
+        doc.addPage([297, 210], 'landscape');
+        createLessonPage1(doc, planoData, lessonNum);
+        
+        doc.addPage([297, 210], 'landscape');
+        createLessonPage2(doc, lessonNum);
+        
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      updateLoader('Finalizing document...');
+      
+      const disciplina = planoData.disciplina || "Plano";
+      const classe = planoData.classe || "";
+      const professorNome = planoData.professor.replace(/\s+/g, '_').substring(0, 20);
+      const fileName = `Lesson_Planning_Block_${disciplina}_${classe}_${professorNome}.pdf`;
+      
+      const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
+      historico.push({
+        escola: planoData.escola,
+        professor: planoData.professor,
+        disciplina: planoData.disciplina,
+        classe: planoData.classe,
+        turma: planoData.turma,
+        periodo: planoData.periodo,
+        aulas: numLessons,
+        paginas: (numLessons * 2) + 2,
+        data: new Date().toISOString().split('T')[0],
+        pago: true,
+        valor: packageInfo.price
+      });
+      localStorage.setItem("historicoPlanos", JSON.stringify(historico));
+      
+      const pdfBlob = doc.output('blob');
+      window.__ultimoPDFBlob = pdfBlob;
+      window.__ultimoPDFNome = fileName;
+      
+      setTimeout(() => {
+        try {
+          downloadPDF(pdfBlob, fileName);
+        } catch (e) {
+          console.warn("Auto-download blocked by browser.");
+        }
+      }, 300);
+      
+      const msg = document.getElementById('message');
+      msg.innerHTML = `
+        <div class="success-message">
+          <div class="success-title"><i class="fas fa-check-circle"></i> BLOCK GENERATED SUCCESSFULLY!</div>
+          <div class="success-details">
+            <strong>${numLessons} lessons • ${(numLessons * 2) + 2} pages • ${packageInfo.price} MT</strong><br>
+            <small style="color: #9ca3af;">Remaining PDF downloads available: ${remaining}</small>
+          </div>
+          <button onclick="downloadPDFManual()" 
+                  style="width: 100%; padding: 18px; background: linear-gradient(135deg, #0a5f2a, #084d22); color: white; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 16px; margin: 10px 0; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;"
+                  onmouseover="this.style.background='linear-gradient(135deg, #084d22, #073919)'; this.style.transform='translateY(-2px)';"
+                  onmouseout="this.style.background='linear-gradient(135deg, #0a5f2a, #084d22)'; this.style.transform='translateY(0)';">
+            <i class="fas fa-download"></i> DOWNLOAD COMPLETE BLOCK
+          </button>
+          
+          <!-- PRINT RULES BUTTON -->
+          <a href="regras.html" class="btn-regras">
+            <i class="fas fa-print"></i> READ PRINTING RULES
+          </a>
+          
+          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">
+            If download doesn't start automatically, click the button above.<br>
+            <strong>Important:</strong> Read printing rules before printing.
+          </p>
+          <button onclick="showScreen('payment')" 
+                  style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; margin-top: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                  onmouseover="this.style.background='rgba(255, 255, 255, 0.1)';"
+                  onmouseout="this.style.background='rgba(255, 255, 255, 0.05)';">
+            <i class="fas fa-redo"></i> GENERATE ANOTHER BLOCK
+          </button>
+        </div>
+      `;
+      
+      loaderContainer.style.display = 'none';
+      showAlert('✅ Block generated successfully! Download it.', 'success');
+    }
+
+    function createDeclaracaoPage(doc, planoData) {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margem = 20;
+      const larguraTexto = pageWidth - (2 * margem);
+      
+      // --- DECORATIVE BORDER ON DECLARATION ---
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(1.5);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
+      
+      doc.setFont("times", "bold");
+      doc.setFontSize(24);
+      doc.setTextColor(0, 0, 0);
+      doc.text('DECLARAÇÃO PEDAGÓGICA', pageWidth / 2, 40, { align: 'center' });
+      
+      doc.setFont("times", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      // Introductory text
+      const textoIntro = [
+        "O presente documento constitui um Bloco de Planificação Pedagógica, elaborado",
+        "no âmbito do processo de ensino e aprendizagem, com finalidade exclusivamente",
+        "educativa."
+      ];
+      
+      let yPos = 60;
+      textoIntro.forEach(linha => {
+        const lines = doc.splitTextToSize(linha, larguraTexto);
+        doc.text(lines, pageWidth / 2, yPos, { align: 'center' });
+        yPos += lines.length * 7;
+      });
+      
+      yPos += 10;
+      
+      // Rectangle with teacher information
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.rect(margem, yPos, pageWidth - (2 * margem), 60);
+      
+      const infoY = yPos + 15;
+      let infoYOffset = 0;
+      
+      function addInfo(label, value) {
+        if (value && value.trim()) {
+          doc.setFont("times", "bold");
+          doc.text(label + ':', margem + 10, infoY + infoYOffset);
+          doc.setFont("times", "normal");
+          doc.text(value, margem + 60, infoY + infoYOffset);
+          infoYOffset += 10;
+        }
+      }
+      
+      addInfo('Professor(a)', planoData.professor);
+      addInfo('Escola', planoData.escola);
+      addInfo('Classe', planoData.classe);
+      addInfo('Disciplina', planoData.disciplina);
+      
+      const currentYear = new Date().getFullYear();
+      const anoLetivo = `${currentYear}`;
+      addInfo('Ano Lectivo', anoLetivo);
+      
+      // --- JUMP TO AFTER RECTANGLE ---
+      yPos += 60 + 15; // Rectangle height + extra spacing
+      
+      // Main declaration text
+      const textoDeclaracao = [
+        "Este Bloco de Planificação pertence ao(à) Professor(a) acima identificado(a).",
+        "O conteúdo aqui apresentado destina-se ao uso pessoal, profissional e pedagógico do(à) docente, servindo como instrumento de apoio à planificação, organização, acompanhamento e execução das actividades lectivas.",
+        "",
+        "Este documento é considerado INTRANSMISSÍVEL, não devendo ser copiado, partilhado, reproduzido ou utilizado por terceiros sem a autorização expressa do seu titular, respeitando-se os princípios éticos, pedagógicos e profissionais que regem a actividade docente.",
+        "",
+        "A utilização deste Bloco de Planificação tem como objectivo contribuir para a melhoria da qualidade do ensino, assegurar o cumprimento dos objectivos curriculares e fortalecer práticas pedagógicas responsáveis, conscientes e eficazes."
+      ];
+
+      // --- GO THROUGH EACH PARAGRAPH ---
+      textoDeclaracao.forEach(paragrafo => {
+        if (paragrafo === '') {
+          // Empty line: just spacing between paragraphs
+          yPos += 5;
+        } else {
+          // Break paragraph into lines that fit the width
+          const linhas = doc.splitTextToSize(paragrafo, larguraTexto);
+          
+          // Draw all lines except the last one with justification
+          for (let i = 0; i < linhas.length; i++) {
+            const linha = linhas[i];
+            const isUltimaLinha = (i === linhas.length - 1);
+            
+            if (isUltimaLinha) {
+              // Last line: left aligned (not justified)
+              doc.text(linha, margem, yPos, { align: 'left' });
+            } else {
+              // Full lines: justified
+              doc.text(linha, margem, yPos, { align: 'justify', maxWidth: larguraTexto });
+            }
+            yPos += 7; // Line spacing
+          }
+        }
+      });
+
+      // --- SIGNATURE BLOCK ---
+      yPos += 15;
+      
+      // Check if signature will go beyond border
+      if (yPos > pageHeight - 45) {
+        yPos = pageHeight - 45; // Ensure space for signature
+      }
+      
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.text('ASSINATURA DO DOCENTE', pageWidth / 2, yPos, { align: 'center' });
+      
+      yPos += 10;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.8);
+      doc.line(pageWidth / 2 - 50, yPos, pageWidth / 2 + 50, yPos);
+      
+      yPos += 8;
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
+      doc.text(planoData.professor, pageWidth / 2, yPos, { align: 'center' });
+      
+      yPos += 12;
+      doc.setFont("times", "italic");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Documento gerado em: ${new Date().toLocaleDateString('pt-MZ')}`, pageWidth / 2, yPos, { align: 'center' });
+    }
+    
+  function createLessonPage1(doc, planoData, lessonNum) {
+  const margin = 7; // 0.7cm
+  const pageWidth = doc.internal.pageSize.getWidth(); // 297mm
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const usableWidth = pageWidth - (2 * margin);
+  
+  // Cabeçalho da página
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  
+  doc.setFontSize(14);
+  doc.setFont("times", "bold");
+  doc.text("LESSON PLAN", pageWidth/2, 12, { align: "center" });
+  doc.setFontSize(9);
+  doc.setFont("times", "normal");
+  
+  let yPos = 20;
+  const middlePage = pageWidth / 2;
+  const leftColX = margin;
+  const rightColX = middlePage + 5;
+  
+  // Função auxiliar para desenhar campos com linhas esticadas
+  function drawField(label, value, x, y, isLeft) {
+    doc.setFont("times", "bold");
+    doc.text(label + ":", x, y);
+    doc.setFont("times", "normal");
+    
+    const labelWidth = doc.getTextWidth(label + ": ");
+    let lineStartX = x + labelWidth + 2;
+    let lineEndX;
+    
+    if (isLeft) {
+      lineEndX = middlePage - 5;
+    } else {
+      lineEndX = pageWidth - margin;
+    }
+    
+    const lineLength = lineEndX - lineStartX;
+    const line = "_".repeat(Math.floor(lineLength / 1.6));
+    
+    if (value && value.trim() !== '') {
+      doc.text(value, lineStartX, y);
+    } else {
+      doc.text(line, lineStartX, y);
+    }
+  }
+  
+  // COLUNA ESQUERDA
+  drawField("School", planoData.escola, leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Teacher", planoData.professor, leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Subject", planoData.disciplina, leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Unit", "", leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Content Area", "", leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Topic", "", leftColX, yPos, true);
+  yPos += 5;
+  
+  drawField("Pre-requisites", "", leftColX, yPos, true);
+  
+  // COLUNA DIREITA
+  yPos = 20;
+  
+  drawField("References", "", rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("Grade", planoData.classe, rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("Streams", "", rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("No. of Students", "", rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("Duration", "", rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("Period", planoData.periodo, rightColX, yPos, false);
+  yPos += 5;
+  
+  drawField("Methods & Approaches", "", rightColX, yPos, false);
+  yPos += 5; // Adicionar espaço extra antes do próximo campo
+  
+  drawField("Date", planoData.data || "", rightColX, yPos, false); // Campo Date adicionado
+  
+  // SPECIFIC OBJECTIVES
+  yPos = 63; // Ajustado para baixo para acomodar o novo campo
+  doc.setFont("times", "bold");
+  doc.text("SPECIFIC OBJECTIVES:", margin, yPos);
+  doc.setFont("times", "normal");
+  
+  const lineObjectiveStart = margin + doc.getTextWidth("SPECIFIC OBJECTIVES: ") + 5;
+  const lineObjectiveEnd = pageWidth - margin;
+  const lineObjectiveLength = lineObjectiveEnd - lineObjectiveStart;
+  const objectiveLine = "_".repeat(Math.floor(lineObjectiveLength / 1.5));
+  
+  doc.text("• " + objectiveLine, margin + 5, yPos + 6);
+  doc.text("• " + objectiveLine, margin + 5, yPos + 12);
+  doc.text("• " + objectiveLine, margin + 5, yPos + 18);
+  
+  // ===== TABELA COM NOVA COLUNA CONTENT (IGUAL À PÁGINA 2) =====
+  yPos = 87; // Ajustado para baixo para acomodar o novo campo
+  
+  // NOVAS LARGURAS: STAGES=30mm, CONTENT=70mm, TEACHER=80mm, LEARNER=80mm, TIME=15mm
+  const colWidths = [30, 70, 80, 80, 15];
+  const headerHeight = 10;
+  
+  // Calcular altura das linhas (mantendo a lógica original)
+  const availableHeight = pageHeight - yPos - 15;
+  const rowHeight = (availableHeight - headerHeight) / 2;
+  
+  // CABEÇALHO DA TABELA (usando margin igual à página 2)
+  doc.setFillColor(220, 220, 220);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margin, yPos, usableWidth, headerHeight, 'FD');
+  
+  const headerTexts = ["STAGES", "CONTENT", "TEACHER'S ACTIVITIES", "LEARNER'S ACTIVITIES", "TIME"];
+  let xPos = margin;
+  
+  headerTexts.forEach((texto, index) => {
+    const colWidth = colWidths[index];
+    const centerX = xPos + colWidth / 2;
+    
+    doc.setFont("times", "bold");
+    doc.setFontSize(12); // Fonte menor para caber (igual à página 2)
+    doc.text(texto, centerX, yPos + 6, { align: "center" });
+    
+    // Linhas verticais entre colunas
+    if (index < headerTexts.length - 1) {
+      doc.line(xPos + colWidth, yPos, xPos + colWidth, yPos + headerHeight);
+    }
+    
+    xPos += colWidth;
+  });
+  
+  // Primeiros 2 estágios na página 1
+  const stagesPage1 = [
+    "I. PREPARATION",
+    "II. PRESENTATION"
+  ];
+  
+  let currentY = yPos + headerHeight;
+  
+  stagesPage1.forEach((stage, index) => {
+    // Desenhar borda da linha
+    doc.rect(margin, currentY, usableWidth, rowHeight);
+    
+    // Desenhar linhas verticais internas
+    xPos = margin;
+    for (let i = 0; i < colWidths.length; i++) {
+      if (i > 0) {
+        doc.line(xPos, currentY, xPos, currentY + rowHeight);
+      }
+      xPos += colWidths[i];
+    }
+    
+    // Escrever STAGE
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.text(stage, margin + 2, currentY + 10);
+    
+    currentY += rowHeight;
+  });
+  
+  // Número da página
+  doc.setFont("times", "normal");
+  doc.setFontSize(8);
+  doc.text(`Lesson ${lessonNum} - Page 1/2`, pageWidth - margin, pageHeight - 5, { align: "right" });
+}
+    
+    
+
+function createLessonPage2(doc, lessonNum) {
+  const margin = 7;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const usableWidth = pageWidth - (2 * margin);
+  
+  // Definir larguras das colunas - TIME com 2cm (20mm)
+  const colWidths = [35, 80, 80, 20]; // STAGES, TEACHER'S, LEARNER'S, TIME (2cm)
+  const headerHeight = 10;
+  
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  
+  // SEM TÍTULO "LESSON PLAN (Continued)" - começar direto com a tabela mais acima
+  let yPos = 15; // Começa mais acima para ganhar espaço
+  
+  // Calcular altura disponível para os 3 estágios + appendix reduzido
+  const appendixHeight = 35; // Altura fixa reduzida para o appendix
+  const availableForStages = pageHeight - yPos - appendixHeight - 20; // -20 para margens
+  const rowHeight = availableForStages / 3; // Dividido por 3 estágios (altura aumentada)
+  
+  // Cabeçalho da tabela
+  doc.setFillColor(220, 220, 220);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margin, yPos, usableWidth, headerHeight, 'FD');
+  
+  const headerTexts = ["STAGES", "TEACHER'S ACTIVITIES", "LEARNER'S ACTIVITIES", "TIME"];
+  let xPos = margin;
+  
+  headerTexts.forEach((texto, index) => {
+    const colWidth = colWidths[index];
+    const centerX = xPos + colWidth / 2;
+    
+    doc.setFont("times", "bold");
+    doc.setFontSize(12);
+    doc.text(texto, centerX, yPos + 6, { align: "center" });
+    
+    if (index < headerTexts.length - 1) {
+      doc.line(xPos + colWidth, yPos, xPos + colWidth, yPos + headerHeight);
+    }
+    
+    xPos += colWidth;
+  });
+  
+  // Próximos 3 estágios na página 2
+  const stagesPage2 = [
+    "III. PRACTICE",
+    "IV. PRODUCTION",
+    "V. CONCLUSION"
+  ];
+  
+  let currentY = yPos + headerHeight;
+  
+  stagesPage2.forEach((stage, index) => {
+    // Desenhar borda da linha
+    doc.rect(margin, currentY, usableWidth, rowHeight);
+    
+    // Desenhar linhas verticais
+    xPos = margin;
+    for (let i = 0; i < colWidths.length; i++) {
+      if (i > 0) {
+        doc.line(xPos, currentY, xPos, currentY + rowHeight);
+      }
+      xPos += colWidths[i];
+    }
+    
+    // Escrever STAGE
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.text(stage, margin + 2, currentY + 10);
+    
+    // NÃO há linhas de preenchimento internas - espaço livre
+    
+    currentY += rowHeight;
+  });
+  
+  // APPENDIX / BULLETIN BOARD na segunda página (altura reduzida e SEM linhas internas)
+  let appendixY = currentY + 5;
+  
+  doc.setFontSize(10);
+  doc.setFont("times", "bold");
+  doc.text("APPENDIX / BULLETIN BOARD", pageWidth/2, appendixY, { align: "center" });
+  
+  appendixY += 4;
+  
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.rect(margin, appendixY, usableWidth, appendixHeight);
+  
+  // NÃO há linhas internas - espaço totalmente livre para o professor escrever
+  
+  // Número da página
+  doc.setFont("times", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Lesson ${lessonNum} - Page 2/2`, pageWidth - margin, pageHeight - 5, { align: "right" });
+}
+
+function createLessonPage2(doc, lessonNum) {
+  const margin = 7;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const usableWidth = pageWidth - (2 * margin);
+  
+  // NOVAS LARGURAS: STAGES=30mm, CONTENT=70mm, TEACHER=80mm, LEARNER=80mm, TIME=15mm
+  const colWidths = [30, 70, 80, 80, 15];
+  const headerHeight = 10;
+  
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  
+  // Posição inicial (igual ao original)
+  let yPos = 15;
+  
+  // ALTURAS ORIGINAIS (da versão que você confirmou)
+  const rowHeight = 40; // 4.0cm para cada stage
+  const appendixHeight = 51; // 5.1cm para o appendix
+  const bottomMargin = 10; // 1cm de margem inferior
+  
+  // CABEÇALHO DA TABELA (usando margin igual ao original)
+  doc.setFillColor(220, 220, 220);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.2);
+  doc.rect(margin, yPos, usableWidth, headerHeight, 'FD');
+  
+  const headerTexts = ["STAGES", "CONTENT", "TEACHER'S ACTIVITIES", "LEARNER'S ACTIVITIES", "TIME"];
+  let xPos = margin;
+  
+  headerTexts.forEach((texto, index) => {
+    const colWidth = colWidths[index];
+    const centerX = xPos + colWidth / 2;
+    
+    doc.setFont("times", "bold");
+    doc.setFontSize(12); // Fonte menor para caber
+    doc.text(texto, centerX, yPos + 6, { align: "center" });
+    
+    // Linhas verticais entre colunas
+    if (index < headerTexts.length - 1) {
+      doc.line(xPos + colWidth, yPos, xPos + colWidth, yPos + headerHeight);
+    }
+    
+    xPos += colWidth;
+  });
+  
+  // Próximos 3 estágios na página 2
+  const stagesPage2 = [
+    "III. PRACTICE",
+    "IV. PRODUCTION",
+    "V. CONCLUSION"
+  ];
+  
+  let currentY = yPos + headerHeight;
+  
+  stagesPage2.forEach((stage, index) => {
+    // Desenhar borda da linha
+    doc.rect(margin, currentY, usableWidth, rowHeight);
+    
+    // Desenhar linhas verticais
+    xPos = margin;
+    for (let i = 0; i < colWidths.length; i++) {
+      if (i > 0) {
+        doc.line(xPos, currentY, xPos, currentY + rowHeight);
+      }
+      xPos += colWidths[i];
+    }
+    
+    // Escrever STAGE
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.text(stage, margin + 2, currentY + 10);
+    
+    currentY += rowHeight;
+  });
+  
+  // APPENDIX / BULLETIN BOARD
+  let appendixY = currentY + 5;
+  
+  doc.setFontSize(10);
+  doc.setFont("times", "bold");
+  doc.setTextColor(0, 0, 0);
+  doc.text("APPENDIX / BULLETIN BOARD", pageWidth/2, appendixY, { align: "center" });
+  
+  appendixY += 4;
+  
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.rect(margin, appendixY, usableWidth, appendixHeight);
+  
+  // Número da página
+  const numberY = pageHeight - bottomMargin;
+  doc.setFont("times", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Lesson ${lessonNum} - Page 2/2`, pageWidth - margin, numberY, { align: "right" });
+}
+
+
+    function downloadPDF(blob, name) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    window.__ultimoPDFBlob = null;
+    window.__ultimoPDFNome = null;
+
+    function downloadPDFManual() {
+      if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
+        downloadPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
+      } else {
+        showAlert("❌ No PDF available for download.", "error");
+      }
+    }
+  </script>
+</body>
+</html>
