@@ -1,0 +1,990 @@
+<!-- ================================================== -->
+<!-- ANEXO.HTML - INTERFACE COM VISUAL MODERNO E COLORIDO -->
+<!-- ================================================== -->
+<style>
+  /* ===== VARIÁVEIS DE CORES - PALETA VIBRANTE ===== */
+  :root {
+    --primary: #0a5f2a;
+    --primary-dark: #084d22;
+    --primary-light: #10b981;
+    --secondary: #3b82f6;
+    --secondary-dark: #2563eb;
+    --accent: #f59e0b;
+    --accent-dark: #d97706;
+    --accent-2: #8b5cf6;
+    --accent-2-dark: #7c3aed;
+    --accent-3: #ec4899;
+    --accent-3-dark: #db2777;
+    --dark: #0f172a;
+    --darker: #020617;
+    --light: #f8fafc;
+    --gray: #94a3b8;
+    --gray-dark: #475569;
+    --success: #10b981;
+    --success-dark: #059669;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --card-bg: rgba(15, 23, 42, 0.8);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-strong: rgba(255, 255, 255, 0.1);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* ===== CONTAINER PRINCIPAL COM BACKGROUND ESPECIAL ===== */
+  #anexoInterface {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-lg), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+    color: var(--light);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    backdrop-filter: blur(10px);
+  }
+
+  /* Efeito de brilho no topo */
+  #anexoInterface::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    right: -50%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      var(--primary-light) 20%, 
+      var(--secondary) 40%, 
+      var(--accent-2) 60%, 
+      var(--accent-3) 80%, 
+      transparent 100%
+    );
+    animation: brilhoTopo 3s linear infinite;
+    z-index: 1;
+  }
+
+  @keyframes brilhoTopo {
+    0% { transform: translateX(-30%); }
+    100% { transform: translateX(30%); }
+  }
+
+  /* Efeito de partículas no fundo */
+  #anexoInterface::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 40% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 30%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== CABEÇALHO COM EFEITO GLASS ===== */
+  #anexoInterface h3 {
+    color: var(--light);
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 1.4rem;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+  }
+
+  #anexoInterface h3 i {
+    color: var(--accent);
+    font-size: 1.6rem;
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+  }
+
+  /* ===== INSTRUÇÃO COM DESTAQUE ===== */
+  #anexoInterface > p {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(139, 92, 246, 0.15));
+    color: var(--light) !important;
+    margin-bottom: 25px !important;
+    padding: 16px 20px !important;
+    border-radius: 16px;
+    border-left: 4px solid var(--accent-2);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--shadow-sm);
+  }
+
+  #anexoInterface > p i {
+    color: var(--accent-2);
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* ===== BOTÕES DE TIPO (TABS) - SUPER COLORIDOS ===== */
+  .anexo-tabs-container {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 25px !important;
+    flex-wrap: wrap !important;
+    position: relative;
+    z-index: 2;
+  }
+
+  .anexo-tab-btn {
+    flex: 1 !important;
+    min-width: 130px !important;
+    padding: 16px 12px !important;
+    border: none !important;
+    border-radius: 16px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: var(--transition-bounce) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    text-align: center !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .anexo-tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .anexo-tab-btn:hover::before {
+    left: 100%;
+  }
+
+  .anexo-tab-btn i {
+    font-size: 1.1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  /* Botão DIGITAR TEXTO */
+  .anexo-tab-btn:nth-child(1) {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5);
+  }
+
+  .anexo-tab-btn:nth-child(1):hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.7);
+  }
+
+  .anexo-tab-btn:nth-child(1).ativo {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    box-shadow: 0 0 20px #3b82f6, 0 10px 20px -5px rgba(59, 130, 246, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Botão CONTEÚDOS AUTOMÁTICOS (DESTAQUE) */
+  .anexo-tab-btn:nth-child(2) {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.5);
+    animation: pulseDestaque 2s infinite;
+  }
+
+  @keyframes pulseDestaque {
+    0% { box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.5); }
+    50% { box-shadow: 0 10px 30px 0px rgba(139, 92, 246, 0.8); }
+    100% { box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.5); }
+  }
+
+  .anexo-tab-btn:nth-child(2):hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 30px -5px rgba(139, 92, 246, 0.8);
+  }
+
+  .anexo-tab-btn:nth-child(2).ativo {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    box-shadow: 0 0 25px #8b5cf6, 0 10px 20px -5px rgba(139, 92, 246, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Botão FOTO DO LIVRO */
+  .anexo-tab-btn:nth-child(3) {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: white;
+    box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.5);
+  }
+
+  .anexo-tab-btn:nth-child(3):hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 25px -5px rgba(236, 72, 153, 0.7);
+  }
+
+  .anexo-tab-btn:nth-child(3).ativo {
+    background: linear-gradient(135deg, #db2777, #9d174d);
+    box-shadow: 0 0 20px #ec4899, 0 10px 20px -5px rgba(236, 72, 153, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* ===== PAINÉIS DE CONTEÚDO ===== */
+  .anexo-painel {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    animation: fadeInScale 0.4s ease;
+    display: none;
+    position: relative;
+    z-index: 2;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* ===== TEXTAREA ULTRA MODERNO ===== */
+  .anexo-textarea-super {
+    width: 100% !important;
+    min-height: 200px !important;
+    max-height: 400px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    padding: 18px !important;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Segoe UI', monospace !important;
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    color: var(--light) !important;
+    transition: var(--transition) !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    outline: none !important;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .anexo-textarea-super:focus {
+    border-color: var(--accent-2) !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), inset 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .anexo-textarea-super:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .anexo-textarea-super::placeholder {
+    color: var(--gray) !important;
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  /* Scrollbar personalizada */
+  .anexo-textarea-super::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .anexo-textarea-super::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+  }
+
+  .anexo-textarea-super::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+    border-radius: 5px;
+  }
+
+  .anexo-textarea-super::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--accent-3), var(--accent-2));
+  }
+
+  /* ===== BOTÃO CHATGPT / IA - MEGA DESTAQUE ===== */
+  .btn-chatgpt {
+    padding: 16px 28px !important;
+    background: linear-gradient(135deg, #f59e0b, #d97706, #b45309) !important;
+    background-size: 200% 200% !important;
+    animation: gradientMove 3s ease infinite !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 40px !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    transition: var(--transition-bounce) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 15px 30px -5px rgba(245, 158, 11, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .btn-chatgpt::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+      transparent 30%, 
+      rgba(255, 255, 255, 0.2) 50%, 
+      transparent 70%
+    );
+    animation: brilhoBotao 3s linear infinite;
+  }
+
+  @keyframes brilhoBotao {
+    0% { transform: rotate(0deg) translateX(-30%); }
+    100% { transform: rotate(0deg) translateX(30%); }
+  }
+
+  .btn-chatgpt:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 25px 40px -5px rgba(245, 158, 11, 0.7) !important;
+  }
+
+  .btn-chatgpt i {
+    font-size: 1.3rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  /* ===== BOTÕES DE FOTO ===== */
+  .botoes-foto-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-foto {
+    flex: 1;
+    min-width: 160px;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition-bounce);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-foto::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn-foto:hover::before {
+    left: 100%;
+  }
+
+  .btn-foto:first-child {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5);
+  }
+
+  .btn-foto:last-child {
+    background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+    box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.5);
+  }
+
+  .btn-foto:hover {
+    transform: translateY(-4px);
+  }
+
+  .btn-foto:first-child:hover {
+    box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.7);
+  }
+
+  .btn-foto:last-child:hover {
+    box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.7);
+  }
+
+  .btn-foto i {
+    font-size: 1.2rem;
+  }
+
+  /* ===== PREVIEW DE FOTO COM EFEITO ===== */
+  #previewFoto {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    margin: 25px 0;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #previewFoto::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotacaoPreview 10s linear infinite;
+  }
+
+  @keyframes rotacaoPreview {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  #previewFoto:hover {
+    border-color: var(--accent-2);
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  #previewFoto img {
+    max-width: 100% !important;
+    max-height: 300px !important;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* ===== CONTROLES DO CROPPER ===== */
+  .cropper-controls {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .cropper-botoes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .btn-cropper {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--light);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    backdrop-filter: blur(5px);
+  }
+
+  .btn-cropper:hover {
+    background: rgba(139, 92, 246, 0.3);
+    border-color: var(--accent-2);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.5);
+  }
+
+  .btn-cropper i {
+    font-size: 1rem;
+    color: var(--accent-2);
+  }
+
+  /* ===== BOTÃO SALVAR FOTO ===== */
+  .btn-salvar-foto {
+    padding: 16px 28px !important;
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 40px !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    transition: var(--transition-bounce) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.5) !important;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-salvar-foto::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: brilhoBotao 3s linear infinite;
+  }
+
+  .btn-salvar-foto:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -5px rgba(16, 185, 129, 0.7) !important;
+  }
+
+  /* ===== RODAPÉ COM AÇÕES ===== */
+  .anexo-rodape {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .btn-acao {
+    flex: 1;
+    min-width: 160px;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: var(--transition-bounce);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-acao::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn-acao:hover::before {
+    left: 100%;
+  }
+
+  .btn-salvar {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.5);
+  }
+
+  .btn-salvar:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -5px rgba(16, 185, 129, 0.7);
+  }
+
+  .btn-cancelar {
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 15px 30px -5px rgba(100, 116, 139, 0.5);
+  }
+
+  .btn-cancelar:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -5px rgba(100, 116, 139, 0.7);
+  }
+
+  .btn-acao i {
+    font-size: 1.2rem;
+  }
+
+  /* ===== MENSAGENS INFO COM EFEITO ===== */
+  .mensagem-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+    backdrop-filter: blur(10px);
+    border-left: 4px solid var(--accent-2);
+    padding: 16px 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    color: var(--light);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mensagem-info i {
+    color: var(--accent-2);
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* ===== EFEITO DE STREAMING ===== */
+  .streaming-container {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow), inset 0 2px 4px rgba(255, 255, 255, 0.05);
+  }
+
+  .ia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 40px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 5px 15px -5px rgba(139, 92, 246, 0.5);
+  }
+
+  .streaming-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--light);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .streaming-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.3em;
+    background: linear-gradient(180deg, var(--accent-2), var(--accent-3));
+    margin-left: 4px;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+    border-radius: 2px;
+    box-shadow: 0 0 10px var(--accent-2);
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* ===== INPUTS OCULTOS ===== */
+  .input-oculto {
+    display: none !important;
+  }
+
+  /* ===== RESPONSIVIDADE ===== */
+  @media (max-width: 768px) {
+    #anexoInterface {
+      padding: 18px;
+    }
+    
+    .anexo-tabs-container {
+      flex-direction: column;
+    }
+    
+    .anexo-tab-btn {
+      width: 100%;
+    }
+    
+    .botoes-foto-container {
+      flex-direction: column;
+    }
+    
+    .btn-foto {
+      width: 100%;
+    }
+    
+    .anexo-rodape {
+      flex-direction: column;
+    }
+    
+    .btn-acao {
+      width: 100%;
+    }
+    
+    .cropper-botoes-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    #anexoInterface {
+      padding: 15px;
+    }
+    
+    .anexo-textarea-super {
+      min-height: 150px;
+      padding: 14px;
+    }
+    
+    .cropper-botoes-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .btn-chatgpt {
+      font-size: 0.9rem;
+      padding: 14px 20px;
+    }
+  }
+
+  /* ===== ANIMAÇÕES ADICIONAIS ===== */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px var(--accent-2); }
+    50% { box-shadow: 0 0 25px var(--accent-2); }
+    100% { box-shadow: 0 0 5px var(--accent-2); }
+  }
+
+  .pulse-glow {
+    animation: pulseGlow 2s infinite;
+  }
+
+  /* Efeito de brilho nos ícones */
+  i[class*="fa-"] {
+    transition: var(--transition);
+  }
+
+  .btn-acao:hover i,
+  .btn-chatgpt:hover i,
+  .btn-foto:hover i,
+  .btn-cropper:hover i {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+</style>
+
+<!-- ===== HTML DA INTERFACE COM VISUAL ESPETACULAR ===== -->
+<div id="anexoInterface">
+  <!-- Cabeçalho com efeito -->
+  <h3>
+    <i class="fas fa-paperclip float-animation"></i>
+    ADICIONAR ANEXO AO PLANO
+  </h3>
+
+  <!-- Instrução com destaque -->
+  <p>
+    <i class="fas fa-info-circle"></i>
+    Escolha como deseja enriquecer o seu plano de aula com materiais complementares
+  </p>
+
+  <!-- Tabs SUPER COLORIDAS -->
+  <div class="anexo-tabs-container">
+    <button type="button" class="anexo-tab-btn ativo" onclick="mostrarAnexoTexto()">
+      <i class="fas fa-file-alt"></i>
+      DIGITAR TEXTO
+    </button>
+    <button type="button" class="anexo-tab-btn" onclick="mostrarAnexoChatGPT()">
+      <i class="fas fa-robot"></i>
+      CONTEÚDOS AUTOMÁTICOS
+    </button>
+    <button type="button" class="anexo-tab-btn" onclick="mostrarAnexoFoto()">
+      <i class="fas fa-camera"></i>
+      FOTO DO LIVRO
+    </button>
+  </div>
+
+  <!-- Painel de Texto -->
+  <div id="anexoTexto" class="anexo-painel">
+    <textarea 
+      class="anexo-textarea-super" 
+      placeholder="📝 Digite aqui o texto do anexo, resumo, TPC ou informações adicionais..."
+      oninput="sanitizeTextarea(this)"
+    ></textarea>
+  </div>
+
+  <!-- Painel do ChatGPT / IA (DESTAQUE MÁXIMO) -->
+  <div id="anexoChatGPT" class="anexo-painel">
+    <div class="mensagem-info">
+      <i class="fas fa-magic"></i>
+      A IA irá gerar conteúdos didáticos completos baseados no tema da sua aula
+    </div>
+    
+    <button type="button" class="btn-chatgpt" onclick="gerarConteudosAnexoIA()">
+      <i class="fas fa-bolt"></i>
+      GERAR CONTEÚDOS AUTOMÁTICOS
+      <i class="fas fa-arrow-right"></i>
+    </button>
+    
+    <div id="streamingAnexoContainer" style="display: none;"></div>
+    
+    <textarea 
+      id="anexoTextareaIA"
+      class="anexo-textarea-super" 
+      placeholder="✨ Os conteúdos gerados aparecerão aqui magicamente..."
+      style="display: block;"
+    ></textarea>
+  </div>
+
+  <!-- Painel de Foto -->
+  <div id="anexoFoto" class="anexo-painel">
+    <div class="mensagem-info">
+      <i class="fas fa-camera-retro"></i>
+      Capture ou selecione uma imagem do livro/material didático
+    </div>
+
+    <div class="botoes-foto-container">
+      <button type="button" class="btn-foto" onclick="document.getElementById('fotoCamera').click()">
+        <i class="fas fa-camera"></i>
+        ABRIR CÂMERA
+      </button>
+      <button type="button" class="btn-foto" onclick="document.getElementById('fotoGaleria').click()">
+        <i class="fas fa-images"></i>
+        SELECIONAR FOTO
+      </button>
+    </div>
+
+    <input id="fotoCamera" type="file" accept="image/*" capture="environment" class="input-oculto" onchange="carregarFoto(event)">
+    <input id="fotoGaleria" type="file" accept="image/*" class="input-oculto" onchange="carregarFoto(event)">
+
+    <div id="previewFoto">
+      <div style="color: var(--gray);">
+        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.6;"></i>
+        <p style="margin: 0; font-size: 0.95rem;">Arraste uma imagem ou clique nos botões acima</p>
+      </div>
+    </div>
+
+    <!-- Controles do Cropper -->
+    <div id="cropperControls" class="cropper-controls" style="display: none;">
+      <div class="cropper-botoes-grid">
+        <button type="button" class="btn-cropper" onclick="rotateLeft()">
+          <i class="fas fa-undo-alt"></i>
+          GIRAR
+        </button>
+        <button type="button" class="btn-cropper" onclick="rotateRight()">
+          <i class="fas fa-redo-alt"></i>
+          GIRAR
+        </button>
+        <button type="button" class="btn-cropper" onclick="zoomOut()">
+          <i class="fas fa-search-minus"></i>
+          ZOOM -
+        </button>
+        <button type="button" class="btn-cropper" onclick="zoomIn()">
+          <i class="fas fa-search-plus"></i>
+          ZOOM +
+        </button>
+        <button type="button" class="btn-cropper" onclick="resetCropper()">
+          <i class="fas fa-sync-alt"></i>
+          RESET
+        </button>
+      </div>
+      
+      <button type="button" class="btn-salvar-foto" onclick="salvarFotoPreview()">
+        <i class="fas fa-check-circle"></i>
+        APLICAR RECORTE
+      </button>
+    </div>
+  </div>
+
+  <!-- Rodapé com Ações -->
+  <div class="anexo-rodape">
+    <button type="button" class="btn-acao btn-salvar" onclick="salvarAnexo()">
+      <i class="fas fa-save"></i>
+      SALVAR ANEXO
+    </button>
+    <button type="button" class="btn-acao btn-cancelar" onclick="fecharAnexo()">
+      <i class="fas fa-times-circle"></i>
+      CANCELAR
+    </button>
+  </div>
+</div>
+
+<!-- CSS adicional para animações globais -->
+<style>
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .gradient-bg {
+    background: linear-gradient(-45deg, #0a5f2a, #2563eb, #8b5cf6, #ec4899);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
+</style>
