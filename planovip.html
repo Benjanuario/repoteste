@@ -531,7 +531,7 @@ h1 {
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* Botões de Geração de Plano - NOVO LAYOUT (UM DEBAIXO DO OUTRO) */
+/* Botões de Geração de Plano - UM DEBAIXO DO OUTRO */
 .geracao-container {
     display: flex;
     flex-direction: column;
@@ -1074,7 +1074,7 @@ h1 {
     outline: none;
 }
 
-/* Tabela - AJUSTADA: COLUNA CONTEÚDOS MAIS LARGA */
+/* Tabela - COLUNA CONTEÚDOS MAIS LARGA */
 .table-container {
     overflow-x: auto;
     margin: 20px 0;
@@ -1087,20 +1087,20 @@ h1 {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1000px; /* Aumentado para dar mais espaço */
+    min-width: 1000px;
     font-family: 'Times New Roman', Times, serif;
     background: white;
-    table-layout: fixed; /* Força larguras fixas */
+    table-layout: fixed;
 }
 
 /* Definição de larguras das colunas */
-th:nth-child(1) { width: 8%; }  /* TEMPO */
-th:nth-child(2) { width: 12%; } /* FUNÇÕES DIDÁCTICAS - comprimido */
-th:nth-child(3) { width: 25%; } /* CONTEÚDOS - MAIS LARGO */
-th:nth-child(4) { width: 15%; } /* ACTIVIDADES DO PROFESSOR */
-th:nth-child(5) { width: 15%; } /* ACTIVIDADES DOS ALUNOS */
-th:nth-child(6) { width: 12%; } /* MÉTODOS */
-th:nth-child(7) { width: 13%; } /* MEIOS */
+th:nth-child(1) { width: 8%; }
+th:nth-child(2) { width: 12%; }
+th:nth-child(3) { width: 25%; }
+th:nth-child(4) { width: 15%; }
+th:nth-child(5) { width: 15%; }
+th:nth-child(6) { width: 12%; }
+th:nth-child(7) { width: 13%; }
 
 /* Bloquear seleção apenas em elementos NÃO editáveis */
 th {
@@ -1241,7 +1241,7 @@ td small {
     border-left: 2px solid #e5e7eb;
 }
 
-/* Meios de ensino - sem badge de IA, apenas integrado naturalmente */
+/* Meios de ensino */
 .meios-sugeridos {
     margin-top: 8px;
     display: flex;
@@ -1343,6 +1343,68 @@ td small {
 /* Anexo Preview */
 #anexoPreview {
     animation: slideDown 0.3s ease;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    border: 2px solid var(--primary);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#anexoPreview h4 {
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#anexoContent {
+    min-height: 100px;
+    margin-bottom: 15px;
+}
+
+#anexoContent img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+#anexoContent div[style*="background: #f9fafb"] {
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+}
+
+#anexoControls {
+    margin-top: 15px;
+    text-align: right;
+}
+
+#anexoControls button {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#anexoControls button:hover {
+    background: #dc2626;
+    color: white;
 }
 
 @keyframes slideDown {
@@ -1391,7 +1453,7 @@ td small {
             </div>
         </div>
         <h1>GERADOR DE PLANO DE AULA</h1>
-        <p class="subtitle">Sistema Oficial • Ministério da Educação</p>
+        <p class="subtitle">GPAQ Stunner System • Ministério da Educação</p>
     </div>
 
     <!-- Progress Bar -->
@@ -1593,7 +1655,7 @@ td small {
                     </div>
                 </div>
 
-                <!-- Container dos Botões de Geração - AGORA UM DEBAIXO DO OUTRO -->
+                <!-- Container dos Botões de Geração -->
                 <div class="geracao-container">
                     <button type="button" class="btn-ia-inteligente" onclick="iniciarGeracaoPlano('inteligente')">
                         <i class="fas fa-brain"></i> GERAR PLANO INTELIGENTE
@@ -1732,7 +1794,7 @@ td small {
         </button>
 
         <div id="anexoPreview" style="display:none;">
-            <!-- Conteúdo será preenchido pelo anexo.js -->
+            <!-- Conteúdo será preenchido pelo sistema de anexos -->
         </div>
 
         <!-- Exportar PDF -->
@@ -1744,41 +1806,265 @@ td small {
     <!-- Footer -->
     <footer class="footer">
         <p>© 2026 Sistema de Geração de Planos de Aula</p>
-        <p>Ministério da Educação - República de Moçambique</p>
+        <p>GPAQ Stunner System</p>
     </footer>
 </div>
 
-<!-- Container do anexo (será preenchido pelo anexo.html) -->
+<!-- Container do anexo (será preenchido pelo sistema) -->
 <div id="anexoContainerContent" style="display:none;"></div>
 
-<!-- Carregar anexo.html e anexo.js -->
+<!-- Sistema de Anexos Integrado -->
 <script>
-// Carregar o conteúdo do anexo.html via fetch
-fetch('anexo.html')
-    .then(response => response.text())
-    .then(html => {
-        document.getElementById('anexoContainerContent').innerHTML = html;
-        
-        // Após carregar o HTML, carregar o anexo.js
-        const script = document.createElement('script');
-        script.src = 'anexo.js';
-        document.body.appendChild(script);
-        
-        console.log('✅ Sistema de anexos carregado');
-    })
-    .catch(error => {
-        console.error('❌ Erro ao carregar anexo.html:', error);
-    });
-</script>
+// =============================================
+// SISTEMA DE ANEXOS INTEGRADO
+// =============================================
 
-<script>
+// Variável global para armazenar o anexo atual
+let anexoAtual = null;
+
+// Função para abrir o sistema de anexos
+function abrirAnexo() {
+    const container = document.getElementById('anexoContainerContent');
+    
+    // Se já estiver visível, apenas mostra/oculta
+    if (container.style.display === 'block') {
+        container.style.display = 'none';
+        return;
+    }
+    
+    // Verifica se já carregamos o anexo antes
+    if (container.innerHTML.trim() !== '') {
+        container.style.display = 'block';
+        return;
+    }
+    
+    // Mostra loading
+    container.innerHTML = `
+        <div style="text-align: center; padding: 20px; background: var(--card-bg); border-radius: 12px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--accent);"></i>
+            <p style="margin-top: 15px; color: var(--light);">Carregando sistema de anexos...</p>
+        </div>
+    `;
+    container.style.display = 'block';
+    
+    // Verifica se o arquivo anexo.html existe
+    fetch('anexo.html')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Arquivo anexo.html não encontrado');
+            }
+            return response.text();
+        })
+        .then(html => {
+            // Carregar o HTML do anexo
+            container.innerHTML = html;
+            
+            // Carregar o anexo.js após o HTML
+            const script = document.createElement('script');
+            script.src = 'anexo.js';
+            script.onload = function() {
+                console.log('✅ anexo.js carregado com sucesso');
+                
+                // Se houver um anexo salvo anteriormente, carregá-lo
+                if (anexoAtual) {
+                    setTimeout(() => {
+                        if (typeof window.carregarAnexoSalvo === 'function') {
+                            window.carregarAnexoSalvo(anexoAtual);
+                        } else if (typeof carregarAnexoSalvo === 'function') {
+                            carregarAnexoSalvo(anexoAtual);
+                        }
+                    }, 200);
+                }
+            };
+            script.onerror = function() {
+                console.error('❌ Erro ao carregar anexo.js');
+                container.innerHTML = `
+                    <div style="padding: 20px; background: rgba(220, 38, 38, 0.1); border-radius: 12px; color: #ef4444; text-align: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 15px;"></i>
+                        <p>Erro ao carregar o sistema de anexos.</p>
+                        <p style="font-size: 12px; margin-top: 5px;">Arquivo anexo.js não encontrado.</p>
+                        <button onclick="fecharAnexo()" class="btn btn-primary" style="margin-top: 15px;">
+                            <i class="fas fa-times"></i> FECHAR
+                        </button>
+                    </div>
+                `;
+            };
+            document.body.appendChild(script);
+        })
+        .catch(error => {
+            console.error('❌ Erro ao carregar anexo.html:', error);
+            container.innerHTML = `
+                <div style="padding: 20px; background: rgba(220, 38, 38, 0.1); border-radius: 12px; color: #ef4444; text-align: center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 15px;"></i>
+                    <p>Arquivo anexo.html não encontrado.</p>
+                    <p style="font-size: 12px; margin-top: 5px;">Verifique se o arquivo existe no servidor.</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                        <button onclick="fecharAnexo()" class="btn btn-primary">
+                            <i class="fas fa-times"></i> FECHAR
+                        </button>
+                        <button onclick="abrirAnexoFallback()" class="btn btn-secondary">
+                            <i class="fas fa-pencil-alt"></i> MODO SIMPLES
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+}
+
+// Fallback para quando anexo.html não existe
+function abrirAnexoFallback() {
+    const container = document.getElementById('anexoContainerContent');
+    
+    container.innerHTML = `
+        <div style="padding: 20px; background: var(--card-bg); border-radius: 12px;">
+            <h4 style="color: var(--light); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-paperclip" style="color: var(--accent);"></i> ADICIONAR ANEXO
+            </h4>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--light); font-size: 12px;">
+                    <i class="fas fa-font"></i> Texto do Anexo
+                </label>
+                <textarea id="anexoTextoFallback" rows="5" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--light);">Digite aqui o conteúdo do anexo...</textarea>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="salvarAnexoFallback()" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> SALVAR
+                </button>
+                <button onclick="fecharAnexo()" class="btn btn-outline" style="flex: 1;">
+                    <i class="fas fa-times"></i> CANCELAR
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Salvar anexo do fallback
+function salvarAnexoFallback() {
+    const texto = document.getElementById('anexoTextoFallback')?.value || 'Anexo sem conteúdo';
+    
+    anexoAtual = {
+        tipo: 'texto',
+        data: texto
+    };
+    
+    // Mostrar preview
+    const preview = document.getElementById('anexoPreview');
+    preview.innerHTML = `
+        <h4><i class="fas fa-paperclip"></i> ANEXO</h4>
+        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent);">
+            ${texto.replace(/\n/g, '<br>')}
+        </div>
+        <div style="margin-top: 15px; text-align: right;">
+            <button onclick="removerAnexo()" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                <i class="fas fa-trash"></i> REMOVER ANEXO
+            </button>
+        </div>
+    `;
+    preview.style.display = 'block';
+    
+    fecharAnexo();
+    mostrarAlerta('Anexo adicionado com sucesso!', 'success');
+    atualizarPlanoSalvo();
+}
+
+// Fechar o container de anexos
+function fecharAnexo() {
+    const container = document.getElementById('anexoContainerContent');
+    container.style.display = 'none';
+}
+
+// Função para ser chamada pelo anexo.js quando salvar
+window.salvarAnexo = function(tipo, dados) {
+    anexoAtual = {
+        tipo: tipo,
+        data: dados
+    };
+    
+    // Mostrar preview
+    const preview = document.getElementById('anexoPreview');
+    
+    if (tipo === 'imagem') {
+        preview.innerHTML = `
+            <h4><i class="fas fa-paperclip"></i> ANEXO</h4>
+            <img src="${dados}" style="max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <div style="margin-top: 15px; text-align: right;">
+                <button onclick="removerAnexo()" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                    <i class="fas fa-trash"></i> REMOVER ANEXO
+                </button>
+            </div>
+        `;
+    } else {
+        preview.innerHTML = `
+            <h4><i class="fas fa-paperclip"></i> ANEXO</h4>
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent);">
+                ${dados.replace(/\n/g, '<br>')}
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button onclick="removerAnexo()" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                    <i class="fas fa-trash"></i> REMOVER ANEXO
+                </button>
+            </div>
+        `;
+    }
+    
+    preview.style.display = 'block';
+    fecharAnexo();
+    mostrarAlerta('Anexo adicionado com sucesso!', 'success');
+    atualizarPlanoSalvo();
+};
+
+// Remover anexo
+function removerAnexo() {
+    anexoAtual = null;
+    document.getElementById('anexoPreview').style.display = 'none';
+    mostrarAlerta('Anexo removido', 'info');
+    atualizarPlanoSalvo();
+}
+
+// Carregar anexo salvo (chamado pelo anexo.js)
+window.carregarAnexoSalvo = function(anexo) {
+    if (!anexo) return;
+    
+    anexoAtual = anexo;
+    
+    const preview = document.getElementById('anexoPreview');
+    
+    if (anexo.tipo === 'imagem') {
+        preview.innerHTML = `
+            <h4><i class="fas fa-paperclip"></i> ANEXO</h4>
+            <img src="${anexo.data}" style="max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <div style="margin-top: 15px; text-align: right;">
+                <button onclick="removerAnexo()" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                    <i class="fas fa-trash"></i> REMOVER ANEXO
+                </button>
+            </div>
+        `;
+    } else {
+        preview.innerHTML = `
+            <h4><i class="fas fa-paperclip"></i> ANEXO</h4>
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent);">
+                ${anexo.data.replace(/\n/g, '<br>')}
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button onclick="removerAnexo()" class="btn btn-outline" style="color: #dc2626; border-color: #dc2626;">
+                    <i class="fas fa-trash"></i> REMOVER ANEXO
+                </button>
+            </div>
+        `;
+    }
+    
+    preview.style.display = 'block';
+};
+
 // =============================================
 // CONFIGURAÇÕES DA IA
 // =============================================
 const IA_CONFIG = {
-    API_KEY: 'AIzaSyDcFXBuOiwKfNX2J7qKSVdiXt8ngPxDJJ0', // Sua chave
+    API_KEY: 'AIzaSyDcFXBuOiwKfNX2J7qKSVdiXt8ngPxDJJ0',
     MODELO: 'gemini-2.5-flash-lite',
-    TIMEOUT: 15000, // 15 segundos
+    TIMEOUT: 15000,
     MAX_REQUISICOES_POR_MINUTO: 15,
     stats: {
         requisicoesHoje: 0,
@@ -1851,7 +2137,6 @@ const metodosEnsino = [
 let materiais = [];
 let temasTransversais = [];
 let imagemDataURL = null;
-var anexoSalvo = window.anexoSalvo || null;
 let _planoLoaderInterval = null;
 let planoGerado = false;
 
@@ -2047,7 +2332,7 @@ function adicionarTema(){
 }
 
 // =============================================
-// OBJECTIVOS COM STREAMING - CORRIGIDO (sem introdução)
+// OBJECTIVOS COM STREAMING
 // =============================================
 function gerarObjetivosStreaming() {
     const tema = document.forms['planoForm'].tema.value.trim();
@@ -2080,7 +2365,7 @@ function gerarObjetivosStreaming() {
     streamingContainer.className = 'streaming-container';
     streamingContainer.innerHTML = `
         <div class="ia-badge">
-            <i class="fas fa-robot"></i> IA está digitando...
+            <i class="fas fa-robot"></i> Estipulando objectivos específicos...
         </div>
         <div id="streamingText" class="streaming-text"></div>
         <span class="streaming-cursor"></span>
@@ -2213,7 +2498,7 @@ function streamTextoParaCampo(textoCompleto, streamingContainer, objetivosCampo,
                 mostrarAlerta('Objectivos gerados com sucesso!', 'success');
             }, 500);
         }
-    }, 30); // Velocidade da digitação
+    }, 30);
 }
 
 function gerarObjetivosInteligentes(tema) {
@@ -2413,7 +2698,7 @@ async function processarFila() {
         // Verificar taxa de requisições
         if (requisicoesNoMinuto >= IA_CONFIG.MAX_REQUISICOES_POR_MINUTO) {
             mostrarAlerta('Muitas requisições. Aguarde um momento...', 'info');
-            await delay(60000); // Espera 1 minuto
+            await delay(60000);
             requisicoesNoMinuto = 0;
         }
         
@@ -2930,24 +3215,25 @@ function gerarPlanoCompleto(dadosIA) {
     const isClasseInicial = (classeNum === '1' || classeNum === '2');
     const meiosEnsinoIniciais = 'Livro do aluno';
     const meiosEnsinoNormais = 'Quadro, giz, livro do aluno, esferográfica';
-// Preparar exercícios
-let exerciciosHtml = '<strong>EXERCÍCIOS DE APLICAÇÃO</strong><br><br>';
-if (dadosIA.exercicios && dadosIA.exercicios.length > 0) {
-    dadosIA.exercicios.forEach((ex, idx) => {
-        exerciciosHtml += `${idx+1}. ${ex.pergunta}<br>`;
-        exerciciosHtml += `<strong>R:</strong> ${ex.resposta}<br><br>`;
-    });
-} else {
-    exerciciosHtml += '• Exercícios de aplicação<br>• Verificação da resolução dos exercícios';
-}
     
-
+    // Preparar exercícios
+    let exerciciosHtml = '<strong>EXERCÍCIOS DE APLICAÇÃO</strong><br><br>';
+    if (dadosIA.exercicios && dadosIA.exercicios.length > 0) {
+        dadosIA.exercicios.forEach((ex, idx) => {
+            exerciciosHtml += `<div class="exercicio-item">`;
+            exerciciosHtml += `<div class="exercicio-pergunta">${idx+1}. ${ex.pergunta}</div>`;
+            exerciciosHtml += `<div class="exercicio-resposta"><strong>R:</strong> ${ex.resposta}</div>`;
+            exerciciosHtml += `</div>`;
+        });
+    } else {
+        exerciciosHtml += '• Exercícios de aplicação<br>• Verificação da resolução dos exercícios';
+    }
+    
     // Preparar meios de ensino para a segunda função (Mediação)
     const meiosAtuaisSegunda = isClasseInicial ? meiosEnsinoIniciais : 'Quadro, apagador, giz, livro do aluno';
     let meiosSegundaComSugestoes = meiosAtuaisSegunda;
     
     if (dadosIA.meios_sugeridos_mediacao && dadosIA.meios_sugeridos_mediacao.length > 0) {
-        // Adicionar sugestões de forma natural, sem badge de IA
         const sugestoes = dadosIA.meios_sugeridos_mediacao.slice(0, 2).join(', ');
         meiosSegundaComSugestoes = meiosAtuaisSegunda + ', ' + sugestoes;
     }
@@ -3021,7 +3307,10 @@ function finalizarGeracao() {
         objetivos: form.objetivos.value,
         tabela: document.getElementById('tabelaPlano').outerHTML,
         html: document.getElementById('planoFinal').innerHTML,
-        tipoGeracao: tipoGeracaoAtual
+        tipoGeracao: tipoGeracaoAtual,
+        anexoTipo: anexoAtual ? anexoAtual.tipo : null,
+        anexoImagem: (anexoAtual && anexoAtual.tipo === 'imagem') ? anexoAtual.data : null,
+        anexoTexto: (anexoAtual && anexoAtual.tipo === 'texto') ? anexoAtual.data : ""
     };
     sessionStorage.setItem('planoData', JSON.stringify(planoData));
     
@@ -3068,9 +3357,9 @@ function irParaPagamento() {
         temas: temasTransversais,
         objetivos: document.getElementById('objetivosCampo').value,
         tabela: document.getElementById('tabelaPlano').outerHTML,
-        anexoTipo: window.anexoSalvo ? window.anexoSalvo.tipo : null,
-        anexoImagem: (window.anexoSalvo && window.anexoSalvo.tipo === 'imagem') ? window.anexoSalvo.data : null,
-        anexoTexto: (window.anexoSalvo && window.anexoSalvo.tipo === 'texto') ? window.anexoSalvo.data : "",
+        anexoTipo: anexoAtual ? anexoAtual.tipo : null,
+        anexoImagem: (anexoAtual && anexoAtual.tipo === 'imagem') ? anexoAtual.data : null,
+        anexoTexto: (anexoAtual && anexoAtual.tipo === 'texto') ? anexoAtual.data : "",
         html: document.getElementById('planoFinal').innerHTML,
         tipoGeracao: tipoGeracaoAtual
     };
@@ -3079,17 +3368,112 @@ function irParaPagamento() {
     window.location.href = "gratisunluck.html";
 }
 
-function abrirAnexo() {
-    // Esta função será substituída pelo anexo.js
-    if (typeof window.abrirAnexo === 'function') {
-        window.abrirAnexo();
-    } else {
-        console.warn('Anexo.js ainda não carregado');
-    }
+function atualizarPlanoSalvo() {
+    // Atualiza os dados no sessionStorage quando o anexo é adicionado/removido
+    const form = document.forms['planoForm'];
+    if (!form || !planoGerado) return;
+    
+    const planoData = {
+        escola: form.escola.value,
+        professor: form.professor.value,
+        disciplina: form.disciplina.value,
+        unidade: form.unidade.value,
+        tema: form.tema.value,
+        tipo: form.tipo.value,
+        classe: form.classe.value,
+        turma: form.turma.value,
+        licao: form.licao.value,
+        duracao: getDuracao(),
+        periodo: form.periodo.value,
+        data: form.data.value,
+        materiais: materiais,
+        temas: temasTransversais,
+        objetivos: form.objetivos.value,
+        tabela: document.getElementById('tabelaPlano').outerHTML,
+        html: document.getElementById('planoFinal').innerHTML,
+        tipoGeracao: tipoGeracaoAtual,
+        anexoTipo: anexoAtual ? anexoAtual.tipo : null,
+        anexoImagem: (anexoAtual && anexoAtual.tipo === 'imagem') ? anexoAtual.data : null,
+        anexoTexto: (anexoAtual && anexoAtual.tipo === 'texto') ? anexoAtual.data : ""
+    };
+    sessionStorage.setItem('planoData', JSON.stringify(planoData));
 }
 
-function atualizarPlanoSalvo() {}
 function atualizarBotaoAnexoInferior() {}
+
+// Carregar dados salvos ao iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    const savedData = sessionStorage.getItem('planoData');
+    if (savedData) {
+        try {
+            const parsed = JSON.parse(savedData);
+            
+            // Preencher formulário
+            const form = document.forms['planoForm'];
+            if (form) {
+                if (parsed.escola) form.escola.value = parsed.escola;
+                if (parsed.professor) form.professor.value = parsed.professor;
+                if (parsed.disciplina) form.disciplina.value = parsed.disciplina;
+                if (parsed.unidade) form.unidade.value = parsed.unidade;
+                if (parsed.tema) form.tema.value = parsed.tema;
+                if (parsed.tipo) form.tipo.value = parsed.tipo;
+                if (parsed.classe) form.classe.value = parsed.classe;
+                if (parsed.turma) form.turma.value = parsed.turma;
+                if (parsed.licao) form.licao.value = parsed.licao;
+                if (parsed.periodo) form.periodo.value = parsed.periodo;
+                if (parsed.data) form.data.value = parsed.data;
+                if (parsed.objetivos) document.getElementById('objetivosCampo').value = parsed.objetivos;
+            }
+            
+            // Carregar materiais
+            if (parsed.materiais && parsed.materiais.length > 0) {
+                materiais = parsed.materiais;
+                document.getElementById('usarMateriais').checked = true;
+                document.getElementById('adicionarMaterialDiv').style.display = 'block';
+                const lista = document.getElementById('listaMateriais');
+                lista.innerHTML = '';
+                materiais.forEach(m => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<i class="fas fa-cube"></i> ${m}`;
+                    lista.appendChild(li);
+                });
+            }
+            
+            // Carregar temas transversais
+            if (parsed.temas && parsed.temas.length > 0) {
+                temasTransversais = parsed.temas;
+                document.getElementById('usarTemas').checked = true;
+                document.getElementById('adicionarTemaDiv').style.display = 'block';
+                const lista = document.getElementById('listaTemas');
+                lista.innerHTML = '';
+                temasTransversais.forEach(t => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<i class="fas fa-project-diagram"></i> ${t}`;
+                    lista.appendChild(li);
+                });
+            }
+            
+            // Carregar anexo
+            if (parsed.anexoTipo) {
+                anexoAtual = {
+                    tipo: parsed.anexoTipo,
+                    data: parsed.anexoTipo === 'imagem' ? parsed.anexoImagem : parsed.anexoTexto
+                };
+                
+                // Se o plano estiver visível, carregar preview
+                if (document.getElementById('planoFinal').style.display === 'block') {
+                    if (typeof window.carregarAnexoSalvo === 'function') {
+                        window.carregarAnexoSalvo(anexoAtual);
+                    } else if (typeof carregarAnexoSalvo === 'function') {
+                        carregarAnexoSalvo(anexoAtual);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao carregar dados salvos:', e);
+        }
+    }
+});
 </script>
 </body>
 </html>
