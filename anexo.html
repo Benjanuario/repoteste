@@ -133,9 +133,8 @@
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         }
 
-        .tab-btn[data-tab="ia"] {
+        .tab-btn[data-tab="chatgpt"] {
             background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            animation: pulse 2s infinite;
         }
 
         .tab-btn[data-tab="foto"] {
@@ -149,14 +148,8 @@
         }
 
         .tab-btn[data-tab="texto"].active { box-shadow: 0 15px 25px -5px #3b82f6; }
-        .tab-btn[data-tab="ia"].active { box-shadow: 0 15px 25px -5px #8b5cf6; }
+        .tab-btn[data-tab="chatgpt"].active { box-shadow: 0 15px 25px -5px #8b5cf6; }
         .tab-btn[data-tab="foto"].active { box-shadow: 0 15px 25px -5px #ec4899; }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
-        }
 
         /* ===== PAINÉIS ===== */
         .anexo-panel {
@@ -206,7 +199,7 @@
             opacity: 0.6;
         }
 
-        /* ===== BOTÃO IA ===== */
+        /* ===== BOTÃO IA + CHATGPT ===== */
         .btn-ia {
             width: 100%;
             padding: 18px;
@@ -225,6 +218,29 @@
             gap: 12px;
             margin-bottom: 20px;
             transition: var(--transition);
+        }
+
+        .btn-chatgpt {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+
+        .btn-chatgpt:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px #10b981;
         }
 
         @keyframes gradientMove {
@@ -421,15 +437,7 @@
             box-shadow: 0 20px 30px -5px currentColor;
         }
 
-        /* ===== UTILITÁRIOS ===== */
-        .hidden {
-            display: none !important;
-        }
-
-        .input-hidden {
-            display: none;
-        }
-
+        /* ===== MENSAGEM INFO ===== */
         .mensagem-info {
             background: rgba(139, 92, 246, 0.2);
             border-left: 4px solid var(--accent-2);
@@ -437,6 +445,14 @@
             border-radius: 12px;
             margin-bottom: 20px;
             color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ===== INPUT OCULTO ===== */
+        .input-hidden {
+            display: none;
         }
 
         /* ===== RESPONSIVIDADE ===== */
@@ -456,15 +472,15 @@
             <h3>ADICIONAR ANEXO AO PLANO</h3>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs - 3 tipos iguais ao primeiro sistema -->
         <div class="anexo-tabs">
             <button class="tab-btn active" data-tab="texto" onclick="mudarAba('texto')">
                 <i class="fas fa-file-alt"></i>
                 DIGITAR TEXTO
             </button>
-            <button class="tab-btn" data-tab="ia" onclick="mudarAba('ia')">
+            <button class="tab-btn" data-tab="chatgpt" onclick="mudarAba('chatgpt')">
                 <i class="fas fa-robot"></i>
-                IA AUTOMÁTICA
+                CONTEÚDOS AUTOMÁTICOS
             </button>
             <button class="tab-btn" data-tab="foto" onclick="mudarAba('foto')">
                 <i class="fas fa-camera"></i>
@@ -472,29 +488,37 @@
             </button>
         </div>
 
-        <!-- Painel Texto -->
-        <div id="panelTexto" class="anexo-panel active">
+        <!-- PAINEL TEXTO -->
+        <div id="painelTexto" class="anexo-panel active">
             <textarea 
                 id="textoManual"
                 class="anexo-textarea" 
-                placeholder="📝 Digite aqui o texto do anexo..."></textarea>
+                placeholder="📝 Digite aqui o texto do anexo, resumo ou TPC..."></textarea>
         </div>
 
-        <!-- Painel IA -->
-        <div id="panelIA" class="anexo-panel">
+        <!-- PAINEL CHATGPT (mantendo a lógica IA + fallback) -->
+        <div id="painelChatGPT" class="anexo-panel">
             <div class="mensagem-info">
                 <i class="fas fa-magic"></i>
-                A IA irá gerar conteúdos didáticos baseados no tema da aula
+                A IA tentará gerar automaticamente. Se falhar, abrirá o ChatGPT.
             </div>
             
+            <!-- Botão IA (Gemini) -->
             <button class="btn-ia" onclick="gerarConteudoIA()">
                 <i class="fas fa-bolt"></i>
                 GERAR CONTEÚDO COM IA
             </button>
 
-            <div id="streamingContainer" class="streaming-container hidden">
+            <!-- Fallback ChatGPT (manual) -->
+            <button class="btn-chatgpt" onclick="abrirChatGPT()">
+                <i class="fab fa-chatgpt"></i>
+                ABRIR CHATGPT (FALLBACK)
+            </button>
+
+            <!-- Container de streaming -->
+            <div id="streamingContainer" class="streaming-container" style="display:none;">
                 <div class="ia-badge">
-                    <i class="fas fa-robot"></i> Gerando...
+                    <i class="fas fa-robot"></i> Gerando com IA...
                 </div>
                 <div id="streamingTexto" class="streaming-text"></div>
                 <span class="streaming-cursor"></span>
@@ -506,8 +530,8 @@
                 placeholder="✨ O conteúdo gerado aparecerá aqui..."></textarea>
         </div>
 
-        <!-- Painel Foto -->
-        <div id="panelFoto" class="anexo-panel">
+        <!-- PAINEL FOTO -->
+        <div id="painelFoto" class="anexo-panel">
             <div class="mensagem-info">
                 <i class="fas fa-camera-retro"></i>
                 Tire ou selecione uma foto do livro/material didático
@@ -534,7 +558,7 @@
                 </div>
             </div>
 
-            <div id="cropperControls" class="cropper-controls hidden">
+            <div id="cropperControls" class="cropper-controls" style="display:none;">
                 <div class="cropper-grid">
                     <button class="btn-cropper" onclick="rotacionarEsquerda()">
                         <i class="fas fa-undo-alt"></i> -90°

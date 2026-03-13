@@ -1,5 +1,6 @@
 // ==================================================
 // ANEXO.JS - SISTEMA DE ANEXOS PARA PLANOVIP.HTML
+// VERSÃO ATUALIZADA COM 3 ABAS (mantendo IA + fallback)
 // ==================================================
 
 // =============================================
@@ -23,7 +24,7 @@ let abaAtiva = 'texto';
 let streamingInterval = null;
 
 // =============================================
-// FUNÇÕES DE NAVEGAÇÃO ENTRE ABAS
+// FUNÇÕES DE NAVEGAÇÃO ENTRE ABAS (3 TIPOS)
 // =============================================
 function mudarAba(aba) {
     // Atualizar variável
@@ -38,13 +39,16 @@ function mudarAba(aba) {
     });
     
     // Atualizar painéis
-    document.getElementById('panelTexto').classList.remove('active');
-    document.getElementById('panelIA').classList.remove('active');
-    document.getElementById('panelFoto').classList.remove('active');
-    document.getElementById(`panel${aba.charAt(0).toUpperCase() + aba.slice(1)}`).classList.add('active');
+    document.getElementById('painelTexto').classList.remove('active');
+    document.getElementById('painelChatGPT').classList.remove('active');
+    document.getElementById('painelFoto').classList.remove('active');
+    
+    if (aba === 'texto') document.getElementById('painelTexto').classList.add('active');
+    else if (aba === 'chatgpt') document.getElementById('painelChatGPT').classList.add('active');
+    else if (aba === 'foto') document.getElementById('painelFoto').classList.add('active');
     
     // Limpar streaming se necessário
-    if (aba !== 'ia' && streamingInterval) {
+    if (aba !== 'chatgpt' && streamingInterval) {
         clearInterval(streamingInterval);
         streamingInterval = null;
     }
@@ -72,7 +76,7 @@ function sanitizarTexto(texto) {
 }
 
 // =============================================
-// FUNÇÕES DE IA (STREAMING)
+// FUNÇÕES DE IA (GEMINI) + FALLBACK CHATGPT
 // =============================================
 function gerarConteudoIA() {
     // Obter dados do formulário principal
@@ -109,7 +113,7 @@ function gerarConteudoIA() {
     const streamingTexto = document.getElementById('streamingTexto');
     
     textarea.style.display = 'none';
-    streamingContainer.classList.remove('hidden');
+    streamingContainer.style.display = 'block';
     streamingTexto.textContent = '';
     
     // Obter conteúdos da tabela (se existirem)
@@ -146,7 +150,7 @@ Formato:
 
 IMPORTANTE: Responda APENAS o conteúdo do anexo, sem texto adicional.`;
 
-    // Chamar API Gemini
+    // Tentar API Gemini
     fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.IA_MODEL}:generateContent?key=${CONFIG.IA_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,18 +175,45 @@ IMPORTANTE: Responda APENAS o conteúdo do anexo, sem texto adicional.`;
     .catch(error => {
         console.error('Erro na IA:', error);
         
-        // Fallback: abrir ChatGPT
-        streamingContainer.classList.add('hidden');
+        // FALLBACK: Abrir ChatGPT automaticamente
+        streamingContainer.style.display = 'none';
         textarea.style.display = 'block';
         
-        const promptEncoded = encodeURIComponent(prompt);
-        window.open(`https://chat.openai.com/?q=${promptEncoded}`, '_blank');
+        // Abrir ChatGPT com o prompt
+        abrirChatGPTComPrompt(prompt);
         
-        alert('✅ IA temporariamente indisponível. O ChatGPT foi aberto com o prompt!');
-        
+        // Restaurar botão
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
+        
+        alert('⚠️ IA temporariamente indisponível. O ChatGPT foi aberto com o prompt!\n\nCole o resultado no campo abaixo.');
     });
+}
+
+// Função para abrir ChatGPT com prompt via URL parameter
+function abrirChatGPTComPrompt(prompt) {
+    const promptEncoded = encodeURIComponent(prompt);
+    const chatUrl = `https://chatgpt.com/?q=${promptEncoded}`;
+    window.open(chatUrl, '_blank');
+}
+
+// Função para abrir ChatGPT (chamada manual)
+function abrirChatGPT() {
+    const form = document.forms['planoForm'];
+    const tema = form.tema?.value?.trim() || 'Tema da aula';
+    const disciplina = form.disciplina?.value?.trim() || '';
+    
+    const prompt = `Como especialista em educação, desenvolva um resumo didáctico sobre "${tema}" com os seguintes elementos:
+
+1. CONCEITO PRINCIPAL: Explique de forma clara e objectiva
+2. PONTOS-CHAVE: Liste os aspectos mais importantes (use marcadores)
+3. EXEMPLOS PRÁTICOS: Dê 2-3 exemplos aplicáveis ao contexto escolar (se aplicável)
+4. DICA: use português de Portugal ou Moçambique.
+
+Formato: Use parágrafos curtos, linguagem acessível e evite jargões excessivos.
+Restrição: Não use emojis, não use palavras ou frases em negrito.`;
+    
+    abrirChatGPTComPrompt(prompt);
 }
 
 function streamarTexto(textoCompleto, container, elemento, textarea, btn, textoOriginal) {
@@ -200,7 +231,7 @@ function streamarTexto(textoCompleto, container, elemento, textarea, btn, textoO
             setTimeout(() => {
                 textarea.value = textoLimpo;
                 textarea.style.display = 'block';
-                container.classList.add('hidden');
+                container.style.display = 'none';
                 
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
@@ -212,7 +243,7 @@ function streamarTexto(textoCompleto, container, elemento, textarea, btn, textoO
 }
 
 // =============================================
-// FUNÇÕES DE FOTO
+// FUNÇÕES DE FOTO (COPIADAS DO PRIMEIRO SISTEMA)
 // =============================================
 function abrirCamera() {
     document.getElementById('inputCamera').click();
@@ -247,7 +278,7 @@ function carregarFoto(input) {
         imagemAtual = e.target.result;
         
         // Mostrar controles do cropper
-        document.getElementById('cropperControls').classList.remove('hidden');
+        document.getElementById('cropperControls').style.display = 'block';
         
         // Inicializar cropper
         setTimeout(() => {
@@ -313,11 +344,11 @@ function aplicarCorte() {
         cropper = null;
     }
     
-    document.getElementById('cropperControls').classList.add('hidden');
+    document.getElementById('cropperControls').style.display = 'none';
 }
 
 // =============================================
-// FUNÇÕES PRINCIPAIS (INTEGRAÇÃO COM PLANOVIP)
+// FUNÇÕES PRINCIPAIS (SALVAR ANEXO)
 // =============================================
 function salvarAnexo() {
     // Obter preview do plano
@@ -341,13 +372,13 @@ function salvarAnexo() {
             tipo = 'texto';
             dados = sanitizarTexto(textoManual);
             conteudoHTML = `
-                <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px; color: white;">
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
                     ${dados.replace(/\n/g, '<br>')}
                 </div>
             `;
             break;
             
-        case 'ia':
+        case 'chatgpt':
             const textoIA = document.getElementById('textoIA').value.trim();
             if (!textoIA) {
                 alert('⚠️ Gere o conteúdo primeiro!');
@@ -356,7 +387,7 @@ function salvarAnexo() {
             tipo = 'texto';
             dados = sanitizarTexto(textoIA);
             conteudoHTML = `
-                <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px; color: white;">
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
                     ${dados.replace(/\n/g, '<br>')}
                 </div>
             `;
@@ -371,21 +402,21 @@ function salvarAnexo() {
             dados = imagemAtual;
             conteudoHTML = `
                 <div style="text-align: center;">
-                    <img src="${dados}" style="max-width:100%; max-height:300px; border-radius:8px;">
+                    <img src="${dados}" style="max-width:100%; max-height:300px; border-radius:8px; border: 1px solid #e5e7eb;">
                 </div>
             `;
             break;
     }
     
-    // Atualizar preview
+    // Atualizar preview no planovip.html
     preview.innerHTML = `
-        <div style="background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-top: 20px;">
-            <h4 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow);">
+            <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-paperclip" style="color: var(--accent);"></i>
                 ANEXO ADICIONADO
             </h4>
             <div style="margin-bottom: 15px;">${conteudoHTML}</div>
-            <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
+            <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 600;">
                 <i class="fas fa-trash"></i> REMOVER ANEXO
             </button>
         </div>
@@ -443,6 +474,15 @@ function fecharAnexo() {
         container.style.display = 'none';
     }
     
+    // Fechar modal se existir
+    const modal = document.getElementById('anexoModal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+    
     // Limpar campos
     document.getElementById('textoManual').value = '';
     document.getElementById('textoIA').value = '';
@@ -452,7 +492,7 @@ function fecharAnexo() {
             <p>Nenhuma imagem selecionada</p>
         </div>
     `;
-    document.getElementById('cropperControls').classList.add('hidden');
+    document.getElementById('cropperControls').style.display = 'none';
     
     imagemAtual = null;
     if (cropper) {
@@ -485,12 +525,12 @@ function carregarAnexoSalvo() {
         if (planoData.anexoTipo === 'imagem' && planoData.anexoImagem) {
             conteudoHTML = `
                 <div style="text-align: center;">
-                    <img src="${planoData.anexoImagem}" style="max-width:100%; max-height:300px; border-radius:8px;">
+                    <img src="${planoData.anexoImagem}" style="max-width:100%; max-height:300px; border-radius:8px; border: 1px solid #e5e7eb;">
                 </div>
             `;
         } else if (planoData.anexoTexto) {
             conteudoHTML = `
-                <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px; color: white;">
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
                     ${planoData.anexoTexto.replace(/\n/g, '<br>')}
                 </div>
             `;
@@ -498,13 +538,13 @@ function carregarAnexoSalvo() {
         
         if (conteudoHTML) {
             preview.innerHTML = `
-                <div style="background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-top: 20px;">
-                    <h4 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow);">
+                    <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-paperclip" style="color: var(--accent);"></i>
                         ANEXO ADICIONADO
                     </h4>
                     <div style="margin-bottom: 15px;">${conteudoHTML}</div>
-                    <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
+                    <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 600;">
                         <i class="fas fa-trash"></i> REMOVER ANEXO
                     </button>
                 </div>
@@ -523,13 +563,19 @@ function inicializar() {
     console.log('🚀 Inicializando sistema de anexos...');
     
     // Configurar textareas para sanitização
-    document.getElementById('textoManual').addEventListener('input', function() {
-        this.value = sanitizarTexto(this.value);
-    });
+    const textoManual = document.getElementById('textoManual');
+    if (textoManual) {
+        textoManual.addEventListener('input', function() {
+            this.value = sanitizarTexto(this.value);
+        });
+    }
     
-    document.getElementById('textoIA').addEventListener('input', function() {
-        this.value = sanitizarTexto(this.value);
-    });
+    const textoIA = document.getElementById('textoIA');
+    if (textoIA) {
+        textoIA.addEventListener('input', function() {
+            this.value = sanitizarTexto(this.value);
+        });
+    }
     
     // Carregar anexo salvo
     carregarAnexoSalvo();
@@ -549,6 +595,7 @@ if (document.readyState === 'loading') {
 // =============================================
 window.mudarAba = mudarAba;
 window.gerarConteudoIA = gerarConteudoIA;
+window.abrirChatGPT = abrirChatGPT;
 window.abrirCamera = abrirCamera;
 window.abrirGaleria = abrirGaleria;
 window.carregarFoto = carregarFoto;
