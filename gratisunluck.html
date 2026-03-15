@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+(function () {
+  'use strict';
+
+  function isMobileOrTablet() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isTouch = navigator.maxTouchPoints > 1;
+    return /Android|iPhone|iPad|Tablet|Silk|Kindle|PlayBook/i.test(ua) || isTouch;
+  }
+
+  if (!isMobileOrTablet()) {
+    document.documentElement.innerHTML = `
+      <!DOCTYPE html>
+      <html lang="pt">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Acesso Restrito</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+          }
+          .box {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            padding: 40px 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+          }
+          .icon {
+            font-size: 3em;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: bounceIn 0.8s ease-out 0.2s forwards;
+          }
+          h1 {
+            font-size: 1.8em;
+            margin-bottom: 16px;
+            color: #e74c3c;
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out 0.4s forwards;
+          }
+          p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 12px;
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out 0.6s forwards;
+          }
+          @keyframes fadeIn {
+            to { opacity: 1; }
+          }
+          @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="icon">⚠️📱⚠️</div>
+          <h1>Acesso permitido apenas por smartphone ou tablet</h1>
+          <p>Este site foi projectado exclusivamente para dispositivos <strong>móveis</strong>.</p>
+          <p>Abra esta página num telefone ou tablet para continuar.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    throw new Error('Desktop access blocked');
+  }
+})();
+</script>
+  <script src="/security/blocks.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Download do Plano de Aula</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- libs necessárias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+    --primary: #0a5f2a;
+    --primary-dark: #084d22;
+    --secondary: #2563eb;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #dc2626;
+    --light: #f9fafb;
+    --dark: #111827;
+    --gray: #6b7280;
+}
+
+body { 
+    font-family: 'Times New Roman', serif; 
+    background: #e0f7fa; 
+    margin:0; 
+    padding:0; 
+    color:#333; 
+}
+
+header { 
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color:white; 
+    padding:20px; 
+    text-align:center; 
+    font-size:22px; 
+    font-weight:bold; 
+    box-shadow:0 3px 6px rgba(0,0,0,0.15);
+}
+
+main { 
+    max-width:750px; 
+    margin:30px auto; 
+    padding:20px; 
+    background:#fff; 
+    border-radius:12px; 
+    box-shadow:0 6px 15px rgba(0,0,0,0.1);
+}
+
+h2 { 
+    text-align:center; 
+    margin-bottom:25px; 
+    color: var(--primary); 
+}
+
+/* Código promocional grande */
+#codigo-promocional {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 25px;
+    letter-spacing: 3px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    padding: 15px;
+    border-radius: 12px;
+    border: 2px solid var(--accent);
+}
+
+/* Campo de código */
+.input-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+    flex-direction: column;
+    align-items: center;
+}
+input[type="text"] {
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 2px solid var(--primary);
+    width: 240px;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+button.confirmar-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--success), #059669);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+}
+button.confirmar-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}
+.mensagem {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+/* Spinner */
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Badge para tipo de geração */
+.geracao-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.badge-inteligente {
+    background: linear-gradient(135deg, var(--secondary), #1d4ed8);
+    color: white;
+}
+
+.badge-basico {
+    background: linear-gradient(135deg, var(--gray), #4b5563);
+    color: white;
+}
+
+/* Download button */
+.download-btn {
+    width: 100%;
+    padding: 16px;
+    margin: 20px 0;
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(10, 95, 42, 0.4);
+}
+
+.download-btn i {
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Mensagem de erro */
+.erro-msg {
+    color: var(--danger);
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+</style>
+<script>
+(function() {
+  // Google AdSense
+  var metaAd = document.createElement('meta');
+  metaAd.name = "google-adsense-account";
+  metaAd.content = "ca-pub-8468056906401026";
+  document.head.appendChild(metaAd);
+  // Google Analytics
+  var gaScript = document.createElement('script');
+  gaScript.async = true;
+  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0";
+  document.head.appendChild(gaScript);
+  var gaInline = document.createElement('script');
+  gaInline.innerHTML = `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-02K874D1P0');
+  `;
+  document.head.appendChild(gaInline);
+})();
+</script>
+</head>
+<body>
+<!-- CONTEÚDO PRINCIPAL -->
+<div id="conteudoPrincipal" style="display: none;">
+<!-- AVISO PARA RECARREGAR (aparece a partir da 2ª vez) -->
+<div id="botaoRecarregar" style="
+  display: none;
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 32px;
+  padding: 35px 25px;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 20, 40, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  z-index: 10000;
+  animation: aparecer 0.4s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+">
+
+  <!-- Ícone animado (suave) -->
+  <div style="
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15);
+    animation: flutuar 3s ease-in-out infinite;
+  ">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 4V10H17" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M1 20V14H7" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3.51 9C4.01717 7.56678 4.87913 6.2854 6.01547 5.27542C7.1518 4.26544 8.52547 3.55976 10.0083 3.22426C11.4911 2.88875 13.0348 2.93434 14.4952 3.35677C15.9556 3.77921 17.2853 4.56271 18.36 5.64L23 10M1 14L5.64 18.36C6.71475 19.4373 8.04437 20.2208 9.50479 20.6432C10.9652 21.0657 12.5089 21.1113 13.9917 20.7757C15.4745 20.4402 16.8482 19.7346 17.9845 18.7246C19.1209 17.7146 19.9828 16.4332 20.49 15" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- Título suave -->
+  <h3 style="
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: #1e293b;
+    letter-spacing: -0.3px;
+  ">
+    Salvar Alterações
+  </h3>
+
+  <!-- Mensagem acolhedora -->
+  <p style="
+    font-size: 17px;
+    color: #475569;
+    margin: 0 0 25px 0;
+    line-height: 1.5;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  ">
+    Clica no botão abaixo, para garantir que as alterações sejam salvas👇:
+  </p>
+<!-- Botão principal -->
+<button onclick="window.location.href = window.location.pathname + '?recarregado=1'" style="
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 60px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 25px rgba(79, 70, 229, 0.3);
+  transition: all 0.2s ease;
+  width: auto;
+  min-width: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+"
+onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 18px 30px rgba(79, 70, 229, 0.4)'"
+onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 12px 25px rgba(79, 70, 229, 0.3)'">
+  🔄 SALVAR
+</button>
+
+  <!-- Mensagem de rodapé -->
+  <p style="
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 20px 0 0 0;
+  ">
+    ⚡ Leva apenas um segundo
+  </p>
+</div>
+
+<style>
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -45%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  @keyframes flutuar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+</style>
+<script>
+(function() {
+  // =============================================
+  // CONTROLE INTELIGENTE (mostra conteúdo após reload)
+  // =============================================
+  
+  var botao = document.getElementById('botaoRecarregar');
+  var conteudo = document.getElementById('conteudoPrincipal');
+
+  // Se a URL tem ?recarregado=1, veio de um reload nosso
+  if (window.location.search.indexOf('recarregado=1') !== -1) {
+    // Mostra conteúdo e remove o parâmetro da URL
+    if (botao) botao.style.display = 'none';
+    if (conteudo) conteudo.style.display = 'block';
+    
+    // Limpa a URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  // Se não tem o parâmetro, verifica se é primeira vez
+  else if (!sessionStorage.getItem('entrada_anterior')) {
+    // Primeira vez: marca e mostra conteúdo
+    sessionStorage.setItem('entrada_anterior', 'true');
+    if (botao) botao.style.display = 'none';
+    if (conteudo) conteudo.style.display = 'block';
+  } else {
+    // Segunda vez ou mais: mostra botão
+    if (botao) botao.style.display = 'block';
+    if (conteudo) conteudo.style.display = 'none';
+  }
+})();
+</script>
+<!-- Garante que o conteúdo apareça (fallback) -->
+<script>
+document.getElementById('conteudoPrincipal').style.display = 'block';
+</script>
+<header>Download do Plano de Aula</header>
+<main>
+  <h2>Insira o Código Abaixo para Baixar o Plano</h2>
+
+  <!-- Código promocional grande e visível -->
+  <div id="codigo-promocional"></div>
+
+  <div class="input-container" id="input-codigo">
+    <input type="text" id="codigo-acesso" placeholder="digita aqui" maxlength="8">
+    <span id="feedback-codigo" style="color:#dc3545; font-size:13px; display:block; text-align:center; margin-top:5px;"></span>
+    <button class="confirmar-btn" onclick="validarCodigo()">Confirmar</button>
+  </div>
+
+  <div id="mensagem" class="mensagem"></div>
+
+<script>
+const URL_APP = "https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec";
+const inputCodigo = document.getElementById('codigo-acesso');
+const feedback = document.getElementById('feedback-codigo');
+
+inputCodigo.addEventListener('input', () => {
+  let valor = inputCodigo.value.toUpperCase();
+  const novoValor = valor.replace(/[^A-Z0-9]/g, '');
+  if(valor !== novoValor){
+    feedback.innerText = "❌ Apenas caracteres alfanuméricos são permitidos!";
+  } else {
+    feedback.innerText = "";
+  }
+  inputCodigo.value = novoValor.slice(0, 8);
+});
+
+// Exibir código promocional aleatório (visível)
+const codigosPromo = ['2514DC16', '7655GT27', '8K7814D3', 'TD171705', 'J66BGK27'];
+document.getElementById('codigo-promocional').textContent = codigosPromo[Math.floor(Math.random() * codigosPromo.length)];
+
+function validarCodigo(){
+  const codigo = inputCodigo.value.trim().toUpperCase();
+  const msg = document.getElementById('mensagem');
+  if(codigo.length !== 8){
+    msg.style.color = "#dc3545";
+    msg.innerText = "❌ O código deve ter 8 caracteres.";
+    return;
+  }
+  msg.style.color = "#007BFF";
+  msg.innerHTML = '🔍 Verificando o Código <span class="spinner"></span>';
+  fetch(`${URL_APP}?codigo=${codigo}`, { method:'GET', mode:'cors' })
+    .then(res => {
+      if(!res.ok) throw new Error('Serviço indisponível');
+      return res.json();
+    })
+    .then(data => {
+      if(data && data.valido){
+        const planoDataJSON = sessionStorage.getItem("planoData");
+        if(!planoDataJSON){
+            alert("❌ Nenhum plano encontrado. Gere o plano antes de tentar desbloquear.");
+            return;
+        }
+        const planoData = JSON.parse(planoDataJSON);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        // =============================================
+        // CABEÇALHO DO PDF
+        // =============================================
+        doc.setFont("times", "normal");
+        doc.setFontSize(12);
+        
+        // Título principal
+        doc.setFont("times", "bold");
+        doc.setFontSize(16);
+        doc.text("PLANO DE AULA", 148, 10, { align: "center" });
+        doc.setFont("times", "normal");
+        doc.setFontSize(12);
+        
+        // Linha separadora
+        doc.setDrawColor(10, 95, 42);
+        doc.setLineWidth(0.5);
+        doc.line(10, 13, 287, 13);
+        
+        // =============================================
+        // DADOS PRELIMINARES
+        // =============================================
+        doc.setFont("times", "bold");
+        doc.setFontSize(14);
+        doc.text("DADOS PRELIMINARES", 10, 22);
+        doc.setFont("times", "normal");
+        doc.setFontSize(12);
+        
+        let yPos = 30;
+        const colEsquerda = 10;
+        const colDireita = 150;
+        
+        // Função auxiliar para adicionar linha de dados
+        function addDado(label, value, y, col) {
+            if (value && value !== '—' && value !== '') {
+                doc.setFont("times", "bold");
+                doc.text(`${label}:`, col, y);
+                doc.setFont("times", "normal");
+                doc.text(String(value), col + 25, y);
+                return true;
+            }
+            return false;
+        }
+        
+        // Dados da esquerda
+        addDado("Escola", planoData.escola, yPos, colEsquerda);
+        yPos += 6;
+        addDado("Professor", planoData.professor, yPos, colEsquerda);
+        yPos += 6;
+        addDado("Disciplina", planoData.disciplina, yPos, colEsquerda);
+        yPos += 6;
+        addDado("Unidade Temática", planoData.unidade, yPos, colEsquerda);
+        yPos += 6;
+        addDado("Tema", planoData.tema, yPos, colEsquerda);
+        yPos += 6;
+        addDado("Tipo de Aula", planoData.tipo, yPos, colEsquerda);
+        
+        // Reset y para direita
+        yPos = 30;
+        
+        // Dados da direita
+        addDado("Classe", planoData.classe, yPos, colDireita);
+        yPos += 6;
+        addDado("Turma", planoData.turma, yPos, colDireita);
+        yPos += 6;
+        addDado("Lição nº", planoData.licao || '—', yPos, colDireita);
+        yPos += 6;
+        addDado("Duração", `${planoData.duracao} minutos`, yPos, colDireita);
+        yPos += 6;
+        addDado("Período", planoData.periodo, yPos, colDireita);
+        yPos += 6;
+        
+        // Data formatada
+        let dataFormatada = '—';
+        if (planoData.data) {
+            try {
+                const data = new Date(planoData.data);
+                dataFormatada = data.toLocaleDateString('pt-PT');
+            } catch (e) {
+                dataFormatada = planoData.data;
+            }
+        }
+        addDado("Data", dataFormatada, yPos, colDireita);
+        yPos += 6;
+        
+        // Materiais (se houver)
+        if (planoData.materiais && planoData.materiais.length > 0) {
+            doc.setFont("times", "bold");
+            doc.text("Materiais:", colEsquerda, yPos + 6);
+            doc.setFont("times", "normal");
+            
+            let materialY = yPos + 6;
+            planoData.materiais.forEach((material, idx) => {
+                doc.text(`• ${material}`, colEsquerda + 25, materialY);
+                materialY += 5;
+            });
+            yPos = materialY;
+        }
+        
+        // Temas Transversais (se houver)
+        if (planoData.temas && planoData.temas.length > 0) {
+            doc.setFont("times", "bold");
+            doc.text("Temas Transversais:", colDireita, yPos);
+            doc.setFont("times", "normal");
+            
+            let temaY = yPos;
+            planoData.temas.forEach((tema, idx) => {
+                doc.text(`• ${tema}`, colDireita + 35, temaY);
+                temaY += 5;
+            });
+            yPos = Math.max(yPos, temaY);
+        }
+        
+        yPos += 8;
+        
+        // =============================================
+        // OBJECTIVOS
+        // =============================================
+        if (planoData.objetivos) {
+            doc.setFont("times", "bold");
+            doc.setFontSize(14);
+            doc.text("OBJECTIVOS ESPECÍFICOS", 10, yPos);
+            doc.setFont("times", "normal");
+            doc.setFontSize(12);
+            
+            yPos += 6;
+            
+            const objetivos = planoData.objetivos.split('\n').filter(l => l.trim());
+            objetivos.forEach(obj => {
+                if (obj.trim()) {
+                    // Quebrar linhas longas
+                    const linhas = doc.splitTextToSize(obj.trim(), 270);
+                    linhas.forEach(linha => {
+                        doc.text(linha, 15, yPos);
+                        yPos += 6;
+                    });
+                }
+            });
+            yPos += 4;
+        }
+        
+        // =============================================
+        // TABELA DO PLANO
+        // =============================================
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = planoData.tabela || '';
+        
+        const tabelaRows = tempDiv.querySelectorAll('tbody tr');
+        const tableData = [];
+        
+        tabelaRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = [];
+            cells.forEach(cell => {
+                // Manter quebras de linha, remover HTML
+                let text = cell.innerHTML
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<[^>]*>/g, '')
+                    .trim();
+                rowData.push(text);
+            });
+            tableData.push(rowData);
+        });
+        
+        if (tableData.length > 0) {
+            doc.autoTable({
+                startY: yPos,
+                head: [['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO']],
+                body: tableData,
+                theme: 'grid',
+                styles: {
+                    font: 'times',
+                    fontSize: 10,
+                    textColor: [0,0,0],
+                    lineColor: [0,0,0],
+                    lineWidth: 0.2,
+                    cellPadding: 2,
+                    valign: 'top',
+                    overflow: 'linebreak'
+                },
+                headStyles: {
+                    fillColor: [10, 95, 42],
+                    textColor: [255,255,255],
+                    font: 'times',
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: { cellWidth: 18 },
+                    1: { cellWidth: 35 },
+                    2: { cellWidth: 'auto' },
+                    3: { cellWidth: 'auto' },
+                    4: { cellWidth: 'auto' },
+                    5: { cellWidth: 30 },
+                    6: { cellWidth: 30 }
+                },
+                margin: { left: 7, right: 7 }
+            });
+            
+            yPos = doc.lastAutoTable.finalY + 8;
+        }
+        
+        // =============================================
+        // ANEXO (se houver)
+        // =============================================
+        const temAnexo = planoData.anexoTipo && 
+                         ((planoData.anexoTipo === 'imagem' && planoData.anexoImagem) || 
+                          (planoData.anexoTipo === 'texto' && planoData.anexoTexto));
+        
+        if (temAnexo) {
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 7;
+            const boxWidth = pageWidth - (2 * margin);
+            
+            // Verificar se precisa de nova página
+            if (yPos + 40 > pageHeight - 15) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            // Desenhar caixa do anexo
+            doc.setDrawColor(10, 95, 42);
+            doc.setLineWidth(0.5);
+            doc.rect(margin, yPos, boxWidth, 50);
+            
+            // Título
+            doc.setFont("times", "bold");
+            doc.setFontSize(12);
+            doc.text("ANEXO / QUADRO MURAL", margin + (boxWidth/2), yPos + 8, { align: "center" });
+            doc.setFont("times", "normal");
+            doc.setFontSize(10);
+            
+            if (planoData.anexoTipo === 'imagem' && planoData.anexoImagem) {
+                // Inserir imagem
+                try {
+                    doc.addImage(
+                        planoData.anexoImagem, 
+                        'JPEG', 
+                        margin + 5, 
+                        yPos + 12, 
+                        boxWidth - 10, 
+                        30,
+                        undefined,
+                        'FAST'
+                    );
+                } catch (err) {
+                    doc.text("Erro ao carregar imagem do anexo.", margin + 5, yPos + 20);
+                }
+            } else if (planoData.anexoTipo === 'texto' && planoData.anexoTexto) {
+                // Texto do anexo
+                const linhas = doc.splitTextToSize(planoData.anexoTexto, boxWidth - 10);
+                let textoY = yPos + 12;
+                
+                linhas.forEach((linha, idx) => {
+                    if (textoY < yPos + 45) {
+                        doc.text(linha, margin + 5, textoY);
+                        textoY += 5;
+                    }
+                });
+            }
+        }
+        
+        // =============================================
+        // RODAPÉ
+        // =============================================
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(
+                `Gerado por GPAQ Stunner System • ${new Date().toLocaleDateString('pt-PT')}`, 
+                doc.internal.pageSize.getWidth() - 10, 
+                doc.internal.pageSize.getHeight() - 5,
+                { align: 'right' }
+            );
+        }
+        
+        // =============================================
+        // DOWNLOAD DO PDF
+        // =============================================
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `Plano_de_Aula_${planoData.disciplina || ''}_${planoData.classe || ''}_${planoData.data || ''}.pdf`.replace(/\s+/g, '_');
+        
+        window.__ultimoPDFBlob = pdfBlob;
+        window.__ultimoPDFNome = nomeArquivo;
+        
+        // Download IMEDIATO
+        try {
+            baixarPDF(pdfBlob, nomeArquivo);
+        } catch (e) {
+            console.warn("Erro no download:", e);
+        }
+        
+        // Mostrar badge do tipo de geração
+        const tipoGeracao = planoData.tipoGeracao || 'basico';
+        const badgeClass = tipoGeracao === 'inteligente' ? 'badge-inteligente' : 'badge-basico';
+        const badgeText = tipoGeracao === 'inteligente' ? '✨ Plano Gerado com IA' : '📋 Plano Gerado (Modo Básico)';
+        
+        msg.innerHTML = `
+            ✅ Código válido! PDFs restantes: ${data.restante}<br>
+            <span class="geracao-badge ${badgeClass}"><i class="fas ${tipoGeracao === 'inteligente' ? 'fa-brain' : 'fa-file-alt'}"></i> ${badgeText}</span><br><br>
+            Se o download não iniciou, clique abaixo:<br><br>
+            <button onclick="baixarPDFManual()" class="download-btn">
+                <i class="fas fa-file-pdf"></i> 📥 BAIXAR PLANO AGORA
+            </button>
+        `;
+        
+        // Registrar sucesso
+        registrarDownloadSucesso(planoData, codigo, data.restante);
+        
+      } else {
+        msg.style.color = "#dc3545";
+        msg.innerText = `❌ ${data && data.msg ? data.msg : 'Código inválido'}`;
+      }
+    })
+    .catch(err => {
+      msg.style.color = "#dc3545";
+      msg.innerText = "❌ Erro ao validar código. Tente novamente.";
+      console.error(err);
+    });
+}
+
+// =============================================
+// FUNÇÕES DE DOWNLOAD
+// =============================================
+function baixarPDF(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Variáveis globais para fallback
+window.__ultimoPDFBlob = null;
+window.__ultimoPDFNome = null;
+
+function baixarPDFManual() {
+  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
+    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
+  } else {
+    alert("❌ Nenhum PDF disponível para download.");
+  }
+}
+
+// =============================================
+// RASTREAMENTO DE DOWNLOAD
+// =============================================
+function registrarDownloadSucesso(planoData, codigo, restante) {
+  try {
+    // Atualizar histórico
+    const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
+    historico.push({
+      escola: planoData.escola,
+      professor: planoData.professor,
+      disciplina: planoData.disciplina,
+      unidade: planoData.unidade,
+      tema: planoData.tema,
+      tipo: planoData.tipo,
+      classe: planoData.classe,
+      data: planoData.data,
+      tipoGeracao: planoData.tipoGeracao || 'basico',
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem("historicoPlanos", JSON.stringify(historico));
+    
+    // Atualizar contador no localStorage
+    const usuarioAtual = JSON.parse(localStorage.getItem("usuario") || "{}");
+    if (!usuarioAtual.downloads) usuarioAtual.downloads = {};
+    if (!usuarioAtual.downloads.planoAula) usuarioAtual.downloads.planoAula = 0;
+    usuarioAtual.downloads.planoAula++;
+    localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
+    
+    console.log("✅ Download registrado com sucesso!");
+  } catch (e) {
+    console.warn("Erro ao registrar download:", e);
+  }
+}
+
+// =============================================
+// SISTEMA DE RASTREAMENTO (mantido da versão anterior)
+// =============================================
+(function() {
+  'use strict';
+  
+  const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec";
+  
+  function obterDadosUsuario() {
+    try {
+      const usuarioData = localStorage.getItem("usuario");
+      if (!usuarioData) return null;
+      
+      const usuario = JSON.parse(usuarioData);
+      const nomeFormatado = usuario.nome 
+        ? usuario.nome.trim().replace(/\s+/g, '_').substring(0, 30)
+        : "NOME";
+      
+      const telefoneCompleto = usuario.telefone 
+        ? usuario.telefone.replace(/\D/g, '')
+        : "SEMTELEFONE";
+      
+      const usuario_id = `${nomeFormatado}_${telefoneCompleto}`;
+      
+      return {
+        nome: usuario.nome || "N/D",
+        telefone: usuario.telefone || "N/D",
+        usuario_id: usuario_id,
+        data_cadastro: usuario.dataRegistro || new Date().toISOString()
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+  
+  // Rastrear visita
+  window.addEventListener('load', function() {
+    setTimeout(() => {
+      const usuario = obterDadosUsuario();
+      if (usuario) {
+        const dadosVisita = new URLSearchParams();
+        dadosVisita.append("action", "registrar_log");
+        dadosVisita.append("usuario_id", usuario.usuario_id);
+        dadosVisita.append("nome", usuario.nome);
+        dadosVisita.append("telefone", usuario.telefone);
+        dadosVisita.append("acao", "VISITA_PAGINA_PLANO_AULA");
+        dadosVisita.append("pagina", "gratisunluck.html");
+        dadosVisita.append("detalhes", JSON.stringify({
+          tipo: "PLANO_AULA",
+          status: "AGUARDANDO_CODIGO"
+        }));
+        
+        fetch(TRACKING_URL, {
+          method: "POST",
+          body: dadosVisita,
+          mode: "no-cors"
+        }).catch(() => {});
+      }
+    }, 1000);
+  });
+  
+  // Interceptar botão de confirmar
+  const botaoOriginal = document.querySelector('.confirmar-btn');
+  if (botaoOriginal) {
+    const originalOnClick = botaoOriginal.onclick;
+    
+    botaoOriginal.onclick = function(e) {
+      if (originalOnClick) originalOnClick.call(this, e);
+      
+      const codigo = document.getElementById('codigo-acesso')?.value.trim().toUpperCase() || "";
+      const usuario = obterDadosUsuario();
+      
+      if (usuario && codigo.length === 8) {
+        const dadosTentativa = new URLSearchParams();
+        dadosTentativa.append("action", "registrar_log");
+        dadosTentativa.append("usuario_id", usuario.usuario_id);
+        dadosTentativa.append("nome", usuario.nome);
+        dadosTentativa.append("telefone", usuario.telefone);
+        dadosTentativa.append("acao", "TENTATIVA_CODIGO_PLANO_AULA");
+        dadosTentativa.append("pagina", "gratisunluck.html");
+        dadosTentativa.append("detalhes", JSON.stringify({
+          codigo: codigo,
+          tipo: "PLANO_AULA",
+          valor: 5
+        }));
+        
+        fetch(TRACKING_URL, {
+          method: "POST",
+          body: dadosTentativa,
+          mode: "no-cors"
+        }).catch(() => {});
+      }
+      
+      return false;
+    };
+  }
+})();
+</script>
+</main>
+</body>
+</html>
