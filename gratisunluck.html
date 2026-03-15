@@ -384,34 +384,6 @@ inputCodigo.addEventListener('input', () => {
 const codigosPromo = ['2514DC16', '7655GT27', '8K7814D3', 'TD171705', 'J66BGK27'];
 document.getElementById('codigo-promocional').textContent = codigosPromo[Math.floor(Math.random() * codigosPromo.length)];
 
-// =============================================
-// FUNÇÕES DE DOWNLOAD (exatamente iguais ao original)
-// =============================================
-function baixarPDF(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = nome;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-window.__ultimoPDFBlob = null;
-window.__ultimoPDFNome = null;
-
-function baixarPDFManual() {
-  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
-    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
-  } else {
-    alert("❌ Nenhum PDF disponível para download.");
-  }
-}
-
-// =============================================
-// VALIDAÇÃO E GERAÇÃO DO PDF (com estrutura idêntica ao original)
-// =============================================
 function validarCodigo(){
   const codigo = inputCodigo.value.trim().toUpperCase();
   const msg = document.getElementById('mensagem');
@@ -441,25 +413,14 @@ function validarCodigo(){
           unit: 'mm',
           format: 'a4'
         });
-        
-        // =============================================
-        // TÍTULO DO PLANO (exatamente como original)
-        // =============================================
+        // Fonte padrão
         doc.setFont("times", "normal");
         doc.setFontSize(12);
-        
-        // Título principal
-        doc.setFont("times", "normal");
-        doc.setFontSize(12);
+        // --- TÍTULO DO PLANO ---
         doc.text("PLANO DE AULA", 148, 12, { align: "center" });
-        
-        // Criar div temporária para extrair dados (igual original)
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = planoData.html;
-        
-        // =============================================
-        // DADOS DA ESQUERDA (mesmo método do original)
-        // =============================================
+        // Dados da Esquerda
         let yLeft = 25;
         const addLineLeft = (label, value) => {
           if (value) {
@@ -468,7 +429,6 @@ function validarCodigo(){
             yLeft += 6;
           }
         };
-        
         const dadosEsquerda = tempDiv.querySelector('#dadosEsquerda');
         if (dadosEsquerda) {
           const esquerdaText = dadosEsquerda.innerText;
@@ -480,10 +440,7 @@ function validarCodigo(){
             }
           });
         }
-        
-        // =============================================
-        // DADOS DA DIREITA (mesmo método do original)
-        // =============================================
+        // Dados da Direita
         let yRight = 25;
         const addLineRight = (label, value) => {
           if (value) {
@@ -492,7 +449,6 @@ function validarCodigo(){
             yRight += 6;
           }
         };
-        
         const dadosDireita = tempDiv.querySelector('#dadosDireita');
         if (dadosDireita) {
           const direitaText = dadosDireita.innerText;
@@ -504,10 +460,7 @@ function validarCodigo(){
             }
           });
         }
-        
-        // =============================================
-        // OBJECTIVOS (mesmo método do original)
-        // =============================================
+        // Objetivos
         const listaObjetivos = tempDiv.querySelector('#listaObjetivos');
         let lastY = Math.max(yLeft, yRight);
         if (listaObjetivos) {
@@ -523,23 +476,20 @@ function validarCodigo(){
           });
           lastY = yObj;
         }
-        
-        // =============================================
-        // TABELA (exatamente igual ao original)
-        // =============================================
+        // --- TABELA ÚNICA (com quebra automática) ---
         const tabela = tempDiv.querySelector('#tabelaPlano');
         if (tabela) {
           const rows = tabela.querySelectorAll('tbody tr');
           const tableData = Array.from(rows).map(row => {
             const cells = row.querySelectorAll('td');
             return Array.from(cells).map(cell => {
+              // mantém quebras de linha
               let text = cell.innerHTML
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]*>/g, '');
               return text.trim();
             });
           });
-          
           doc.autoTable({
             startY: lastY + 3,
             head: [['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO']],
@@ -582,151 +532,179 @@ function validarCodigo(){
           });
         }
 
-        // =============================================
-        // ANEXO (exatamente igual ao original)
-        // =============================================
-        (function renderAnexo() {
-          const margemX = 7;
-          const pageWidth = doc.internal.pageSize.getWidth();
-          const largura = pageWidth - 2 * margemX;
-          const pageHeight = doc.internal.pageSize.getHeight();
-          const bottomMargin = 10;
-          const lineHeight = 6;
-          const fontSize = 12;
-          const paddingTop = 15;
-          const paddingBottom = 5;
+// === ANEXO COM CAIXA (robusto: só desenha se houver, trata imagens/texto e quebra de página) ===
+// === ANEXO COM CAIXA SEMPRE VISÍVEL (MESMO VAZIO) ===
+(function renderAnexo() {
+  // configurações visuais (margem de 7 mm = 0,7 cm)
+  const margemX = 7;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const largura = pageWidth - 2 * margemX; // largura total útil
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const bottomMargin = 10;
+  const lineHeight = 6; // altura da linha em mm
+  const fontSize = 12;
+  const paddingTop = 15; // espaço do topo da caixa até o início do texto
+  const paddingBottom = 5;
 
-          let posY = 20;
-          if (doc.lastAutoTable && doc.lastAutoTable.finalY) {
-            posY = doc.lastAutoTable.finalY + 8;
-          } else if (doc.previousAutoTable && doc.previousAutoTable.finalY) {
-            posY = doc.previousAutoTable.finalY + 8;
-          } else if (typeof doc.getY === 'function') {
-            try { posY = doc.getY() + 8; } catch (e) { posY = 20; }
-          }
+  // Determinar a posição inicial Y (após a tabela)
+  let posY = 20;
+  if (doc.lastAutoTable && doc.lastAutoTable.finalY) {
+    posY = doc.lastAutoTable.finalY + 8;
+  } else if (doc.previousAutoTable && doc.previousAutoTable.finalY) {
+    posY = doc.previousAutoTable.finalY + 8;
+  } else if (typeof doc.getY === 'function') {
+    try { posY = doc.getY() + 8; } catch (e) { posY = 20; }
+  }
 
-          let anexType = null;
-          let anexImg = null;
-          let anexTxt = null;
+  // Verificar se existe anexo salvo
+  let anexType = null;
+  let anexImg = null;
+  let anexTxt = null;
 
-          if (planoData) {
-            anexType = planoData.anexoTipo || (planoData.anexoSalvo && planoData.anexoSalvo.tipo) || null;
-            anexImg = planoData.anexoImagem || (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'imagem' && planoData.anexoSalvo.data) || null;
-            anexTxt = (planoData.anexoTexto && String(planoData.anexoTexto).trim() !== '') ? planoData.anexoTexto : (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'texto' ? planoData.anexoSalvo.data : null);
-          }
+  if (planoData) {
+    anexType = planoData.anexoTipo || (planoData.anexoSalvo && planoData.anexoSalvo.tipo) || null;
+    anexImg = planoData.anexoImagem || (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'imagem' && planoData.anexoSalvo.data) || null;
+    anexTxt = (planoData.anexoTexto && String(planoData.anexoTexto).trim() !== '') ? planoData.anexoTexto : (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'texto' ? planoData.anexoSalvo.data : null);
+  }
 
-          const temAnexo = (anexType && (anexImg || anexTxt));
+  const temAnexo = (anexType && (anexImg || anexTxt));
 
-          function desenharCaixa(y, linhas, titulo, alturaFixa = null) {
-            let alturaCaixa;
-            if (alturaFixa !== null) {
-              alturaCaixa = alturaFixa;
-            } else {
-              alturaCaixa = paddingTop + linhas.length * lineHeight + paddingBottom;
-            }
-            alturaCaixa = Math.min(alturaCaixa, pageHeight - y - bottomMargin);
+  // Função auxiliar para desenhar uma caixa com título e conteúdo
+  function desenharCaixa(y, linhas, titulo, alturaFixa = null) {
+    let alturaCaixa;
+    if (alturaFixa !== null) {
+      alturaCaixa = alturaFixa;
+    } else {
+      alturaCaixa = paddingTop + linhas.length * lineHeight + paddingBottom;
+    }
+    // Ajustar para não ultrapassar a página
+    alturaCaixa = Math.min(alturaCaixa, pageHeight - y - bottomMargin);
 
-            doc.setDrawColor(0,0,0);
-            doc.rect(margemX, y, largura, alturaCaixa);
-            doc.setFont("Times", "bold");
-            doc.setFontSize(fontSize);
-            doc.text(titulo, margemX + largura / 2, y + 8, { align: "center" });
+    // Desenha retângulo
+    doc.setDrawColor(0,0,0);
+    doc.rect(margemX, y, largura, alturaCaixa);
+    doc.setFont("Times", "bold");
+    doc.setFontSize(fontSize);
+    doc.text(titulo, margemX + largura / 2, y + 8, { align: "center" });
 
-            if (linhas && linhas.length > 0) {
-              doc.setFont("Times", "normal");
-              doc.setFontSize(fontSize);
-              doc.text(linhas, margemX + 5, y + paddingTop);
-            }
-          }
+    // Desenha conteúdo (se houver linhas)
+    if (linhas && linhas.length > 0) {
+      doc.setFont("Times", "normal");
+      doc.setFontSize(fontSize);
+      doc.text(linhas, margemX + 5, y + paddingTop);
+    }
+    // Se não houver linhas, não desenha nada (caixa vazia)
+  }
 
-          if (temAnexo) {
-            if (anexType === "imagem" && anexImg) {
-              let alturaBox = 100;
-              if (posY + alturaBox + bottomMargin > pageHeight) {
-                doc.addPage();
-                posY = 15;
-              }
-              desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaBox);
-              let fmt = 'PNG';
-              try {
-                const m = anexImg.match(/^data:image\/([a-zA-Z0-9+]+);base64,/);
-                if (m && m[1]) fmt = m[1].toUpperCase();
-              } catch (e) { }
-              const imgX = margemX + 5;
-              const imgY = posY + 12;
-              const imgW = largura - 10;
-              const imgH = alturaBox - 18;
-              try {
-                doc.addImage(anexImg, fmt, imgX, imgY, imgW, imgH);
-              } catch (err) {
-                doc.setFont("Times", "normal");
-                doc.setFontSize(fontSize);
-                doc.text("Erro ao inserir imagem do anexo.", margemX + 5, posY + 18);
-              }
-            } else if (anexType === "texto" && anexTxt) {
-              const todasLinhas = doc.splitTextToSize(anexTxt, largura - 10);
-              let linhaAtual = 0;
-              let primeiraPagina = true;
+  if (temAnexo) {
+    // CASO 1: Existe anexo salvo (imagem ou texto)
+    if (anexType === "imagem" && anexImg) {
+      // Imagem: altura fixa (pode ajustar)
+      let alturaBox = 100;
+      if (posY + alturaBox + bottomMargin > pageHeight) {
+        doc.addPage();
+        posY = 15;
+      }
+      // Desenha caixa com título "ANEXO / QUADRO MURAL"
+      desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaBox);
+      let fmt = 'PNG';
+      try {
+        const m = anexImg.match(/^data:image\/([a-zA-Z0-9+]+);base64,/);
+        if (m && m[1]) fmt = m[1].toUpperCase();
+      } catch (e) { /* usa PNG por defeito */ }
+      const imgX = margemX + 5;
+      const imgY = posY + 12;
+      const imgW = largura - 10;
+      const imgH = alturaBox - 18;
+      try {
+        doc.addImage(anexImg, fmt, imgX, imgY, imgW, imgH);
+      } catch (err) {
+        console.error('Erro ao inserir imagem do anexo:', err);
+        doc.setFont("Times", "normal");
+        doc.setFontSize(fontSize);
+        doc.text("Erro ao inserir imagem do anexo.", margemX + 5, posY + 18);
+      }
+    } else if (anexType === "texto" && anexTxt) {
+      // Texto longo: dividir em páginas
+      const todasLinhas = doc.splitTextToSize(anexTxt, largura - 10);
+      let linhaAtual = 0;
+      let primeiraPagina = true;
 
-              while (linhaAtual < todasLinhas.length) {
-                const alturaDisponivel = pageHeight - posY - bottomMargin;
-                const linhasCabemMax = Math.floor((alturaDisponivel - paddingTop - paddingBottom) / lineHeight);
-                if (linhasCabemMax <= 0) {
-                  doc.addPage();
-                  posY = 15;
-                  continue;
-                }
-                const linhasRestantes = todasLinhas.length - linhaAtual;
-                const linhasParaDesenhar = Math.min(linhasRestantes, linhasCabemMax);
-                const linhasPagina = todasLinhas.slice(linhaAtual, linhaAtual + linhasParaDesenhar);
-                const tituloPagina = primeiraPagina ? "ANEXO / QUADRO MURAL" : "ANEXO / QUADRO MURAL (continuação)";
-                desenharCaixa(posY, linhasPagina, tituloPagina);
-                linhaAtual += linhasParaDesenhar;
-                primeiraPagina = false;
-                if (linhaAtual < todasLinhas.length) {
-                  doc.addPage();
-                  posY = 15;
-                }
-              }
-            }
-          } else {
-            const alturaVazia = 80;
-            if (posY + alturaVazia + bottomMargin > pageHeight) {
-              doc.addPage();
-              posY = 15;
-            }
-            desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaVazia);
-          }
-        })();
-        
-        // =============================================
-        // DOWNLOAD (exatamente igual ao original)
-        // =============================================
+      while (linhaAtual < todasLinhas.length) {
+        const alturaDisponivel = pageHeight - posY - bottomMargin;
+        const linhasCabemMax = Math.floor((alturaDisponivel - paddingTop - paddingBottom) / lineHeight);
+        if (linhasCabemMax <= 0) {
+          doc.addPage();
+          posY = 15;
+          continue;
+        }
+        const linhasRestantes = todasLinhas.length - linhaAtual;
+        const linhasParaDesenhar = Math.min(linhasRestantes, linhasCabemMax);
+        const linhasPagina = todasLinhas.slice(linhaAtual, linhaAtual + linhasParaDesenhar);
+        const tituloPagina = primeiraPagina ? "ANEXO / QUADRO MURAL" : "ANEXO / QUADRO MURAL (continuação)";
+        desenharCaixa(posY, linhasPagina, tituloPagina);
+        linhaAtual += linhasParaDesenhar;
+        primeiraPagina = false;
+        if (linhaAtual < todasLinhas.length) {
+          doc.addPage();
+          posY = 15;
+        }
+      }
+    }
+  } else {
+    // CASO 2: NÃO HÁ ANEXO SALVO → desenha uma caixa vazia (com altura fixa)
+    const alturaVazia = 80; // altura em mm (ajuste conforme preferir)
+    if (posY + alturaVazia + bottomMargin > pageHeight) {
+      doc.addPage();
+      posY = 15;
+    }
+    desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaVazia);
+  }
+})();
+        // Salvar PDF com nome personalizado
         const disciplina = planoData.disciplina || "";
         const classe = planoData.classe || "";
         const dataPlano = planoData.data || "";
         const pdfBlob = doc.output('blob');
-        const nomeArquivo = `Plano_de_Aula_${disciplina}_${classe}_${dataPlano}.pdf`;
+const nomeArquivo = `Plano_de_Aula_${disciplina}_${classe}_${dataPlano}.pdf`;
 
-        window.__ultimoPDFBlob = pdfBlob;
-        window.__ultimoPDFNome = nomeArquivo;
+        // --- Salvar no Histórico ---
+        const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
+        historico.push({
+          escola: planoData.escola,
+          professor: planoData.professor,
+          disciplina: planoData.disciplina,
+          unidade: planoData.unidade,
+          tema: planoData.tema,
+          tipo: planoData.tipo,
+          classe: planoData.classe,
+          data: planoData.data
+        });
+        localStorage.setItem("historicoPlanos", JSON.stringify(historico));
 
-        try {
-          baixarPDF(pdfBlob, nomeArquivo);
-        } catch (e) {
-          console.warn("Erro no download:", e);
-        }
+        // Mensagem de sucesso
+        // Armazena para fallback
+window.__ultimoPDFBlob = pdfBlob;
+window.__ultimoPDFNome = nomeArquivo;
 
-        msg.innerHTML = `
-          ✅ Código válido! PDFs restantes: ${data.restante}<br>
-          Se o download não iniciou, clique abaixo:<br><br>
-          <button onclick="baixarPDFManual()" 
-                  style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
-                  onmouseover="this.style.background='#218838';"
-                  onmouseout="this.style.background='#28a745';">
-            📥 Baixar o Plano Agora
-          </button>
-        `;
+// Download IMEDIATO (acionado pelo clique do usuário)
+try {
+  baixarPDF(pdfBlob, nomeArquivo);
+} catch (e) {
+  console.warn("Erro no download:", e);
+}
+
+// Mostra mensagem + botão de fallback
+msg.innerHTML = `
+  ✅ Código válido! PDFs restantes: ${data.restante}<br>
+  Se o download não iniciou, clique abaixo:<br><br>
+  <button onclick="baixarPDFManual()" 
+          style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
+          onmouseover="this.style.background='#218838';"
+          onmouseout="this.style.background='#28a745';">
+    📥 Baixar o Plano Agora
+  </button>
+`;
       } else {
         msg.style.color = "#dc3545";
         msg.innerText = `❌ ${data && data.msg ? data.msg : 'Código inválido'}`;
@@ -738,45 +716,74 @@ function validarCodigo(){
       console.error(err);
     });
 }
+// === Funções de Download com Fallback ===
+function baixarPDF(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
-// =============================================
-// SISTEMA DE RASTREAMENTO (exatamente igual ao original)
-// =============================================
+// Variáveis globais para o fallback
+window.__ultimoPDFBlob = null;
+window.__ultimoPDFNome = null;
+
+function baixarPDFManual() {
+  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
+    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
+  } else {
+    alert("❌ Nenhum PDF disponível para download.");
+  }
+}
+</script>
+<!-- =========== SISTEMA DE RASTREAMENTO PLANO DE AULA =========== -->
+<script>
 (function() {
   'use strict';
   
   const TRACKING_URL = "https://script.google.com/macros/s/AKfycbzKLDACXusk8jO4VwA5CHjOyJqidQ-KS6SrS8aq7Ocdqki_JPfjXIy22EnL8-4bFAlzDg/exec";
   
-  function obterDadosUsuario() {
-    try {
-      const usuarioData = localStorage.getItem("usuario");
-      if (!usuarioData) return null;
-      
-      const usuario = JSON.parse(usuarioData);
-      const nomeFormatado = usuario.nome 
-        ? usuario.nome.trim().replace(/\s+/g, '_').substring(0, 30)
-        : "NOME";
-      
-      const telefoneCompleto = usuario.telefone 
-        ? usuario.telefone.replace(/\D/g, '')
-        : "SEMTELEFONE";
-      
-      const usuario_id = `${nomeFormatado}_${telefoneCompleto}`;
-      
-      return {
-        nome: usuario.nome || "N/D",
-        telefone: usuario.telefone || "N/D",
-        usuario_id: usuario_id,
-        data_cadastro: usuario.dataRegistro || new Date().toISOString()
-      };
-    } catch (error) {
-      return null;
-    }
+  // 1. OBTER DADOS DO USUÁRIO (MESMA FUNÇÃO DO INDEX.HTML)
+ function obterDadosUsuario() {
+  try {
+    const usuarioData = localStorage.getItem("usuario");
+    if (!usuarioData) return null;
+    
+    const usuario = JSON.parse(usuarioData);
+    
+    // Formatar nome (remover espaços extras, substituir espaços por _, limitar a 30 caracteres)
+    const nomeFormatado = usuario.nome 
+      ? usuario.nome.trim().replace(/\s+/g, '_').substring(0, 30)
+      : "NOME";
+    
+    // Pegar telefone completo sem caracteres não numéricos
+    const telefoneCompleto = usuario.telefone 
+      ? usuario.telefone.replace(/\D/g, '')
+      : "SEMTELEFONE";
+    
+    // Criar ID: Nome_TelefoneCompleto
+    const usuario_id = `${nomeFormatado}_${telefoneCompleto}`;
+    
+    return {
+      nome: usuario.nome || "N/D",
+      telefone: usuario.telefone || "N/D",
+      usuario_id: usuario_id,
+      data_cadastro: usuario.dataRegistro || new Date().toISOString()
+    };
+  } catch (error) {
+    return null;
   }
+}
   
+  // 2. RASTREAR VISITA À PÁGINA
   window.addEventListener('load', function() {
     setTimeout(() => {
       const usuario = obterDadosUsuario();
+      
       if (usuario) {
         const dadosVisita = new URLSearchParams();
         dadosVisita.append("action", "registrar_log");
@@ -799,13 +806,16 @@ function validarCodigo(){
     }, 1000);
   });
   
+  // 3. INTERCEPTAR O BOTÃO DE CONFIRMAR
   const botaoOriginal = document.querySelector('.confirmar-btn');
   if (botaoOriginal) {
     const originalOnClick = botaoOriginal.onclick;
     
     botaoOriginal.onclick = function(e) {
+      // Executar a validação original
       if (originalOnClick) originalOnClick.call(this, e);
       
+      // RASTREAR TENTATIVA DE CÓDIGO
       const codigo = document.getElementById('codigo-acesso')?.value.trim().toUpperCase() || "";
       const usuario = obterDadosUsuario();
       
@@ -820,7 +830,7 @@ function validarCodigo(){
         dadosTentativa.append("detalhes", JSON.stringify({
           codigo: codigo,
           tipo: "PLANO_AULA",
-          valor: 5
+          valor: 5 // 5 Meticais
         }));
         
         fetch(TRACKING_URL, {
@@ -834,16 +844,19 @@ function validarCodigo(){
     };
   }
   
+  // 4. RASTREAR DOWNLOAD BEM-SUCEDIDO
   function monitorarSucessoDownload() {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.target.id === 'mensagem' && 
-            (mutation.target.innerHTML.includes('✅ Código válido'))) {
+            (mutation.target.innerHTML.includes('✅ Código válido') || 
+             mutation.target.innerHTML.includes('✅ Valid code!'))) {
           
           const usuario = obterDadosUsuario();
           const codigo = document.getElementById('codigo-acesso')?.value.trim().toUpperCase() || "";
           
           if (usuario) {
+            // 📊 REGISTRAR DOWNLOAD COMPLETO
             const dadosDownload = new URLSearchParams();
             dadosDownload.append("action", "registrar_download");
             dadosDownload.append("usuario_id", usuario.usuario_id);
@@ -855,12 +868,15 @@ function validarCodigo(){
             dadosDownload.append("status_pagamento", "PAGO");
             dadosDownload.append("codigo_transacao", codigo);
             
+            // Obter dados do plano
             try {
               const planoDataJSON = sessionStorage.getItem("planoData");
               if (planoDataJSON) {
                 const planoData = JSON.parse(planoDataJSON);
                 dadosDownload.append("disciplina", planoData.disciplina || "N/D");
                 dadosDownload.append("classe", planoData.classe || "N/D");
+                dadosDownload.append("trimestre", planoData.trimestre || "N/D");
+                dadosDownload.append("numero_aulas", "1");
               }
             } catch (e) {}
             
@@ -870,6 +886,7 @@ function validarCodigo(){
               mode: "no-cors"
             }).catch(() => {});
             
+            // 🔄 Atualizar contador no localStorage
             try {
               const usuarioAtual = JSON.parse(localStorage.getItem("usuario") || "{}");
               if (!usuarioAtual.downloads) usuarioAtual.downloads = {};
@@ -891,6 +908,8 @@ function validarCodigo(){
   }
   
   window.addEventListener('load', monitorarSucessoDownload);
+  
+  console.log("✅ Sistema de rastreamento plano de aula carregado!");
 })();
 </script>
 </main>
