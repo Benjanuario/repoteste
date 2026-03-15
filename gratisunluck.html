@@ -102,185 +102,79 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root {
-    --primary: #0a5f2a;
-    --primary-dark: #084d22;
-    --secondary: #2563eb;
-    --accent: #f59e0b;
-    --success: #10b981;
-    --danger: #dc2626;
-    --light: #f9fafb;
-    --dark: #111827;
-    --gray: #6b7280;
-}
-
-body { 
-    font-family: 'Times New Roman', serif; 
-    background: #e0f7fa; 
-    margin:0; 
-    padding:0; 
-    color:#333; 
-}
-
-header { 
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color:white; 
-    padding:20px; 
-    text-align:center; 
-    font-size:22px; 
-    font-weight:bold; 
-    box-shadow:0 3px 6px rgba(0,0,0,0.15);
-}
-
-main { 
-    max-width:750px; 
-    margin:30px auto; 
-    padding:20px; 
-    background:#fff; 
-    border-radius:12px; 
-    box-shadow:0 6px 15px rgba(0,0,0,0.1);
-}
-
-h2 { 
-    text-align:center; 
-    margin-bottom:25px; 
-    color: var(--primary); 
-}
+body { font-family: 'Times New Roman', serif; background: #e0f7fa; margin:0; padding:0; color:#333; }
+header { background-color: #007BFF; color:white; padding:20px; text-align:center; font-size:22px; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.15);}
+main { max-width:750px; margin:30px auto; padding:20px; background:#fff; border-radius:12px; box-shadow:0 6px 15px rgba(0,0,0,0.1);}
+h2 { text-align:center; margin-bottom:25px; color:#007BFF; }
 
 /* Código promocional grande */
 #codigo-promocional {
-    text-align: center;
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--accent);
-    margin-bottom: 25px;
-    letter-spacing: 3px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    padding: 15px;
-    border-radius: 12px;
-    border: 2px solid var(--accent);
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 25px;
+  letter-spacing: 3px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
 /* Campo de código */
 .input-container {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 15px;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+  flex-direction: column;
+  align-items: center;
 }
 input[type="text"] {
-    padding: 14px;
-    font-size: 18px;
-    border-radius: 10px;
-    border: 2px solid var(--primary);
-    width: 240px;
-    text-align: center;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 2px;
+  padding: 14px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: 2px solid #007BFF;
+  width: 240px;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 2px;
 }
 button.confirmar-btn {
-    padding: 12px 20px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, var(--success), #059669);
-    color: white;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: bold;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: bold;
 }
 button.confirmar-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+  background-color: #218838;
+  transform: translateY(-2px);
 }
 .mensagem {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 17px;
-    font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: bold;
 }
 
 /* Spinner */
 .spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary);
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    margin-left: 8px;
-    vertical-align: middle;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007BFF;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
 }
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Badge para tipo de geração */
-.geracao-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 10px;
-    text-align: center;
-}
-
-.badge-inteligente {
-    background: linear-gradient(135deg, var(--secondary), #1d4ed8);
-    color: white;
-}
-
-.badge-basico {
-    background: linear-gradient(135deg, var(--gray), #4b5563);
-    color: white;
-}
-
-/* Download button */
-.download-btn {
-    width: 100%;
-    padding: 16px;
-    margin: 20px 0;
-    background: linear-gradient(135deg, var(--primary), var(--success));
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-}
-
-.download-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(10, 95, 42, 0.4);
-}
-
-.download-btn i {
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-/* Mensagem de erro */
-.erro-msg {
-    color: var(--danger);
-    font-size: 14px;
-    margin-top: 5px;
-    text-align: center;
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
 <script>
@@ -471,9 +365,6 @@ document.getElementById('conteudoPrincipal').style.display = 'block';
   <div id="mensagem" class="mensagem"></div>
 
 <script>
-// =============================================
-// CONFIGURAÇÕES
-// =============================================
 const URL_APP = "https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec";
 const inputCodigo = document.getElementById('codigo-acesso');
 const feedback = document.getElementById('feedback-codigo');
@@ -494,7 +385,7 @@ const codigosPromo = ['2514DC16', '7655GT27', '8K7814D3', 'TD171705', 'J66BGK27'
 document.getElementById('codigo-promocional').textContent = codigosPromo[Math.floor(Math.random() * codigosPromo.length)];
 
 // =============================================
-// FUNÇÕES DE DOWNLOAD
+// FUNÇÕES DE DOWNLOAD (exatamente iguais ao original)
 // =============================================
 function baixarPDF(blob, nome) {
   const url = URL.createObjectURL(blob);
@@ -507,7 +398,6 @@ function baixarPDF(blob, nome) {
   URL.revokeObjectURL(url);
 }
 
-// Variáveis globais para fallback
 window.__ultimoPDFBlob = null;
 window.__ultimoPDFNome = null;
 
@@ -520,21 +410,18 @@ function baixarPDFManual() {
 }
 
 // =============================================
-// FUNÇÃO PRINCIPAL DE VALIDAÇÃO E GERAÇÃO DO PDF
+// VALIDAÇÃO E GERAÇÃO DO PDF (com estrutura idêntica ao original)
 // =============================================
 function validarCodigo(){
   const codigo = inputCodigo.value.trim().toUpperCase();
   const msg = document.getElementById('mensagem');
-  
   if(codigo.length !== 8){
     msg.style.color = "#dc3545";
     msg.innerText = "❌ O código deve ter 8 caracteres.";
     return;
   }
-  
   msg.style.color = "#007BFF";
   msg.innerHTML = '🔍 Verificando o Código <span class="spinner"></span>';
-  
   fetch(`${URL_APP}?codigo=${codigo}`, { method:'GET', mode:'cors' })
     .then(res => {
       if(!res.ok) throw new Error('Serviço indisponível');
@@ -556,357 +443,290 @@ function validarCodigo(){
         });
         
         // =============================================
-        // CABEÇALHO DO PDF (SEM "DADOS PRELIMINARES")
+        // TÍTULO DO PLANO (exatamente como original)
         // =============================================
         doc.setFont("times", "normal");
         doc.setFontSize(12);
         
         // Título principal
-        doc.setFont("times", "bold");
-        doc.setFontSize(16);
-        doc.text("PLANO DE AULA", 148, 10, { align: "center" });
         doc.setFont("times", "normal");
         doc.setFontSize(12);
+        doc.text("PLANO DE AULA", 148, 12, { align: "center" });
         
-        // Linha separadora
-        doc.setDrawColor(10, 95, 42);
-        doc.setLineWidth(0.5);
-        doc.line(10, 13, 287, 13);
-        
-        // =============================================
-        // DADOS DO PLANO (SEM TÍTULO "DADOS PRELIMINARES")
-        // =============================================
-        let yPos = 20; // Começa mais próximo da linha separadora
-        const colEsquerda = 10;
-        const colDireita = 150;
-        const labelOffset = 30; // Aumentado para evitar sobreposição (era 25)
-        
-        // Função auxiliar para adicionar linha de dados
-        function addDado(label, value, y, col) {
-            if (value && value !== '—' && value !== '' && value !== null && value !== undefined) {
-                doc.setFont("times", "bold");
-                doc.text(`${label}:`, col, y);
-                doc.setFont("times", "normal");
-                
-                // Quebrar texto longo se necessário
-                const valorStr = String(value);
-                if (valorStr.length > 30) {
-                    const linhas = doc.splitTextToSize(valorStr, 100);
-                    doc.text(linhas[0], col + labelOffset, y);
-                    for (let i = 1; i < linhas.length; i++) {
-                        doc.text(linhas[i], col + labelOffset, y + (i * 5));
-                    }
-                } else {
-                    doc.text(valorStr, col + labelOffset, y);
-                }
-                return true;
-            }
-            return false;
-        }
-        
-        // Dados da esquerda (começa em yPos)
-        addDado("Escola", planoData.escola, yPos, colEsquerda);
-        yPos += 6;
-        addDado("Professor", planoData.professor, yPos, colEsquerda);
-        yPos += 6;
-        addDado("Disciplina", planoData.disciplina, yPos, colEsquerda);
-        yPos += 6;
-        addDado("Unidade Temática", planoData.unidade, yPos, colEsquerda);
-        yPos += 6;
-        addDado("Tema", planoData.tema, yPos, colEsquerda);
-        yPos += 6;
-        addDado("Tipo de Aula", planoData.tipo, yPos, colEsquerda);
-        yPos += 6; // Espaço antes de Tema Transversal
-        
-        // Reset y para direita
-        let yPosDireita = 20;
-        
-        // Dados da direita
-        addDado("Classe", planoData.classe, yPosDireita, colDireita);
-        yPosDireita += 6;
-        addDado("Turma", planoData.turma, yPosDireita, colDireita);
-        yPosDireita += 6;
-        addDado("Lição nº", planoData.licao || '—', yPosDireita, colDireita);
-        yPosDireita += 6;
-        addDado("Duração", `${planoData.duracao} minutos`, yPosDireita, colDireita);
-        yPosDireita += 6;
-        addDado("Período", planoData.periodo, yPosDireita, colDireita);
-        yPosDireita += 6;
-        
-        // Data formatada
-        let dataFormatada = '—';
-        if (planoData.data) {
-            try {
-                const data = new Date(planoData.data);
-                dataFormatada = data.toLocaleDateString('pt-PT');
-            } catch (e) {
-                dataFormatada = planoData.data;
-            }
-        }
-        addDado("Data", dataFormatada, yPosDireita, colDireita);
-        yPosDireita += 6;
-        
-        // =============================================
-        // TEMAS TRANSVERSAIS (esquerda) e MATERIAIS (direita)
-        // =============================================
-        const temTemas = planoData.temas && planoData.temas.length > 0;
-        const temMateriais = planoData.materiais && planoData.materiais.length > 0;
-        
-        if (temTemas || temMateriais) {
-            // Posição atual após Tipo de Aula
-            let yTemas = yPos - 6; // Volta para a linha onde estava após Tipo de Aula
-            let yMateriais = yPosDireita - 6; // Volta para a linha onde estava após Data
-            
-            // Determinar a linha mais alta para alinhar
-            const yMax = Math.max(yTemas, yMateriais);
-            yTemas = yMax;
-            yMateriais = yMax;
-            
-            // Tema Transversal (esquerda)
-            if (temTemas) {
-                doc.setFont("times", "bold");
-                doc.text("Tema Transversal:", colEsquerda, yTemas);
-                doc.setFont("times", "normal");
-                
-                let temaY = yTemas;
-                planoData.temas.forEach((tema, idx) => {
-                    doc.text(`• ${tema}`, colEsquerda + labelOffset, temaY);
-                    temaY += 5;
-                });
-                yTemas = temaY;
-            }
-            
-            // Materiais (direita)
-            if (temMateriais) {
-                doc.setFont("times", "bold");
-                doc.text("Materiais:", colDireita, yMateriais);
-                doc.setFont("times", "normal");
-                
-                let materialY = yMateriais;
-                planoData.materiais.forEach((material, idx) => {
-                    doc.text(`• ${material}`, colDireita + labelOffset, materialY);
-                    materialY += 5;
-                });
-                yMateriais = materialY;
-            }
-            
-            // Atualizar yPos para depois dos temas/materiais
-            yPos = Math.max(yTemas, yMateriais) + 4;
-        } else {
-            yPos = Math.max(yPos, yPosDireita) + 4;
-        }
-        
-        // =============================================
-        // OBJECTIVOS (com espaçamento igual ao original)
-        // =============================================
-        if (planoData.objetivos) {
-            yPos += 2; // Espaçamento igual ao original
-            
-            doc.setFont("times", "bold");
-            doc.setFontSize(12);
-            doc.text("Objectivos Específicos:", 10, yPos);
-            doc.setFont("times", "normal");
-            
-            yPos += 6;
-            
-            const objetivos = planoData.objetivos.split('\n').filter(l => l.trim());
-            objetivos.forEach(obj => {
-                if (obj.trim()) {
-                    const linhas = doc.splitTextToSize(obj.trim(), 270);
-                    linhas.forEach(linha => {
-                        doc.text(linha, 15, yPos);
-                        yPos += 5;
-                    });
-                }
-            });
-            yPos += 4;
-        }
-        
-        // =============================================
-        // TABELA DO PLANO (cabeçalho só na primeira página)
-        // =============================================
+        // Criar div temporária para extrair dados (igual original)
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = planoData.tabela || '';
-        
-        const tabelaRows = tempDiv.querySelectorAll('tbody tr');
-        const tableData = [];
-        
-        tabelaRows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            const rowData = [];
-            cells.forEach(cell => {
-                let text = cell.innerHTML
-                    .replace(/<br\s*\/?>/gi, '\n')
-                    .replace(/<[^>]*>/g, '')
-                    .trim();
-                rowData.push(text);
-            });
-            tableData.push(rowData);
-        });
-        
-        if (tableData.length > 0) {
-            doc.autoTable({
-                startY: yPos,
-                head: [['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO']],
-                body: tableData,
-                theme: 'grid',
-                styles: {
-                    font: 'times',
-                    fontSize: 9,
-                    textColor: [0,0,0],
-                    lineColor: [0,0,0],
-                    lineWidth: 0.1,
-                    cellPadding: 2,
-                    valign: 'top',
-                    overflow: 'linebreak'
-                },
-                headStyles: {
-                    fillColor: [128, 128, 128], // Cinza como original
-                    textColor: [255,255,255],
-                    font: 'times',
-                    fontSize: 9,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                columnStyles: {
-                    0: { cellWidth: 18 },
-                    1: { cellWidth: 35 },
-                    2: { cellWidth: 'auto' },
-                    3: { cellWidth: 'auto' },
-                    4: { cellWidth: 'auto' },
-                    5: { cellWidth: 30 },
-                    6: { cellWidth: 30 }
-                },
-                margin: { left: 7, right: 7 },
-                showHead: 'firstPage' // Cabeçalho só na primeira página
-            });
-            
-            yPos = doc.lastAutoTable.finalY + 8;
-        }
+        tempDiv.innerHTML = planoData.html;
         
         // =============================================
-        // ANEXO (exatamente como no original)
+        // DADOS DA ESQUERDA (mesmo método do original)
         // =============================================
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const margin = 7;
-        const boxWidth = pageWidth - (2 * margin);
-        const boxHeight = 60; // Altura fixa da caixa de anexo
+        let yLeft = 25;
+        const addLineLeft = (label, value) => {
+          if (value) {
+            doc.text(`${label}:`, 10, yLeft);
+            doc.text(value, 55, yLeft);
+            yLeft += 6;
+          }
+        };
         
-        // Verificar se precisa de nova página
-        if (yPos + boxHeight + 10 > pageHeight) {
-            doc.addPage();
-            yPos = 20;
-        }
-        
-        // Desenhar caixa do anexo (sempre visível)
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.2);
-        doc.rect(margin, yPos, boxWidth, boxHeight);
-        
-        // Título
-        doc.setFont("times", "bold");
-        doc.setFontSize(10);
-        doc.text("ANEXO / QUADRO MURAL", margin + (boxWidth/2), yPos + 6, { align: "center" });
-        doc.setFont("times", "normal");
-        doc.setFontSize(9);
-        
-        // Verificar se há anexo salvo
-        const temAnexo = planoData.anexoTipo && 
-                         ((planoData.anexoTipo === 'imagem' && planoData.anexoImagem) || 
-                          (planoData.anexoTipo === 'texto' && planoData.anexoTexto));
-        
-        if (temAnexo) {
-            if (planoData.anexoTipo === 'imagem' && planoData.anexoImagem) {
-                // Inserir imagem
-                try {
-                    doc.addImage(
-                        planoData.anexoImagem, 
-                        'JPEG', 
-                        margin + 5, 
-                        yPos + 10, 
-                        boxWidth - 10, 
-                        boxHeight - 15,
-                        undefined,
-                        'FAST'
-                    );
-                } catch (err) {
-                    doc.text("Erro ao carregar imagem do anexo.", margin + 5, yPos + 20);
-                }
-            } else if (planoData.anexoTipo === 'texto' && planoData.anexoTexto) {
-                // Texto do anexo - usar splitTextToSize para quebrar corretamente
-                const linhas = doc.splitTextToSize(planoData.anexoTexto, boxWidth - 10);
-                let textoY = yPos + 12;
-                
-                linhas.forEach((linha, idx) => {
-                    if (textoY <= yPos + boxHeight - 8) {
-                        doc.text(linha, margin + 5, textoY);
-                        textoY += 5;
-                    } else {
-                        // Se o texto exceder a caixa, adicionar nova página
-                        doc.addPage();
-                        yPos = 20;
-                        textoY = yPos + 12;
-                        
-                        // Redesenhar caixa na nova página
-                        doc.setDrawColor(0, 0, 0);
-                        doc.setLineWidth(0.2);
-                        doc.rect(margin, yPos, boxWidth, boxHeight);
-                        
-                        doc.setFont("times", "bold");
-                        doc.setFontSize(10);
-                        doc.text("ANEXO / QUADRO MURAL (continuação)", margin + (boxWidth/2), yPos + 6, { align: "center" });
-                        doc.setFont("times", "normal");
-                        doc.setFontSize(9);
-                        
-                        // Continuar escrevendo
-                        doc.text(linha, margin + 5, textoY);
-                        textoY += 5;
-                    }
-                });
+        const dadosEsquerda = tempDiv.querySelector('#dadosEsquerda');
+        if (dadosEsquerda) {
+          const esquerdaText = dadosEsquerda.innerText;
+          const lines = esquerdaText.split('\n');
+          lines.forEach(line => {
+            if (line.includes(':')) {
+              const [label, value] = line.split(':', 2);
+              addLineLeft(label.trim(), value.trim());
             }
-        } else {
-            // Caixa vazia para escrever manualmente
-            doc.setFont("times", "italic");
-            doc.setFontSize(9);
-            doc.setTextColor(150, 150, 150);
-            doc.text("(Espaço reservado para anexos)", margin + (boxWidth/2), yPos + (boxHeight/2), { align: "center" });
-            doc.setTextColor(0, 0, 0);
+          });
         }
         
         // =============================================
-        // DOWNLOAD DO PDF
+        // DADOS DA DIREITA (mesmo método do original)
         // =============================================
-        const pdfBlob = doc.output('blob');
-        const nomeArquivo = `Plano_de_Aula_${planoData.disciplina || ''}_${planoData.classe || ''}_${planoData.data || ''}.pdf`.replace(/\s+/g, '_').replace(/[^\w\-\.]/g, '');
+        let yRight = 25;
+        const addLineRight = (label, value) => {
+          if (value) {
+            doc.text(`${label}:`, 160, yRight);
+            doc.text(value, 200, yRight);
+            yRight += 6;
+          }
+        };
         
+        const dadosDireita = tempDiv.querySelector('#dadosDireita');
+        if (dadosDireita) {
+          const direitaText = dadosDireita.innerText;
+          const lines = direitaText.split('\n');
+          lines.forEach(line => {
+            if (line.includes(':')) {
+              const [label, value] = line.split(':', 2);
+              addLineRight(label.trim(), value.trim());
+            }
+          });
+        }
+        
+        // =============================================
+        // OBJECTIVOS (mesmo método do original)
+        // =============================================
+        const listaObjetivos = tempDiv.querySelector('#listaObjetivos');
+        let lastY = Math.max(yLeft, yRight);
+        if (listaObjetivos) {
+          doc.text("Objetivos Específicos:", 10, lastY + 5);
+          let yObj = lastY + 12;
+          const objetivos = listaObjetivos.querySelectorAll('li');
+          objetivos.forEach(obj => {
+            const texto = obj.innerText.trim();
+            if(texto){
+              doc.text(texto, 15, yObj);
+              yObj += 6;
+            }
+          });
+          lastY = yObj;
+        }
+        
+        // =============================================
+        // TABELA (exatamente igual ao original)
+        // =============================================
+        const tabela = tempDiv.querySelector('#tabelaPlano');
+        if (tabela) {
+          const rows = tabela.querySelectorAll('tbody tr');
+          const tableData = Array.from(rows).map(row => {
+            const cells = row.querySelectorAll('td');
+            return Array.from(cells).map(cell => {
+              let text = cell.innerHTML
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]*>/g, '');
+              return text.trim();
+            });
+          });
+          
+          doc.autoTable({
+            startY: lastY + 3,
+            head: [['TEMPO', 'FUNÇÕES DIDÁCTICAS', 'CONTEÚDOS', 'ACTIVIDADES DO PROFESSOR', 'ACTIVIDADES DOS ALUNOS', 'MÉTODOS DE ENSINO', 'MEIOS DE ENSINO']],
+            body: tableData,
+            theme: 'grid',
+            styles: {
+              font: 'times',
+              fontSize: 12,
+              textColor: [0,0,0],
+              lineColor: [0,0,0],
+              lineWidth: 0.2,
+              cellPadding: 3,
+              valign: 'top',
+              overflow: 'linebreak'
+            },
+            headStyles: {
+              fillColor: [200,200,200],
+              textColor: [0,0,0],
+              font: 'times',
+              fontSize: 12,
+              fontStyle: 'bold'
+            },
+            columnStyles: {
+              0: { cellWidth: 18 },
+              1: { cellWidth: 35 },
+              2: { cellWidth: 'auto' },
+              3: { cellWidth: 'auto' },
+              4: { cellWidth: 'auto' },
+              5: { cellWidth: 30 },
+              6: { cellWidth: 30 }
+            },
+            margin: { top: 15, bottom: 10, left: 7, right: 7 },
+            tableWidth: 'auto',
+            showHead: 'firstPage',
+            didDrawCell: function (data) {
+              if (data.section === 'body' && [0,1,5].includes(data.column.index)) {
+                data.cell.styles.valign = 'top';
+              }
+            }
+          });
+        }
+
+        // =============================================
+        // ANEXO (exatamente igual ao original)
+        // =============================================
+        (function renderAnexo() {
+          const margemX = 7;
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const largura = pageWidth - 2 * margemX;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const bottomMargin = 10;
+          const lineHeight = 6;
+          const fontSize = 12;
+          const paddingTop = 15;
+          const paddingBottom = 5;
+
+          let posY = 20;
+          if (doc.lastAutoTable && doc.lastAutoTable.finalY) {
+            posY = doc.lastAutoTable.finalY + 8;
+          } else if (doc.previousAutoTable && doc.previousAutoTable.finalY) {
+            posY = doc.previousAutoTable.finalY + 8;
+          } else if (typeof doc.getY === 'function') {
+            try { posY = doc.getY() + 8; } catch (e) { posY = 20; }
+          }
+
+          let anexType = null;
+          let anexImg = null;
+          let anexTxt = null;
+
+          if (planoData) {
+            anexType = planoData.anexoTipo || (planoData.anexoSalvo && planoData.anexoSalvo.tipo) || null;
+            anexImg = planoData.anexoImagem || (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'imagem' && planoData.anexoSalvo.data) || null;
+            anexTxt = (planoData.anexoTexto && String(planoData.anexoTexto).trim() !== '') ? planoData.anexoTexto : (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'texto' ? planoData.anexoSalvo.data : null);
+          }
+
+          const temAnexo = (anexType && (anexImg || anexTxt));
+
+          function desenharCaixa(y, linhas, titulo, alturaFixa = null) {
+            let alturaCaixa;
+            if (alturaFixa !== null) {
+              alturaCaixa = alturaFixa;
+            } else {
+              alturaCaixa = paddingTop + linhas.length * lineHeight + paddingBottom;
+            }
+            alturaCaixa = Math.min(alturaCaixa, pageHeight - y - bottomMargin);
+
+            doc.setDrawColor(0,0,0);
+            doc.rect(margemX, y, largura, alturaCaixa);
+            doc.setFont("Times", "bold");
+            doc.setFontSize(fontSize);
+            doc.text(titulo, margemX + largura / 2, y + 8, { align: "center" });
+
+            if (linhas && linhas.length > 0) {
+              doc.setFont("Times", "normal");
+              doc.setFontSize(fontSize);
+              doc.text(linhas, margemX + 5, y + paddingTop);
+            }
+          }
+
+          if (temAnexo) {
+            if (anexType === "imagem" && anexImg) {
+              let alturaBox = 100;
+              if (posY + alturaBox + bottomMargin > pageHeight) {
+                doc.addPage();
+                posY = 15;
+              }
+              desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaBox);
+              let fmt = 'PNG';
+              try {
+                const m = anexImg.match(/^data:image\/([a-zA-Z0-9+]+);base64,/);
+                if (m && m[1]) fmt = m[1].toUpperCase();
+              } catch (e) { }
+              const imgX = margemX + 5;
+              const imgY = posY + 12;
+              const imgW = largura - 10;
+              const imgH = alturaBox - 18;
+              try {
+                doc.addImage(anexImg, fmt, imgX, imgY, imgW, imgH);
+              } catch (err) {
+                doc.setFont("Times", "normal");
+                doc.setFontSize(fontSize);
+                doc.text("Erro ao inserir imagem do anexo.", margemX + 5, posY + 18);
+              }
+            } else if (anexType === "texto" && anexTxt) {
+              const todasLinhas = doc.splitTextToSize(anexTxt, largura - 10);
+              let linhaAtual = 0;
+              let primeiraPagina = true;
+
+              while (linhaAtual < todasLinhas.length) {
+                const alturaDisponivel = pageHeight - posY - bottomMargin;
+                const linhasCabemMax = Math.floor((alturaDisponivel - paddingTop - paddingBottom) / lineHeight);
+                if (linhasCabemMax <= 0) {
+                  doc.addPage();
+                  posY = 15;
+                  continue;
+                }
+                const linhasRestantes = todasLinhas.length - linhaAtual;
+                const linhasParaDesenhar = Math.min(linhasRestantes, linhasCabemMax);
+                const linhasPagina = todasLinhas.slice(linhaAtual, linhaAtual + linhasParaDesenhar);
+                const tituloPagina = primeiraPagina ? "ANEXO / QUADRO MURAL" : "ANEXO / QUADRO MURAL (continuação)";
+                desenharCaixa(posY, linhasPagina, tituloPagina);
+                linhaAtual += linhasParaDesenhar;
+                primeiraPagina = false;
+                if (linhaAtual < todasLinhas.length) {
+                  doc.addPage();
+                  posY = 15;
+                }
+              }
+            }
+          } else {
+            const alturaVazia = 80;
+            if (posY + alturaVazia + bottomMargin > pageHeight) {
+              doc.addPage();
+              posY = 15;
+            }
+            desenharCaixa(posY, [], "ANEXO / QUADRO MURAL", alturaVazia);
+          }
+        })();
+        
+        // =============================================
+        // DOWNLOAD (exatamente igual ao original)
+        // =============================================
+        const disciplina = planoData.disciplina || "";
+        const classe = planoData.classe || "";
+        const dataPlano = planoData.data || "";
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `Plano_de_Aula_${disciplina}_${classe}_${dataPlano}.pdf`;
+
         window.__ultimoPDFBlob = pdfBlob;
         window.__ultimoPDFNome = nomeArquivo;
-        
-        // Download IMEDIATO
+
         try {
-            baixarPDF(pdfBlob, nomeArquivo);
+          baixarPDF(pdfBlob, nomeArquivo);
         } catch (e) {
-            console.warn("Erro no download:", e);
+          console.warn("Erro no download:", e);
         }
-        
-        // Mostrar badge do tipo de geração
-        const tipoGeracao = planoData.tipoGeracao || 'basico';
-        const badgeClass = tipoGeracao === 'inteligente' ? 'badge-inteligente' : 'badge-basico';
-        const badgeText = tipoGeracao === 'inteligente' ? '✨ Plano Gerado com IA' : '📋 Plano Gerado (Modo Básico)';
-        
+
         msg.innerHTML = `
-            ✅ Código válido! PDFs restantes: ${data.restante}<br>
-            <span class="geracao-badge ${badgeClass}"><i class="fas ${tipoGeracao === 'inteligente' ? 'fa-brain' : 'fa-file-alt'}"></i> ${badgeText}</span><br><br>
-            Se o download não iniciou, clique abaixo:<br><br>
-            <button onclick="baixarPDFManual()" class="download-btn">
-                <i class="fas fa-file-pdf"></i> 📥 BAIXAR PLANO AGORA
-            </button>
+          ✅ Código válido! PDFs restantes: ${data.restante}<br>
+          Se o download não iniciou, clique abaixo:<br><br>
+          <button onclick="baixarPDFManual()" 
+                  style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"
+                  onmouseover="this.style.background='#218838';"
+                  onmouseout="this.style.background='#28a745';">
+            📥 Baixar o Plano Agora
+          </button>
         `;
-        
-        // Registrar sucesso
-        registrarDownloadSucesso(planoData, codigo, data.restante);
-        
       } else {
         msg.style.color = "#dc3545";
         msg.innerText = `❌ ${data && data.msg ? data.msg : 'Código inválido'}`;
@@ -920,41 +740,7 @@ function validarCodigo(){
 }
 
 // =============================================
-// RASTREAMENTO DE DOWNLOAD
-// =============================================
-function registrarDownloadSucesso(planoData, codigo, restante) {
-  try {
-    // Atualizar histórico
-    const historico = JSON.parse(localStorage.getItem("historicoPlanos")) || [];
-    historico.push({
-      escola: planoData.escola,
-      professor: planoData.professor,
-      disciplina: planoData.disciplina,
-      unidade: planoData.unidade,
-      tema: planoData.tema,
-      tipo: planoData.tipo,
-      classe: planoData.classe,
-      data: planoData.data,
-      tipoGeracao: planoData.tipoGeracao || 'basico',
-      timestamp: new Date().toISOString()
-    });
-    localStorage.setItem("historicoPlanos", JSON.stringify(historico));
-    
-    // Atualizar contador no localStorage
-    const usuarioAtual = JSON.parse(localStorage.getItem("usuario") || "{}");
-    if (!usuarioAtual.downloads) usuarioAtual.downloads = {};
-    if (!usuarioAtual.downloads.planoAula) usuarioAtual.downloads.planoAula = 0;
-    usuarioAtual.downloads.planoAula++;
-    localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
-    
-    console.log("✅ Download registrado com sucesso!");
-  } catch (e) {
-    console.warn("Erro ao registrar download:", e);
-  }
-}
-
-// =============================================
-// SISTEMA DE RASTREAMENTO
+// SISTEMA DE RASTREAMENTO (exatamente igual ao original)
 // =============================================
 (function() {
   'use strict';
@@ -988,7 +774,6 @@ function registrarDownloadSucesso(planoData, codigo, restante) {
     }
   }
   
-  // Rastrear visita
   window.addEventListener('load', function() {
     setTimeout(() => {
       const usuario = obterDadosUsuario();
@@ -1014,7 +799,6 @@ function registrarDownloadSucesso(planoData, codigo, restante) {
     }, 1000);
   });
   
-  // Interceptar botão de confirmar
   const botaoOriginal = document.querySelector('.confirmar-btn');
   if (botaoOriginal) {
     const originalOnClick = botaoOriginal.onclick;
@@ -1049,6 +833,64 @@ function registrarDownloadSucesso(planoData, codigo, restante) {
       return false;
     };
   }
+  
+  function monitorarSucessoDownload() {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.target.id === 'mensagem' && 
+            (mutation.target.innerHTML.includes('✅ Código válido'))) {
+          
+          const usuario = obterDadosUsuario();
+          const codigo = document.getElementById('codigo-acesso')?.value.trim().toUpperCase() || "";
+          
+          if (usuario) {
+            const dadosDownload = new URLSearchParams();
+            dadosDownload.append("action", "registrar_download");
+            dadosDownload.append("usuario_id", usuario.usuario_id);
+            dadosDownload.append("nome", usuario.nome);
+            dadosDownload.append("telefone", usuario.telefone);
+            dadosDownload.append("tipo_documento", "PLANO_AULA");
+            dadosDownload.append("valor_pago", "5");
+            dadosDownload.append("metodo_pagamento", "CODIGO_PROMOCIONAL");
+            dadosDownload.append("status_pagamento", "PAGO");
+            dadosDownload.append("codigo_transacao", codigo);
+            
+            try {
+              const planoDataJSON = sessionStorage.getItem("planoData");
+              if (planoDataJSON) {
+                const planoData = JSON.parse(planoDataJSON);
+                dadosDownload.append("disciplina", planoData.disciplina || "N/D");
+                dadosDownload.append("classe", planoData.classe || "N/D");
+              }
+            } catch (e) {}
+            
+            fetch(TRACKING_URL, {
+              method: "POST",
+              body: dadosDownload,
+              mode: "no-cors"
+            }).catch(() => {});
+            
+            try {
+              const usuarioAtual = JSON.parse(localStorage.getItem("usuario") || "{}");
+              if (!usuarioAtual.downloads) usuarioAtual.downloads = {};
+              if (!usuarioAtual.downloads.planoAula) usuarioAtual.downloads.planoAula = 0;
+              usuarioAtual.downloads.planoAula++;
+              localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
+            } catch (e) {}
+          }
+          
+          observer.disconnect();
+        }
+      });
+    });
+    
+    const mensagemDiv = document.getElementById('mensagem');
+    if (mensagemDiv) {
+      observer.observe(mensagemDiv, { childList: true, subtree: true });
+    }
+  }
+  
+  window.addEventListener('load', monitorarSucessoDownload);
 })();
 </script>
 </main>
