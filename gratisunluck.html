@@ -471,6 +471,9 @@ document.getElementById('conteudoPrincipal').style.display = 'block';
   <div id="mensagem" class="mensagem"></div>
 
 <script>
+// =============================================
+// CONFIGURAÇÕES
+// =============================================
 const URL_APP = "https://script.google.com/macros/s/AKfycby-l_VBnTuG98erRyPk0NA_QZvOJQnuix4P2zp2gnQCwvx5QFG9L9WgydoIHeMpofILnA/exec";
 const inputCodigo = document.getElementById('codigo-acesso');
 const feedback = document.getElementById('feedback-codigo');
@@ -490,16 +493,48 @@ inputCodigo.addEventListener('input', () => {
 const codigosPromo = ['2514DC16', '7655GT27', '8K7814D3', 'TD171705', 'J66BGK27'];
 document.getElementById('codigo-promocional').textContent = codigosPromo[Math.floor(Math.random() * codigosPromo.length)];
 
+// =============================================
+// FUNÇÕES DE DOWNLOAD
+// =============================================
+function baixarPDF(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Variáveis globais para fallback
+window.__ultimoPDFBlob = null;
+window.__ultimoPDFNome = null;
+
+function baixarPDFManual() {
+  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
+    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
+  } else {
+    alert("❌ Nenhum PDF disponível para download.");
+  }
+}
+
+// =============================================
+// FUNÇÃO PRINCIPAL DE VALIDAÇÃO E GERAÇÃO DO PDF
+// =============================================
 function validarCodigo(){
   const codigo = inputCodigo.value.trim().toUpperCase();
   const msg = document.getElementById('mensagem');
+  
   if(codigo.length !== 8){
     msg.style.color = "#dc3545";
     msg.innerText = "❌ O código deve ter 8 caracteres.";
     return;
   }
+  
   msg.style.color = "#007BFF";
   msg.innerHTML = '🔍 Verificando o Código <span class="spinner"></span>';
+  
   fetch(`${URL_APP}?codigo=${codigo}`, { method:'GET', mode:'cors' })
     .then(res => {
       if(!res.ok) throw new Error('Serviço indisponível');
@@ -521,7 +556,7 @@ function validarCodigo(){
         });
         
         // =============================================
-        // CABEÇALHO DO PDF
+        // CABEÇALHO DO PDF (SEM "DADOS PRELIMINARES")
         // =============================================
         doc.setFont("times", "normal");
         doc.setFontSize(12);
@@ -539,31 +574,37 @@ function validarCodigo(){
         doc.line(10, 13, 287, 13);
         
         // =============================================
-        // DADOS PRELIMINARES
+        // DADOS DO PLANO (SEM TÍTULO "DADOS PRELIMINARES")
         // =============================================
-        doc.setFont("times", "bold");
-        doc.setFontSize(14);
-        doc.text("DADOS PRELIMINARES", 10, 22);
-        doc.setFont("times", "normal");
-        doc.setFontSize(12);
-        
-        let yPos = 30;
+        let yPos = 20; // Começa mais próximo da linha separadora
         const colEsquerda = 10;
         const colDireita = 150;
+        const labelOffset = 30; // Aumentado para evitar sobreposição (era 25)
         
         // Função auxiliar para adicionar linha de dados
         function addDado(label, value, y, col) {
-            if (value && value !== '—' && value !== '') {
+            if (value && value !== '—' && value !== '' && value !== null && value !== undefined) {
                 doc.setFont("times", "bold");
                 doc.text(`${label}:`, col, y);
                 doc.setFont("times", "normal");
-                doc.text(String(value), col + 25, y);
+                
+                // Quebrar texto longo se necessário
+                const valorStr = String(value);
+                if (valorStr.length > 30) {
+                    const linhas = doc.splitTextToSize(valorStr, 100);
+                    doc.text(linhas[0], col + labelOffset, y);
+                    for (let i = 1; i < linhas.length; i++) {
+                        doc.text(linhas[i], col + labelOffset, y + (i * 5));
+                    }
+                } else {
+                    doc.text(valorStr, col + labelOffset, y);
+                }
                 return true;
             }
             return false;
         }
         
-        // Dados da esquerda
+        // Dados da esquerda (começa em yPos)
         addDado("Escola", planoData.escola, yPos, colEsquerda);
         yPos += 6;
         addDado("Professor", planoData.professor, yPos, colEsquerda);
@@ -575,21 +616,22 @@ function validarCodigo(){
         addDado("Tema", planoData.tema, yPos, colEsquerda);
         yPos += 6;
         addDado("Tipo de Aula", planoData.tipo, yPos, colEsquerda);
+        yPos += 6; // Espaço antes de Tema Transversal
         
         // Reset y para direita
-        yPos = 30;
+        let yPosDireita = 20;
         
         // Dados da direita
-        addDado("Classe", planoData.classe, yPos, colDireita);
-        yPos += 6;
-        addDado("Turma", planoData.turma, yPos, colDireita);
-        yPos += 6;
-        addDado("Lição nº", planoData.licao || '—', yPos, colDireita);
-        yPos += 6;
-        addDado("Duração", `${planoData.duracao} minutos`, yPos, colDireita);
-        yPos += 6;
-        addDado("Período", planoData.periodo, yPos, colDireita);
-        yPos += 6;
+        addDado("Classe", planoData.classe, yPosDireita, colDireita);
+        yPosDireita += 6;
+        addDado("Turma", planoData.turma, yPosDireita, colDireita);
+        yPosDireita += 6;
+        addDado("Lição nº", planoData.licao || '—', yPosDireita, colDireita);
+        yPosDireita += 6;
+        addDado("Duração", `${planoData.duracao} minutos`, yPosDireita, colDireita);
+        yPosDireita += 6;
+        addDado("Período", planoData.periodo, yPosDireita, colDireita);
+        yPosDireita += 6;
         
         // Data formatada
         let dataFormatada = '—';
@@ -601,59 +643,79 @@ function validarCodigo(){
                 dataFormatada = planoData.data;
             }
         }
-        addDado("Data", dataFormatada, yPos, colDireita);
-        yPos += 6;
-        
-        // Materiais (se houver)
-        if (planoData.materiais && planoData.materiais.length > 0) {
-            doc.setFont("times", "bold");
-            doc.text("Materiais:", colEsquerda, yPos + 6);
-            doc.setFont("times", "normal");
-            
-            let materialY = yPos + 6;
-            planoData.materiais.forEach((material, idx) => {
-                doc.text(`• ${material}`, colEsquerda + 25, materialY);
-                materialY += 5;
-            });
-            yPos = materialY;
-        }
-        
-        // Temas Transversais (se houver)
-        if (planoData.temas && planoData.temas.length > 0) {
-            doc.setFont("times", "bold");
-            doc.text("Temas Transversais:", colDireita, yPos);
-            doc.setFont("times", "normal");
-            
-            let temaY = yPos;
-            planoData.temas.forEach((tema, idx) => {
-                doc.text(`• ${tema}`, colDireita + 35, temaY);
-                temaY += 5;
-            });
-            yPos = Math.max(yPos, temaY);
-        }
-        
-        yPos += 8;
+        addDado("Data", dataFormatada, yPosDireita, colDireita);
+        yPosDireita += 6;
         
         // =============================================
-        // OBJECTIVOS
+        // TEMAS TRANSVERSAIS (esquerda) e MATERIAIS (direita)
+        // =============================================
+        const temTemas = planoData.temas && planoData.temas.length > 0;
+        const temMateriais = planoData.materiais && planoData.materiais.length > 0;
+        
+        if (temTemas || temMateriais) {
+            // Posição atual após Tipo de Aula
+            let yTemas = yPos - 6; // Volta para a linha onde estava após Tipo de Aula
+            let yMateriais = yPosDireita - 6; // Volta para a linha onde estava após Data
+            
+            // Determinar a linha mais alta para alinhar
+            const yMax = Math.max(yTemas, yMateriais);
+            yTemas = yMax;
+            yMateriais = yMax;
+            
+            // Tema Transversal (esquerda)
+            if (temTemas) {
+                doc.setFont("times", "bold");
+                doc.text("Tema Transversal:", colEsquerda, yTemas);
+                doc.setFont("times", "normal");
+                
+                let temaY = yTemas;
+                planoData.temas.forEach((tema, idx) => {
+                    doc.text(`• ${tema}`, colEsquerda + labelOffset, temaY);
+                    temaY += 5;
+                });
+                yTemas = temaY;
+            }
+            
+            // Materiais (direita)
+            if (temMateriais) {
+                doc.setFont("times", "bold");
+                doc.text("Materiais:", colDireita, yMateriais);
+                doc.setFont("times", "normal");
+                
+                let materialY = yMateriais;
+                planoData.materiais.forEach((material, idx) => {
+                    doc.text(`• ${material}`, colDireita + labelOffset, materialY);
+                    materialY += 5;
+                });
+                yMateriais = materialY;
+            }
+            
+            // Atualizar yPos para depois dos temas/materiais
+            yPos = Math.max(yTemas, yMateriais) + 4;
+        } else {
+            yPos = Math.max(yPos, yPosDireita) + 4;
+        }
+        
+        // =============================================
+        // OBJECTIVOS (com espaçamento igual ao original)
         // =============================================
         if (planoData.objetivos) {
+            yPos += 2; // Espaçamento igual ao original
+            
             doc.setFont("times", "bold");
-            doc.setFontSize(14);
-            doc.text("OBJECTIVOS ESPECÍFICOS", 10, yPos);
-            doc.setFont("times", "normal");
             doc.setFontSize(12);
+            doc.text("Objectivos Específicos:", 10, yPos);
+            doc.setFont("times", "normal");
             
             yPos += 6;
             
             const objetivos = planoData.objetivos.split('\n').filter(l => l.trim());
             objetivos.forEach(obj => {
                 if (obj.trim()) {
-                    // Quebrar linhas longas
                     const linhas = doc.splitTextToSize(obj.trim(), 270);
                     linhas.forEach(linha => {
                         doc.text(linha, 15, yPos);
-                        yPos += 6;
+                        yPos += 5;
                     });
                 }
             });
@@ -661,7 +723,7 @@ function validarCodigo(){
         }
         
         // =============================================
-        // TABELA DO PLANO
+        // TABELA DO PLANO (cabeçalho só na primeira página)
         // =============================================
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = planoData.tabela || '';
@@ -673,7 +735,6 @@ function validarCodigo(){
             const cells = row.querySelectorAll('td');
             const rowData = [];
             cells.forEach(cell => {
-                // Manter quebras de linha, remover HTML
                 let text = cell.innerHTML
                     .replace(/<br\s*\/?>/gi, '\n')
                     .replace(/<[^>]*>/g, '')
@@ -691,20 +752,21 @@ function validarCodigo(){
                 theme: 'grid',
                 styles: {
                     font: 'times',
-                    fontSize: 10,
+                    fontSize: 9,
                     textColor: [0,0,0],
                     lineColor: [0,0,0],
-                    lineWidth: 0.2,
+                    lineWidth: 0.1,
                     cellPadding: 2,
                     valign: 'top',
                     overflow: 'linebreak'
                 },
                 headStyles: {
-                    fillColor: [10, 95, 42],
+                    fillColor: [128, 128, 128], // Cinza como original
                     textColor: [255,255,255],
                     font: 'times',
-                    fontSize: 10,
-                    fontStyle: 'bold'
+                    fontSize: 9,
+                    fontStyle: 'bold',
+                    halign: 'center'
                 },
                 columnStyles: {
                     0: { cellWidth: 18 },
@@ -715,43 +777,46 @@ function validarCodigo(){
                     5: { cellWidth: 30 },
                     6: { cellWidth: 30 }
                 },
-                margin: { left: 7, right: 7 }
+                margin: { left: 7, right: 7 },
+                showHead: 'firstPage' // Cabeçalho só na primeira página
             });
             
             yPos = doc.lastAutoTable.finalY + 8;
         }
         
         // =============================================
-        // ANEXO (se houver)
+        // ANEXO (exatamente como no original)
         // =============================================
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 7;
+        const boxWidth = pageWidth - (2 * margin);
+        const boxHeight = 60; // Altura fixa da caixa de anexo
+        
+        // Verificar se precisa de nova página
+        if (yPos + boxHeight + 10 > pageHeight) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        // Desenhar caixa do anexo (sempre visível)
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.2);
+        doc.rect(margin, yPos, boxWidth, boxHeight);
+        
+        // Título
+        doc.setFont("times", "bold");
+        doc.setFontSize(10);
+        doc.text("ANEXO / QUADRO MURAL", margin + (boxWidth/2), yPos + 6, { align: "center" });
+        doc.setFont("times", "normal");
+        doc.setFontSize(9);
+        
+        // Verificar se há anexo salvo
         const temAnexo = planoData.anexoTipo && 
                          ((planoData.anexoTipo === 'imagem' && planoData.anexoImagem) || 
                           (planoData.anexoTipo === 'texto' && planoData.anexoTexto));
         
         if (temAnexo) {
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const margin = 7;
-            const boxWidth = pageWidth - (2 * margin);
-            
-            // Verificar se precisa de nova página
-            if (yPos + 40 > pageHeight - 15) {
-                doc.addPage();
-                yPos = 20;
-            }
-            
-            // Desenhar caixa do anexo
-            doc.setDrawColor(10, 95, 42);
-            doc.setLineWidth(0.5);
-            doc.rect(margin, yPos, boxWidth, 50);
-            
-            // Título
-            doc.setFont("times", "bold");
-            doc.setFontSize(12);
-            doc.text("ANEXO / QUADRO MURAL", margin + (boxWidth/2), yPos + 8, { align: "center" });
-            doc.setFont("times", "normal");
-            doc.setFontSize(10);
-            
             if (planoData.anexoTipo === 'imagem' && planoData.anexoImagem) {
                 // Inserir imagem
                 try {
@@ -759,9 +824,9 @@ function validarCodigo(){
                         planoData.anexoImagem, 
                         'JPEG', 
                         margin + 5, 
-                        yPos + 12, 
+                        yPos + 10, 
                         boxWidth - 10, 
-                        30,
+                        boxHeight - 15,
                         undefined,
                         'FAST'
                     );
@@ -769,40 +834,51 @@ function validarCodigo(){
                     doc.text("Erro ao carregar imagem do anexo.", margin + 5, yPos + 20);
                 }
             } else if (planoData.anexoTipo === 'texto' && planoData.anexoTexto) {
-                // Texto do anexo
+                // Texto do anexo - usar splitTextToSize para quebrar corretamente
                 const linhas = doc.splitTextToSize(planoData.anexoTexto, boxWidth - 10);
                 let textoY = yPos + 12;
                 
                 linhas.forEach((linha, idx) => {
-                    if (textoY < yPos + 45) {
+                    if (textoY <= yPos + boxHeight - 8) {
+                        doc.text(linha, margin + 5, textoY);
+                        textoY += 5;
+                    } else {
+                        // Se o texto exceder a caixa, adicionar nova página
+                        doc.addPage();
+                        yPos = 20;
+                        textoY = yPos + 12;
+                        
+                        // Redesenhar caixa na nova página
+                        doc.setDrawColor(0, 0, 0);
+                        doc.setLineWidth(0.2);
+                        doc.rect(margin, yPos, boxWidth, boxHeight);
+                        
+                        doc.setFont("times", "bold");
+                        doc.setFontSize(10);
+                        doc.text("ANEXO / QUADRO MURAL (continuação)", margin + (boxWidth/2), yPos + 6, { align: "center" });
+                        doc.setFont("times", "normal");
+                        doc.setFontSize(9);
+                        
+                        // Continuar escrevendo
                         doc.text(linha, margin + 5, textoY);
                         textoY += 5;
                     }
                 });
             }
-        }
-        
-        // =============================================
-        // RODAPÉ
-        // =============================================
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.text(
-                `Gerado por GPAQ Stunner System • ${new Date().toLocaleDateString('pt-PT')}`, 
-                doc.internal.pageSize.getWidth() - 10, 
-                doc.internal.pageSize.getHeight() - 5,
-                { align: 'right' }
-            );
+        } else {
+            // Caixa vazia para escrever manualmente
+            doc.setFont("times", "italic");
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text("(Espaço reservado para anexos)", margin + (boxWidth/2), yPos + (boxHeight/2), { align: "center" });
+            doc.setTextColor(0, 0, 0);
         }
         
         // =============================================
         // DOWNLOAD DO PDF
         // =============================================
         const pdfBlob = doc.output('blob');
-        const nomeArquivo = `Plano_de_Aula_${planoData.disciplina || ''}_${planoData.classe || ''}_${planoData.data || ''}.pdf`.replace(/\s+/g, '_');
+        const nomeArquivo = `Plano_de_Aula_${planoData.disciplina || ''}_${planoData.classe || ''}_${planoData.data || ''}.pdf`.replace(/\s+/g, '_').replace(/[^\w\-\.]/g, '');
         
         window.__ultimoPDFBlob = pdfBlob;
         window.__ultimoPDFNome = nomeArquivo;
@@ -844,32 +920,6 @@ function validarCodigo(){
 }
 
 // =============================================
-// FUNÇÕES DE DOWNLOAD
-// =============================================
-function baixarPDF(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = nome;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-// Variáveis globais para fallback
-window.__ultimoPDFBlob = null;
-window.__ultimoPDFNome = null;
-
-function baixarPDFManual() {
-  if (window.__ultimoPDFBlob && window.__ultimoPDFNome) {
-    baixarPDF(window.__ultimoPDFBlob, window.__ultimoPDFNome);
-  } else {
-    alert("❌ Nenhum PDF disponível para download.");
-  }
-}
-
-// =============================================
 // RASTREAMENTO DE DOWNLOAD
 // =============================================
 function registrarDownloadSucesso(planoData, codigo, restante) {
@@ -904,7 +954,7 @@ function registrarDownloadSucesso(planoData, codigo, restante) {
 }
 
 // =============================================
-// SISTEMA DE RASTREAMENTO (mantido da versão anterior)
+// SISTEMA DE RASTREAMENTO
 // =============================================
 (function() {
   'use strict';
