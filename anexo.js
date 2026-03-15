@@ -1,6 +1,6 @@
 // ==================================================
 // ANEXO.JS - SISTEMA DE ANEXOS PARA PLANOVIP.HTML
-// VERSÃO ATUALIZADA COM 3 ABAS (mantendo IA + fallback)
+// VERSÃO CORRIGIDA - COMUNICAÇÃO COM MODAL
 // ==================================================
 
 // =============================================
@@ -9,7 +9,7 @@
 const CONFIG = {
     MAX_IMAGE_SIZE: 8 * 1024 * 1024, // 8MB
     MAX_TEXT_LENGTH: 5000,
-    ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
+    ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
     IA_API_KEY: 'AIzaSyDcFXBuOiwKfNX2J7qKSVdiXt8ngPxDJJ0',
     IA_MODEL: 'gemini-2.5-flash-lite',
     IA_TIMEOUT: 15000
@@ -27,6 +27,8 @@ let streamingInterval = null;
 // FUNÇÕES DE NAVEGAÇÃO ENTRE ABAS (3 TIPOS)
 // =============================================
 function mudarAba(aba) {
+    console.log('📌 Mudando para aba:', aba);
+    
     // Atualizar variável
     abaAtiva = aba;
     
@@ -39,13 +41,17 @@ function mudarAba(aba) {
     });
     
     // Atualizar painéis
-    document.getElementById('painelTexto').classList.remove('active');
-    document.getElementById('painelChatGPT').classList.remove('active');
-    document.getElementById('painelFoto').classList.remove('active');
+    const painelTexto = document.getElementById('painelTexto');
+    const painelChatGPT = document.getElementById('painelChatGPT');
+    const painelFoto = document.getElementById('painelFoto');
     
-    if (aba === 'texto') document.getElementById('painelTexto').classList.add('active');
-    else if (aba === 'chatgpt') document.getElementById('painelChatGPT').classList.add('active');
-    else if (aba === 'foto') document.getElementById('painelFoto').classList.add('active');
+    if (painelTexto) painelTexto.classList.remove('active');
+    if (painelChatGPT) painelChatGPT.classList.remove('active');
+    if (painelFoto) painelFoto.classList.remove('active');
+    
+    if (aba === 'texto' && painelTexto) painelTexto.classList.add('active');
+    else if (aba === 'chatgpt' && painelChatGPT) painelChatGPT.classList.add('active');
+    else if (aba === 'foto' && painelFoto) painelFoto.classList.add('active');
     
     // Limpar streaming se necessário
     if (aba !== 'chatgpt' && streamingInterval) {
@@ -65,7 +71,8 @@ function sanitizarTexto(texto) {
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
         .replace(/javascript:/gi, '')
         .replace(/on\w+\s*=/gi, '')
-        .replace(/<\/?(iframe|object|embed|link|meta)[^>]*>/gi, '');
+        .replace(/<\/?(iframe|object|embed|link|meta)[^>]*>/gi, '')
+        .replace(/[<>]/g, ''); // Remover tags HTML simples
     
     // Limitar tamanho
     if (sanitizado.length > CONFIG.MAX_TEXT_LENGTH) {
@@ -79,6 +86,8 @@ function sanitizarTexto(texto) {
 // FUNÇÕES DE IA (GEMINI) + FALLBACK CHATGPT
 // =============================================
 function gerarConteudoIA() {
+    console.log('🤖 Gerando conteúdo com IA...');
+    
     // Obter dados do formulário principal
     const form = document.forms['planoForm'];
     if (!form) {
@@ -112,6 +121,13 @@ function gerarConteudoIA() {
     const streamingContainer = document.getElementById('streamingContainer');
     const streamingTexto = document.getElementById('streamingTexto');
     
+    if (!textarea || !streamingContainer || !streamingTexto) {
+        alert('❌ Elementos não encontrados!');
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        return;
+    }
+    
     textarea.style.display = 'none';
     streamingContainer.style.display = 'block';
     streamingTexto.textContent = '';
@@ -139,7 +155,7 @@ Contexto:
 
 O texto deve conter:
 1. CONCEITO FUNDAMENTAL: Explicação clara e objetiva do tema
-2. PONTOS-CHAVE: Lista dos aspectos mais importantes
+2. PONTOS-CHAVE: Lista dos aspectos mais importantes (use marcadores)
 3. EXEMPLOS PRÁTICOS: 2-4 exemplos aplicáveis
 4. CURIOSIDADES OU APLICAÇÕES: Informações adicionais
 
@@ -200,8 +216,8 @@ function abrirChatGPTComPrompt(prompt) {
 // Função para abrir ChatGPT (chamada manual)
 function abrirChatGPT() {
     const form = document.forms['planoForm'];
-    const tema = form.tema?.value?.trim() || 'Tema da aula';
-    const disciplina = form.disciplina?.value?.trim() || '';
+    const tema = form?.tema?.value?.trim() || 'Tema da aula';
+    const disciplina = form?.disciplina?.value?.trim() || '';
     
     const prompt = `Como especialista em educação, desenvolva um resumo didáctico sobre "${tema}" com os seguintes elementos:
 
@@ -243,7 +259,7 @@ function streamarTexto(textoCompleto, container, elemento, textarea, btn, textoO
 }
 
 // =============================================
-// FUNÇÕES DE FOTO (COPIADAS DO PRIMEIRO SISTEMA)
+// FUNÇÕES DE FOTO
 // =============================================
 function abrirCamera() {
     document.getElementById('inputCamera').click();
@@ -259,7 +275,7 @@ function carregarFoto(input) {
     
     // Validar tipo
     if (!CONFIG.ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        alert('⚠️ Formato não suportado! Use JPG, PNG ou WebP.');
+        alert('⚠️ Formato não suportado! Use JPG, PNG, GIF ou WebP.');
         return;
     }
     
@@ -272,7 +288,7 @@ function carregarFoto(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const preview = document.getElementById('previewFoto');
-        preview.innerHTML = `<img src="${e.target.result}" id="imgCrop" style="max-width:100%; max-height:300px;">`;
+        preview.innerHTML = `<img src="${e.target.result}" id="imgCrop" style="max-width:100%; max-height:300px; border-radius:8px;">`;
         
         const img = document.getElementById('imgCrop');
         imagemAtual = e.target.result;
@@ -284,17 +300,22 @@ function carregarFoto(input) {
         setTimeout(() => {
             if (cropper) cropper.destroy();
             
-            cropper = new Cropper(img, {
-                viewMode: 1,
-                dragMode: 'crop',
-                aspectRatio: NaN,
-                autoCropArea: 0.8,
-                restore: true,
-                guides: true,
-                center: true,
-                cropBoxMovable: true,
-                cropBoxResizable: true
-            });
+            if (typeof Cropper !== 'undefined') {
+                cropper = new Cropper(img, {
+                    viewMode: 1,
+                    dragMode: 'crop',
+                    aspectRatio: NaN,
+                    autoCropArea: 0.8,
+                    restore: true,
+                    guides: true,
+                    center: true,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true
+                });
+            } else {
+                console.error('Cropper não carregado');
+                alert('⚠️ Editor de imagem não disponível');
+            }
         }, 100);
     };
     reader.readAsDataURL(file);
@@ -348,49 +369,33 @@ function aplicarCorte() {
 }
 
 // =============================================
-// FUNÇÕES PRINCIPAIS (SALVAR ANEXO)
+// FUNÇÕES PRINCIPAIS - COMUNICAÇÃO COM PLANOVIP
 // =============================================
 function salvarAnexo() {
-    // Obter preview do plano
-    const preview = document.getElementById('anexoPreview');
-    if (!preview) {
-        alert('❌ Preview do plano não encontrado!');
-        return;
-    }
+    console.log('💾 Salvando anexo...');
     
     let tipo = '';
     let dados = '';
-    let conteudoHTML = '';
     
     switch(abaAtiva) {
         case 'texto':
-            const textoManual = document.getElementById('textoManual').value.trim();
+            const textoManual = document.getElementById('textoManual')?.value.trim();
             if (!textoManual) {
                 alert('⚠️ Digite o texto do anexo!');
                 return;
             }
             tipo = 'texto';
             dados = sanitizarTexto(textoManual);
-            conteudoHTML = `
-                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
-                    ${dados.replace(/\n/g, '<br>')}
-                </div>
-            `;
             break;
             
         case 'chatgpt':
-            const textoIA = document.getElementById('textoIA').value.trim();
+            const textoIA = document.getElementById('textoIA')?.value.trim();
             if (!textoIA) {
                 alert('⚠️ Gere o conteúdo primeiro!');
                 return;
             }
             tipo = 'texto';
             dados = sanitizarTexto(textoIA);
-            conteudoHTML = `
-                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
-                    ${dados.replace(/\n/g, '<br>')}
-                </div>
-            `;
             break;
             
         case 'foto':
@@ -400,98 +405,92 @@ function salvarAnexo() {
             }
             tipo = 'imagem';
             dados = imagemAtual;
-            conteudoHTML = `
-                <div style="text-align: center;">
-                    <img src="${dados}" style="max-width:100%; max-height:300px; border-radius:8px; border: 1px solid #e5e7eb;">
-                </div>
-            `;
             break;
+            
+        default:
+            alert('⚠️ Selecione um tipo de anexo!');
+            return;
     }
     
-    // Atualizar preview no planovip.html
-    preview.innerHTML = `
-        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow);">
-            <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-paperclip" style="color: var(--accent);"></i>
-                ANEXO ADICIONADO
-            </h4>
-            <div style="margin-bottom: 15px;">${conteudoHTML}</div>
-            <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 600;">
-                <i class="fas fa-trash"></i> REMOVER ANEXO
-            </button>
-        </div>
-    `;
-    preview.style.display = 'block';
-    
-    // Salvar no sessionStorage
-    salvarNoSessionStorage(tipo, dados);
-    
-    // Fechar painel
-    fecharAnexo();
-    
-    alert('✅ Anexo salvo com sucesso!');
-}
-
-function salvarNoSessionStorage(tipo, dados) {
-    try {
-        const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
-        planoData.anexoTipo = tipo;
-        if (tipo === 'imagem') {
-            planoData.anexoImagem = dados;
-            planoData.anexoTexto = null;
+    // Chamar a função do planovip.html
+    if (window.salvarAnexoDoModal && typeof window.salvarAnexoDoModal === 'function') {
+        window.salvarAnexoDoModal(tipo, dados);
+    } else {
+        // Fallback: tentar encontrar a função no escopo pai
+        console.warn('salvarAnexoDoModal não encontrado, tentando fallback...');
+        
+        if (window.parent && window.parent.salvarAnexoDoModal) {
+            window.parent.salvarAnexoDoModal(tipo, dados);
+        } else if (window.opener && window.opener.salvarAnexoDoModal) {
+            window.opener.salvarAnexoDoModal(tipo, dados);
         } else {
-            planoData.anexoTexto = dados;
-            planoData.anexoImagem = null;
+            // Último recurso: salvar localmente e tentar fechar
+            console.log('Anexo salvo localmente:', { tipo, dados });
+            
+            // Salvar no sessionStorage
+            try {
+                const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
+                planoData.anexoTipo = tipo;
+                if (tipo === 'imagem') {
+                    planoData.anexoImagem = dados;
+                    planoData.anexoTexto = null;
+                } else {
+                    planoData.anexoTexto = dados;
+                    planoData.anexoImagem = null;
+                }
+                sessionStorage.setItem('planoData', JSON.stringify(planoData));
+            } catch (e) {}
+            
+            alert('✅ Anexo salvo localmente!');
+            
+            // Tentar fechar modal
+            fecharAnexo();
         }
-        sessionStorage.setItem('planoData', JSON.stringify(planoData));
-    } catch (e) {
-        console.warn('Erro ao salvar no sessionStorage:', e);
     }
-}
-
-function removerAnexo() {
-    const preview = document.getElementById('anexoPreview');
-    if (preview) {
-        preview.style.display = 'none';
-        preview.innerHTML = '';
-    }
-    
-    try {
-        const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
-        delete planoData.anexoTipo;
-        delete planoData.anexoImagem;
-        delete planoData.anexoTexto;
-        sessionStorage.setItem('planoData', JSON.stringify(planoData));
-    } catch (e) {}
-    
-    const btnAdd = document.getElementById('btnAdicionarAnexo');
-    if (btnAdd) btnAdd.style.display = 'inline-block';
 }
 
 function fecharAnexo() {
-    const container = document.getElementById('anexoContainerContent');
-    if (container) {
-        container.style.display = 'none';
-    }
+    console.log('🔒 Fechando anexo...');
     
-    // Fechar modal se existir
-    const modal = document.getElementById('anexoModal');
-    if (modal) {
-        modal.style.opacity = '0';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
+    // Tentar fechar modal no planovip
+    if (window.fecharModalAnexo && typeof window.fecharModalAnexo === 'function') {
+        window.fecharModalAnexo();
+    } else if (window.parent && window.parent.fecharModalAnexo) {
+        window.parent.fecharModalAnexo();
+    } else if (window.opener && window.opener.fecharModalAnexo) {
+        window.opener.fecharModalAnexo();
+    } else {
+        // Fallback: esconder elementos
+        const container = document.getElementById('anexoContainerContent');
+        if (container) container.style.display = 'none';
+        
+        const modal = document.getElementById('anexoModal');
+        if (modal) {
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
     }
     
     // Limpar campos
+    limparCampos();
+}
+
+function limparCampos() {
     document.getElementById('textoManual').value = '';
     document.getElementById('textoIA').value = '';
-    document.getElementById('previewFoto').innerHTML = `
-        <div style="color: var(--gray);">
-            <i class="fas fa-cloud-upload-alt" style="font-size: 40px;"></i>
-            <p>Nenhuma imagem selecionada</p>
-        </div>
-    `;
+    
+    const preview = document.getElementById('previewFoto');
+    if (preview) {
+        preview.innerHTML = `
+            <div style="color: var(--gray);">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 40px;"></i>
+                <p>Nenhuma imagem selecionada</p>
+            </div>
+        `;
+    }
+    
     document.getElementById('cropperControls').style.display = 'none';
     
     imagemAtual = null;
@@ -499,68 +498,13 @@ function fecharAnexo() {
         cropper.destroy();
         cropper = null;
     }
-    
-    // Mostrar botão adicionar se não houver anexo salvo
-    const preview = document.getElementById('anexoPreview');
-    if (!preview || preview.style.display !== 'block') {
-        const btnAdd = document.getElementById('btnAdicionarAnexo');
-        if (btnAdd) btnAdd.style.display = 'inline-block';
-    }
 }
 
 // =============================================
-// CARREGAR ANEXO SALVO
+// FUNÇÃO DE INICIALIZAÇÃO (chamada pelo planovip)
 // =============================================
-function carregarAnexoSalvo() {
-    try {
-        const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
-        
-        if (!planoData.anexoTipo) return;
-        
-        const preview = document.getElementById('anexoPreview');
-        if (!preview) return;
-        
-        let conteudoHTML = '';
-        
-        if (planoData.anexoTipo === 'imagem' && planoData.anexoImagem) {
-            conteudoHTML = `
-                <div style="text-align: center;">
-                    <img src="${planoData.anexoImagem}" style="max-width:100%; max-height:300px; border-radius:8px; border: 1px solid #e5e7eb;">
-                </div>
-            `;
-        } else if (planoData.anexoTexto) {
-            conteudoHTML = `
-                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
-                    ${planoData.anexoTexto.replace(/\n/g, '<br>')}
-                </div>
-            `;
-        }
-        
-        if (conteudoHTML) {
-            preview.innerHTML = `
-                <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow);">
-                    <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-paperclip" style="color: var(--accent);"></i>
-                        ANEXO ADICIONADO
-                    </h4>
-                    <div style="margin-bottom: 15px;">${conteudoHTML}</div>
-                    <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 600;">
-                        <i class="fas fa-trash"></i> REMOVER ANEXO
-                    </button>
-                </div>
-            `;
-            preview.style.display = 'block';
-        }
-    } catch (e) {
-        console.warn('Erro ao carregar anexo salvo:', e);
-    }
-}
-
-// =============================================
-// INICIALIZAÇÃO
-// =============================================
-function inicializar() {
-    console.log('🚀 Inicializando sistema de anexos...');
+function inicializarAnexos() {
+    console.log('🚀 Inicializando interface do anexo...');
     
     // Configurar textareas para sanitização
     const textoManual = document.getElementById('textoManual');
@@ -577,18 +521,89 @@ function inicializar() {
         });
     }
     
-    // Carregar anexo salvo
-    carregarAnexoSalvo();
+    // Configurar preview de foto para drag & drop
+    const previewFoto = document.getElementById('previewFoto');
+    if (previewFoto) {
+        previewFoto.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            previewFoto.style.borderColor = '#f59e0b';
+        });
+        
+        previewFoto.addEventListener('dragleave', () => {
+            previewFoto.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+        
+        previewFoto.addEventListener('drop', (e) => {
+            e.preventDefault();
+            previewFoto.style.borderColor = 'rgba(255,255,255,0.2)';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                // Simular um input change
+                const fakeInput = { files: [file] };
+                carregarFoto(fakeInput);
+            }
+        });
+    }
     
-    console.log('✅ Sistema de anexos pronto!');
+    // Configurar botão de fechar manual
+    const closeBtn = document.querySelector('[onclick="fecharAnexo()"]');
+    if (!closeBtn) {
+        // Se não existir, adicionar um
+        const footer = document.querySelector('.anexo-footer');
+        if (footer) {
+            const cancelBtn = footer.querySelector('.btn-footer.cancelar');
+            if (cancelBtn) {
+                cancelBtn.setAttribute('onclick', 'fecharAnexo()');
+            }
+        }
+    }
+    
+    console.log('✅ Interface do anexo pronta!');
 }
 
-// Executar quando DOM estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializar);
-} else {
-    inicializar();
+// =============================================
+// CARREGAR ANEXO SALVO
+// =============================================
+function carregarAnexoSalvo(anexo) {
+    if (!anexo) return;
+    
+    console.log('📂 Carregando anexo salvo:', anexo.tipo);
+    
+    if (anexo.tipo === 'imagem') {
+        imagemAtual = anexo.data;
+        
+        const preview = document.getElementById('previewFoto');
+        if (preview) {
+            preview.innerHTML = `<img src="${anexo.data}" style="max-width:100%; max-height:300px; border-radius:8px;">`;
+        }
+        
+        mudarAba('foto');
+    } else {
+        const textareaIA = document.getElementById('textoIA');
+        const textareaManual = document.getElementById('textoManual');
+        
+        if (textareaIA) {
+            textareaIA.value = anexo.data;
+        }
+        
+        if (textareaManual) {
+            textareaManual.value = anexo.data;
+        }
+        
+        mudarAba('texto');
+    }
 }
+
+// =============================================
+// INICIALIZAÇÃO AUTOMÁTICA
+// =============================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar apenas se estiver em um contexto adequado
+    if (document.getElementById('painelTexto')) {
+        inicializarAnexos();
+    }
+});
 
 // =============================================
 // EXPORTAR FUNÇÕES PARA O ESCOPO GLOBAL
@@ -606,6 +621,9 @@ window.zoomMenos = zoomMenos;
 window.resetarCropper = resetarCropper;
 window.aplicarCorte = aplicarCorte;
 window.salvarAnexo = salvarAnexo;
-window.removerAnexo = removerAnexo;
 window.fecharAnexo = fecharAnexo;
 window.carregarAnexoSalvo = carregarAnexoSalvo;
+window.inicializarAnexos = inicializarAnexos;
+window.sanitizarTexto = sanitizarTexto;
+
+console.log('✅ anexo.js carregado com sucesso!');
