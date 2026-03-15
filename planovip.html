@@ -1951,29 +1951,27 @@ let _planoLoaderInterval = null;
 let planoGerado = false;
 
 // =============================================
-// SISTEMA DE ANEXOS - VERSÃO SIMPLIFICADA
+// SISTEMA DE ANEXOS - MODAL EM TELA CHEIA
 // =============================================
 
-// Variável global para armazenar o anexo atual
-let anexoAtual = null;
-
-// Função para abrir o sistema de anexos em modal
+// Função para abrir o modal de anexos
 function abrirAnexo() {
-    // Criar modal se não existir
-    let modal = document.getElementById('anexoModal');
+    // Verificar se o modal já existe
+    let modal = document.getElementById('anexoModalGlobal');
     
     if (!modal) {
+        // Criar o modal
         modal = document.createElement('div');
-        modal.id = 'anexoModal';
+        modal.id = 'anexoModalGlobal';
         modal.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 9999;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1988,53 +1986,113 @@ function abrirAnexo() {
     modal.style.display = 'flex';
     setTimeout(() => modal.style.opacity = '1', 10);
     
-    // Carregar anexo.html
+    // Mostrar loading
+    modal.innerHTML = `
+        <div style="text-align: center; color: white; max-width: 400px;">
+            <div style="margin-bottom: 20px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: var(--accent);"></i>
+            </div>
+            <h3 style="color: white; margin-bottom: 10px;">Carregando Sistema de Anexos</h3>
+            <p style="color: #9ca3af;">Aguarde um momento...</p>
+            <button onclick="fecharModalAnexo()" style="margin-top: 20px; padding: 10px 20px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-times"></i> CANCELAR
+            </button>
+        </div>
+    `;
+    
+    // Carregar o anexo.html via fetch
     fetch('anexo.html')
         .then(response => {
             if (!response.ok) throw new Error('Arquivo anexo.html não encontrado');
             return response.text();
         })
         .then(html => {
-            // Extrair apenas o conteúdo principal
+            // Extrair apenas o conteúdo principal (remover scripts do HTML)
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
-            // Remover scripts duplicados
+            // Remover scripts do HTML (serão carregados separadamente)
             const scripts = tempDiv.querySelectorAll('script');
             scripts.forEach(s => s.remove());
             
-            // Criar conteúdo do modal
-            modal.innerHTML = `
-                <div style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: transparent; position: relative;">
-                    <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                        <button onclick="fecharModalAnexo()" style="background: #374151; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-times"></i>
+            // Injetar o HTML no modal
+            modal.innerHTML = tempDiv.innerHTML;
+            
+            // Adicionar botão de fechar no canto superior direito
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: rgba(255,255,255,0.1);
+                border: none;
+                color: white;
+                font-size: 24px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                z-index: 10001;
+            `;
+            closeBtn.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.2)'; };
+            closeBtn.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.1)'; };
+            closeBtn.onclick = fecharModalAnexo;
+            modal.appendChild(closeBtn);
+            
+            // Carregar o anexo.js
+            const script = document.createElement('script');
+            script.src = 'anexo.js';
+            script.onload = function() {
+                console.log('✅ anexo.js carregado com sucesso');
+                
+                // Inicializar o sistema de anexos
+                if (typeof window.inicializarAnexos === 'function') {
+                    setTimeout(() => window.inicializarAnexos(), 100);
+                }
+                
+                // Se houver anexo salvo, carregar
+                if (window.anexoSalvo && typeof window.carregarAnexoSalvo === 'function') {
+                    setTimeout(() => window.carregarAnexoSalvo(window.anexoSalvo), 200);
+                }
+            };
+            script.onerror = function() {
+                console.error('❌ Erro ao carregar anexo.js');
+                modal.innerHTML = `
+                    <div style="text-align: center; color: white;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ef4444; margin-bottom: 20px;"></i>
+                        <h3>Erro ao carregar sistema de anexos</h3>
+                        <p style="color: #9ca3af; margin: 20px 0;">Arquivo anexo.js não encontrado.</p>
+                        <button onclick="fecharModalAnexo()" style="padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            FECHAR
                         </button>
                     </div>
-                    ${tempDiv.innerHTML}
-                </div>
-            `;
-            
-            // Carregar anexo.js (já está incluído no HTML)
+                `;
+            };
+            document.body.appendChild(script);
         })
         .catch(error => {
             console.error('❌ Erro ao carregar anexo.html:', error);
             modal.innerHTML = `
-                <div style="width: 100%; max-width: 400px; background: #1f2937; border-radius: 20px; padding: 30px; text-align: center;">
+                <div style="text-align: center; color: white;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ef4444; margin-bottom: 20px;"></i>
-                    <h3 style="color: white; margin-bottom: 10px;">Erro ao carregar</h3>
-                    <p style="color: #9ca3af; margin-bottom: 20px;">Arquivo anexo.html não encontrado.</p>
-                    <button onclick="fecharModalAnexo()" class="btn btn-primary" style="padding: 12px 24px;">
-                        <i class="fas fa-times"></i> FECHAR
+                    <h3>Arquivo não encontrado</h3>
+                    <p style="color: #9ca3af; margin: 20px 0;">O arquivo anexo.html não existe no servidor.</p>
+                    <button onclick="fecharModalAnexo()" style="padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        FECHAR
                     </button>
                 </div>
             `;
         });
 }
 
-// Função para fechar modal
+// Função para fechar o modal
 function fecharModalAnexo() {
-    const modal = document.getElementById('anexoModal');
+    const modal = document.getElementById('anexoModalGlobal');
     if (modal) {
         modal.style.opacity = '0';
         setTimeout(() => {
@@ -2045,107 +2103,122 @@ function fecharModalAnexo() {
 }
 
 // Função para ser chamada pelo anexo.js quando salvar
-window.salvarAnexo = function(tipo, dados) {
-    anexoAtual = {
-        tipo: tipo,
-        data: dados
-    };
+window.salvarAnexoDoModal = function(tipo, dados) {
+    window.anexoSalvo = { tipo, data: dados };
     
-    mostrarPreviewAnexo();
-    fecharModalAnexo();
-    if (typeof mostrarAlerta === 'function') {
-        mostrarAlerta('Anexo adicionado com sucesso!', 'success');
-    } else {
-        alert('✅ Anexo adicionado com sucesso!');
+    // Mostrar preview no plano
+    const preview = document.getElementById('anexoPreview');
+    if (preview) {
+        if (tipo === 'imagem') {
+            preview.innerHTML = `
+                <div style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-top: 20px;">
+                    <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-paperclip" style="color: var(--accent);"></i> ANEXO</h4>
+                    <img src="${dados}" style="max-width:100%; max-height:300px; border-radius:8px;">
+                    <button onclick="removerAnexo()" style="margin-top:15px; padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer;">
+                        <i class="fas fa-trash"></i> REMOVER
+                    </button>
+                </div>
+            `;
+        } else {
+            preview.innerHTML = `
+                <div style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-top: 20px;">
+                    <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-paperclip" style="color: var(--accent);"></i> ANEXO</h4>
+                    <div style="background: rgba(255,255,255,0.03); border-radius:8px; padding:15px; color:white;">${dados.replace(/\n/g, '<br>')}</div>
+                    <button onclick="removerAnexo()" style="margin-top:15px; padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer;">
+                        <i class="fas fa-trash"></i> REMOVER
+                    </button>
+                </div>
+            `;
+        }
+        preview.style.display = 'block';
     }
-    atualizarPlanoSalvo();
+    
+    // Fechar modal
+    fecharModalAnexo();
+    
+    // Atualizar sessionStorage
+    atualizarSessionStorageComAnexo(tipo, dados);
 };
 
-// Função para mostrar preview do anexo
-function mostrarPreviewAnexo() {
-    const preview = document.getElementById('anexoPreview');
-    if (!preview) return;
-    
-    if (!anexoAtual) {
-        preview.style.display = 'none';
-        return;
+// Função para atualizar sessionStorage
+function atualizarSessionStorageComAnexo(tipo, dados) {
+    try {
+        const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
+        planoData.anexoTipo = tipo;
+        if (tipo === 'imagem') {
+            planoData.anexoImagem = dados;
+            planoData.anexoTexto = null;
+        } else {
+            planoData.anexoTexto = dados;
+            planoData.anexoImagem = null;
+        }
+        sessionStorage.setItem('planoData', JSON.stringify(planoData));
+    } catch (e) {
+        console.warn('Erro ao salvar sessionStorage:', e);
     }
-    
-    let conteudoHTML = '';
-    
-    if (anexoAtual.tipo === 'imagem') {
-        conteudoHTML = `
-            <img src="${anexoAtual.data}" style="max-width:100%; max-height:300px; border-radius:8px; border: 1px solid #e5e7eb;">
-        `;
-    } else {
-        conteudoHTML = `
-            <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); color: #111827;">
-                ${anexoAtual.data.replace(/\n/g, '<br>')}
-            </div>
-        `;
-    }
-    
-    preview.innerHTML = `
-        <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow);">
-            <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-paperclip" style="color: var(--accent);"></i>
-                ANEXO ADICIONADO
-            </h4>
-            <div style="margin-bottom: 15px;">${conteudoHTML}</div>
-            <button onclick="removerAnexo()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-weight: 600;">
-                <i class="fas fa-trash"></i> REMOVER ANEXO
-            </button>
-        </div>
-    `;
-    preview.style.display = 'block';
 }
 
 // Função para remover anexo
 function removerAnexo() {
-    anexoAtual = null;
+    window.anexoSalvo = null;
     const preview = document.getElementById('anexoPreview');
     if (preview) {
         preview.style.display = 'none';
+        preview.innerHTML = '';
     }
     
-    // Mostrar botão adicionar novamente
-    const btnAdd = document.getElementById('btnAdicionarAnexo');
-    if (btnAdd) btnAdd.style.display = 'inline-block';
-    
-    atualizarPlanoSalvo();
-    
-    if (typeof mostrarAlerta === 'function') {
-        mostrarAlerta('Anexo removido', 'info');
-    } else {
-        alert('🗑️ Anexo removido');
-    }
-}
-
-// Função para carregar anexo salvo
-window.carregarAnexoSalvo = function(anexo) {
-    if (!anexo) return;
-    anexoAtual = anexo;
-    mostrarPreviewAnexo();
-};
-
-// Função para atualizar dados salvos com anexo
-function atualizarPlanoSalvo() {
     try {
-        const form = document.forms['planoForm'];
-        if (!form) return;
-        
         const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
-        
-        planoData.anexoTipo = anexoAtual ? anexoAtual.tipo : null;
-        planoData.anexoImagem = (anexoAtual && anexoAtual.tipo === 'imagem') ? anexoAtual.data : null;
-        planoData.anexoTexto = (anexoAtual && anexoAtual.tipo === 'texto') ? anexoAtual.data : null;
-        
+        delete planoData.anexoTipo;
+        delete planoData.anexoImagem;
+        delete planoData.anexoTexto;
         sessionStorage.setItem('planoData', JSON.stringify(planoData));
-    } catch (e) {
-        console.warn('Erro ao atualizar plano salvo:', e);
-    }
+    } catch (e) {}
 }
 
+// Carregar anexo salvo ao iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const planoData = JSON.parse(sessionStorage.getItem('planoData') || '{}');
+        if (planoData.anexoTipo) {
+            window.anexoSalvo = {
+                tipo: planoData.anexoTipo,
+                data: planoData.anexoTipo === 'imagem' ? planoData.anexoImagem : planoData.anexoTexto
+            };
+            
+            // Mostrar preview se o plano estiver visível
+            if (document.getElementById('planoFinal').style.display === 'block') {
+                const preview = document.getElementById('anexoPreview');
+                if (preview && window.anexoSalvo) {
+                    if (window.anexoSalvo.tipo === 'imagem') {
+                        preview.innerHTML = `
+                            <div style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-top: 20px;">
+                                <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-paperclip" style="color: var(--accent);"></i> ANEXO</h4>
+                                <img src="${window.anexoSalvo.data}" style="max-width:100%; max-height:300px; border-radius:8px;">
+                                <button onclick="removerAnexo()" style="margin-top:15px; padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer;">
+                                    <i class="fas fa-trash"></i> REMOVER
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        preview.innerHTML = `
+                            <div style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-top: 20px;">
+                                <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-paperclip" style="color: var(--accent);"></i> ANEXO</h4>
+                                <div style="background: rgba(255,255,255,0.03); border-radius:8px; padding:15px; color:white;">${window.anexoSalvo.data.replace(/\n/g, '<br>')}</div>
+                                <button onclick="removerAnexo()" style="margin-top:15px; padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer;">
+                                    <i class="fas fa-trash"></i> REMOVER
+                                </button>
+                            </div>
+                        `;
+                    }
+                    preview.style.display = 'block';
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Erro ao carregar anexo salvo:', e);
+    }
+});
 // =============================================
 // FUNÇÕES DE NAVEGAÇÃO
 // =============================================
