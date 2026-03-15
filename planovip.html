@@ -3224,7 +3224,7 @@ function gerarPlanoBasico() {
     `;
 
     // Dados direita
-    document.getElementById('dadosDireita').innerHTML = `
+    let dadosDireitaHTML = `
         <div class="preliminares-item">
             <div class="preliminares-label"><i class="fas fa-graduation-cap"></i> CLASSE</div>
             <div class="preliminares-value">${escapeHtml(form.classe.value)}</div>
@@ -3249,17 +3249,29 @@ function gerarPlanoBasico() {
             <div class="preliminares-label"><i class="fas fa-calendar"></i> DATA</div>
             <div class="preliminares-value">${form.data.value ? new Date(form.data.value).toLocaleDateString('pt-PT') : '—'}</div>
         </div>
-        ${materiais.length ? `
-        <div class="preliminares-item">
-            <div class="preliminares-label"><i class="fas fa-boxes"></i> MATERIAIS</div>
-            <div class="preliminares-value">${materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</div>
-        </div>` : ''}
-        ${temasTransversais.length ? `
-        <div class="preliminares-item">
-            <div class="preliminares-label"><i class="fas fa-project-diagram"></i> TEMAS TRANSVERSAIS</div>
-            <div class="preliminares-value">${temasTransversais.map(t => `• ${escapeHtml(t)}`).join('<br>')}</div>
-        </div>` : ''}
     `;
+    
+    // Adicionar Materiais se houver
+    if (materiais.length) {
+        dadosDireitaHTML += `
+            <div class="preliminares-item">
+                <div class="preliminares-label"><i class="fas fa-boxes"></i> MATERIAIS</div>
+                <div class="preliminares-value">${materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</div>
+            </div>
+        `;
+    }
+    
+    // Adicionar Temas Transversais se houver
+    if (temasTransversais.length) {
+        dadosDireitaHTML += `
+            <div class="preliminares-item">
+                <div class="preliminares-label"><i class="fas fa-project-diagram"></i> TEMAS TRANSVERSAIS</div>
+                <div class="preliminares-value">${temasTransversais.map(t => `• ${escapeHtml(t)}`).join('<br>')}</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('dadosDireita').innerHTML = dadosDireitaHTML;
 
     // Objetivos
     const objetivosText = form.objetivos.value.trim();
@@ -3367,7 +3379,7 @@ function gerarPlanoCompleto(dadosIA) {
     `;
 
     // Dados direita
-    document.getElementById('dadosDireita').innerHTML = `
+    let dadosDireitaHTML = `
         <div class="preliminares-item">
             <div class="preliminares-label"><i class="fas fa-graduation-cap"></i> CLASSE</div>
             <div class="preliminares-value">${escapeHtml(form.classe.value)}</div>
@@ -3392,17 +3404,29 @@ function gerarPlanoCompleto(dadosIA) {
             <div class="preliminares-label"><i class="fas fa-calendar"></i> DATA</div>
             <div class="preliminares-value">${form.data.value ? new Date(form.data.value).toLocaleDateString('pt-PT') : '—'}</div>
         </div>
-        ${materiais.length ? `
-        <div class="preliminares-item">
-            <div class="preliminares-label"><i class="fas fa-boxes"></i> MATERIAIS</div>
-            <div class="preliminares-value">${materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</div>
-        </div>` : ''}
-        ${temasTransversais.length ? `
-        <div class="preliminares-item">
-            <div class="preliminares-label"><i class="fas fa-project-diagram"></i> TEMAS TRANSVERSAIS</div>
-            <div class="preliminares-value">${temasTransversais.map(t => `• ${escapeHtml(t)}`).join('<br>')}</div>
-        </div>` : ''}
     `;
+    
+    // Adicionar Materiais se houver
+    if (materiais.length) {
+        dadosDireitaHTML += `
+            <div class="preliminares-item">
+                <div class="preliminares-label"><i class="fas fa-boxes"></i> MATERIAIS</div>
+                <div class="preliminares-value">${materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</div>
+            </div>
+        `;
+    }
+    
+    // Adicionar Temas Transversais se houver
+    if (temasTransversais.length) {
+        dadosDireitaHTML += `
+            <div class="preliminares-item">
+                <div class="preliminares-label"><i class="fas fa-project-diagram"></i> TEMAS TRANSVERSAIS</div>
+                <div class="preliminares-value">${temasTransversais.map(t => `• ${escapeHtml(t)}`).join('<br>')}</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('dadosDireita').innerHTML = dadosDireitaHTML;
 
     // Objetivos
     const objetivosText = form.objetivos.value.trim();
@@ -3500,14 +3524,20 @@ function gerarPlanoCompleto(dadosIA) {
     finalizarGeracao();
 }
 
+// =============================================
+// FUNÇÃO FINALIZAR GERAÇÃO (CORRIGIDA - com dados explícitos)
+// =============================================
 function finalizarGeracao() {
     document.getElementById('planoFinal').style.display = 'block';
     document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
     document.forms['planoForm'].style.display = 'none';
     
-    // Salvar dados
+    // Salvar dados - VERSÃO CORRIGIDA com campos explícitos
     const form = document.forms['planoForm'];
+    const duracaoTotal = getDuracao();
+    
     const planoData = {
+        // CAMPOS EXPLÍCITOS (para garantir que sejam salvos)
         escola: form.escola.value,
         professor: form.professor.value,
         disciplina: form.disciplina.value,
@@ -3517,13 +3547,14 @@ function finalizarGeracao() {
         classe: form.classe.value,
         turma: form.turma.value,
         licao: form.licao.value,
-        duracao: getDuracao(),
+        duracao: duracaoTotal,
         periodo: form.periodo.value,
         data: form.data.value,
         materiais: materiais,
         temas: temasTransversais,
         objetivos: form.objetivos.value,
         tabela: document.getElementById('tabelaPlano').outerHTML,
+        // HTML COMPLETO do preview (já incluía, mas vamos manter)
         html: document.getElementById('planoFinal').innerHTML,
         tipoGeracao: tipoGeracaoAtual,
         anexoTipo: window.anexoSalvo ? window.anexoSalvo.tipo : null,
@@ -3547,6 +3578,9 @@ function voltarAoFormulario() {
     planoGerado = false;
 }
 
+// =============================================
+// FUNÇÃO IR PARA PAGAMENTO (CORRIGIDA - com dados explícitos)
+// =============================================
 function irParaPagamento() {
     // Substituir selects pelo texto escolhido
     const selects = document.querySelectorAll('#tabelaPlano select.metodoSelect');
@@ -3559,6 +3593,7 @@ function irParaPagamento() {
     const form = document.forms['planoForm'];
 
     const planoData = {
+        // CAMPOS EXPLÍCITOS (para garantir que sejam salvos)
         escola: form.escola.value,
         professor: form.professor.value,
         disciplina: form.disciplina.value,
@@ -4125,6 +4160,30 @@ window.aplicarCorte = aplicarCorte;
 window.salvarAnexoDoModal = salvarAnexoDoModal;
 window.removerAnexo = removerAnexo;
 window.sanitizarTexto = sanitizarTexto;
+
+// =============================================
+// FUNÇÕES DE NAVEGAÇÃO GLOBAIS
+// =============================================
+window.showStep = showStep;
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.toggleDuracaoCustom = toggleDuracaoCustom;
+window.validarDuracao = validarDuracao;
+window.alternarCampoMaterial = alternarCampoMaterial;
+window.adicionarMaterial = adicionarMaterial;
+window.alternarCampoTema = alternarCampoTema;
+window.adicionarTema = adicionarTema;
+window.gerarObjetivosStreaming = gerarObjetivosStreaming;
+window.habilitarEdicaoObjetivos = habilitarEdicaoObjetivos;
+window.adicionarObjetivo = adicionarObjetivo;
+window.limparObjetivos = limparObjetivos;
+window.desabilitarEdicaoObjetivos = desabilitarEdicaoObjetivos;
+window.iniciarGeracaoPlano = iniciarGeracaoPlano;
+window.cancelarLoader = cancelarLoader;
+window.voltarAoFormulario = voltarAoFormulario;
+window.irParaPagamento = irParaPagamento;
+window.criarSelectMetodo = criarSelectMetodo;
+window.mostrarMetodoEscolhido = mostrarMetodoEscolhido;
 
 console.log('✅ planovip.html carregado completamente!');
 </script>
