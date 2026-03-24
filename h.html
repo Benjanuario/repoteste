@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<script>
+(function () {
+  'use strict';
+
+  function isMobileOrTablet() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isTouch = navigator.maxTouchPoints > 1;
+    return /Android|iPhone|iPad|Tablet|Silk|Kindle|PlayBook/i.test(ua) || isTouch;
+  }
+
+  if (!isMobileOrTablet()) {
+    document.documentElement.innerHTML = `
+      <!DOCTYPE html>
+      <html lang="pt">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Acesso Restrito</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+          }
+          .box {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            padding: 40px 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+          }
+          .icon {
+            font-size: 3em;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: bounceIn 0.8s ease-out 0.2s forwards;
+          }
+          h1 {
+            font-size: 1.8em;
+            margin-bottom: 16px;
+            color: #e74c3c;
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out 0.4s forwards;
+          }
+          p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 12px;
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out 0.6s forwards;
+          }
+          @keyframes fadeIn {
+            to { opacity: 1; }
+          }
+          @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <div class="icon">⚠️📱⚠️</div>
+          <h1>Acesso permitido apenas por smartphone ou tablet</h1>
+          <p>Este site foi projectado exclusivamente para dispositivos <strong>móveis</strong>.</p>
+          <p>Abra esta página num telefone ou tablet para continuar.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    throw new Error('Desktop access blocked');
+  }
+})();
+</script>
+<script src="/security/blocks.js"></script>
+<meta charset="UTF-8" />
+<title>Gerador de Plano de Aula</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<style>
+:root {
+    --primary: #0a5f2a;
+    --primary-dark: #084d22;
+    --primary-light: #0e7d32;
+    --secondary: #2563eb;
+    --accent: #f59e0b;
+    --accent-dark: #d97706;
+    --dark: #111827;
+    --light: #f9fafb;
+    --gray: #6b7280;
+    --success: #10b981;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --glass: rgba(255, 255, 255, 0.1);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0a1929 0%, #111827 100%);
+    color: var(--light);
+    min-height: 100vh;
+    padding: 10px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(10, 95, 42, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 50%);
+    z-index: -1;
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.form-header::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(10, 95, 42, 0.3);
+}
+
+h1 {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--light), #d1d5db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-size: 11px;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+.progress-container {
+    margin-bottom: 15px;
+    padding: 0;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.step {
+    width: 30px;
+    height: 30px;
+    background: var(--card-bg);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--gray);
+    position: relative;
+    z-index: 2;
+    transition: var(--transition);
+}
+
+.step.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 15px rgba(10, 95, 42, 0.4);
+}
+
+.step.completed {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.step-label {
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    white-space: nowrap;
+    color: var(--gray);
+}
+
+.step.active .step-label,
+.step.completed .step-label {
+    color: var(--light);
+}
+
+.main-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow);
+}
+
+.card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+}
+
+.card-title i {
+    color: var(--accent);
+    font-size: 14px;
+}
+
+.form-step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.form-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #e5e7eb;
+}
+
+.form-label i {
+    color: var(--accent);
+    font-size: 12px;
+}
+
+.required::after {
+    content: ' *';
+    color: #ef4444;
+    font-size: 12px;
+}
+
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--light);
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.form-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(10, 95, 42, 0.2);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.duracao-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.duracao-group select {
+    width: 80px;
+    padding: 10px;
+}
+
+.duracao-group input {
+    flex: 1;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    font-size: 12px;
+    color: var(--light);
+    cursor: pointer;
+}
+
+.material-section, .tema-section {
+    background: rgba(10, 95, 42, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+.material-input-group, .tema-input-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.material-input-group input, .tema-input-group input {
+    flex: 1;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--light);
+    font-size: 12px;
+}
+
+.material-input-group button, .tema-input-group button {
+    padding: 8px 12px;
+    background: var(--primary);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.material-input-group button:hover, .tema-input-group button:hover {
+    background: var(--primary-dark);
+}
+
+#listaMateriais, #listaTemas {
+    list-style: none;
+    margin-top: 8px;
+}
+
+#listaMateriais li, #listaTemas li {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 10px;
+    border-radius: 5px;
+    margin-bottom: 3px;
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    flex: 1;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 95, 42, 0.4);
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+    flex: 1;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--light);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.geracao-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.btn-ia-inteligente {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    width: 100%;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    animation: pulseAzul 1.5s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-ia-basico {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    color: white;
+    width: 100%;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-ia-basico:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(75, 85, 99, 0.4);
+}
+
+@keyframes pulseAzul {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.btn-ia-inteligente:hover {
+    transform: translateY(-2px);
+    animation: none;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.objetivos-actions {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.btn-ia, .btn-write {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-ia {
+    background: linear-gradient(135deg, var(--secondary), #1d4ed8);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ia::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    20% { transform: translateX(100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.btn-write {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: white;
+}
+
+.btn-ia:hover, .btn-write:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.controles-edicao {
+    margin: 10px 0;
+    padding: 12px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+}
+
+.botoes-edicao {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.botao-edicao {
+    flex: 1;
+    min-width: 70px;
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.botao-adicionar { background: var(--success); color: white; }
+.botao-limpar { background: #dc2626; color: white; }
+.botao-concluir { background: var(--primary); color: white; }
+
+.instrucao-edicao {
+    font-size: 10px;
+    color: var(--gray);
+    background: rgba(0,0,0,0.2);
+    padding: 6px;
+    border-radius: 5px;
+}
+
+#objetivosCampo {
+    min-height: 120px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+#loaderPlano {
+    text-align: center;
+    padding: 30px;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: var(--shadow);
+}
+
+.circle {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.circle-outer {
+    width: 100px;
+    height: 100px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top: 4px solid var(--primary);
+    border-right: 4px solid var(--secondary);
+    border-bottom: 4px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+.circle-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.percentage {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--light);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader-steps {
+    margin-top: 25px;
+    text-align: left;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.loader-step-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.loader-step-item:last-child {
+    border-bottom: none;
+}
+
+.loader-step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: var(--transition);
+}
+
+.loader-step-icon.pending {
+    background: rgba(255,255,255,0.1);
+    color: var(--gray);
+}
+
+.loader-step-icon.active {
+    background: var(--accent);
+    color: var(--dark);
+    animation: pulse 1s infinite;
+}
+
+.loader-step-icon.completed {
+    background: var(--success);
+    color: white;
+}
+
+.loader-step-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--light);
+}
+
+.loader-step-status {
+    font-size: 11px;
+    color: var(--gray);
+}
+
+.loader-step-status.active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.loader-step-status.completed {
+    color: var(--success);
+}
+
+.loader-message {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--light);
+    font-weight: 500;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#loaderVoltarBtn {
+    margin-top: 20px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#loaderVoltarBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+}
+
+.streaming-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: var(--accent);
+    margin-left: 2px;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.streaming-container {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(37, 99, 235, 0.05));
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 3px solid var(--accent);
+    transition: var(--transition);
+    position: relative;
+    min-height: 120px;
+}
+
+.ia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, var(--secondary), #1d4ed8);
+    color: white;
+    font-size: 10px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.streaming-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--light);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.streaming-text strong {
+    color: var(--accent);
+}
+
+#planoFinal {
+    margin-top: 15px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+#planoFinal, 
+#planoFinal .preliminares-card,
+#planoFinal .objetivos-card,
+#planoFinal .table-container {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+#planoFinal [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    cursor: text;
+}
+
+.plano-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 8px;
+    color: white;
+}
+
+.plano-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.plano-header .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.preliminares-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.preliminares-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preliminares-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.preliminares-item {
+    margin-bottom: 12px;
+}
+
+.preliminares-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.preliminares-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827 !important;
+    word-break: break-word;
+    background: #f9fafb;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary);
+    line-height: 1.5;
+}
+
+.objetivos-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.objetivos-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#listaObjetivos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#listaObjetivos li {
+    background: #f9fafb;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+    font-size: 14px;
+    color: #111827 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: var(--transition);
+    line-height: 1.5;
+}
+
+#listaObjetivos li[contenteditable="true"] {
+    outline: none;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    cursor: text;
+}
+
+#listaObjetivos li[contenteditable="true"]:hover {
+    background: #f3f4f6;
+    border-left-color: var(--accent);
+}
+
+#listaObjetivos li[contenteditable="true"]:focus {
+    background: #fff3e0;
+    border-left-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    outline: none;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+    font-family: 'Times New Roman', Times, serif;
+    background: white;
+    table-layout: fixed;
+}
+
+th:nth-child(1) { width: 8%; }
+th:nth-child(2) { width: 12%; }
+th:nth-child(3) { width: 25%; }
+th:nth-child(4) { width: 15%; }
+th:nth-child(5) { width: 15%; }
+th:nth-child(6) { width: 12%; }
+th:nth-child(7) { width: 13%; }
+
+th {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+td:not([contenteditable="true"]) {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+td[contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-user-modify: read-write !important;
+    -moz-user-modify: read-write !important;
+    user-modify: read-write !important;
+    cursor: text;
+    background: #ffffff;
+    transition: var(--transition);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+td[contenteditable="true"]:hover {
+    background: #f3f4f6;
+    outline: 1px solid var(--accent);
+}
+
+td[contenteditable="true"]:focus {
+    background: #fff3e0;
+    outline: 2px solid var(--accent);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+}
+
+th {
+    background: #374151;
+    color: white;
+    padding: 12px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid #4b5563;
+    white-space: nowrap;
+}
+
+td {
+    padding: 12px 8px;
+    border: 1px solid #d1d5db;
+    font-size: 12px;
+    color: #111827;
+    background: white;
+    vertical-align: top;
+}
+
+td strong {
+    color: var(--primary);
+}
+
+td small {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.metodoSelect {
+    width: 100%;
+    padding: 6px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    color: #111827;
+    font-size: 11px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.metodoSelect:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(10, 95, 42, 0.1);
+}
+
+.metodoEscolhidoTexto {
+    font-size: 10px;
+    color: var(--primary) !important;
+    margin-top: 2px;
+    font-weight: 500;
+}
+
+.exercicio-item {
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent);
+}
+
+.exercicio-pergunta {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.exercicio-resposta {
+    color: #4b5563;
+    font-size: 11px;
+    padding-left: 12px;
+    border-left: 2px solid #e5e7eb;
+}
+
+#btnAdicionarAnexo, #btnExportarPDF {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+#btnAdicionarAnexo {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+#btnAdicionarAnexo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+#btnExportarPDF {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+#btnExportarPDF:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.btn-chatgpt-conteudo {
+    background: linear-gradient(135deg, #10a37f, #0e8a6c);
+    color: white;
+    width: auto;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(16, 163, 127, 0.3);
+}
+
+.btn-chatgpt-conteudo:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 163, 127, 0.4);
+}
+
+.btn-chatgpt-conteudo i {
+    font-size: 14px;
+}
+
+.alert {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 12px 18px;
+    background: #1f2937;
+    border-left: 4px solid var(--success);
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1001;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--shadow);
+}
+
+.alert.show {
+    transform: translateX(0);
+}
+
+.alert i {
+    font-size: 16px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 10px;
+    color: var(--gray);
+}
+
+.modal-chatgpt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-chatgpt-container {
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 20px;
+    position: relative;
+}
+
+.modal-chatgpt-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-chatgpt-header i {
+    font-size: 24px;
+    color: #10a37f;
+}
+
+.modal-chatgpt-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.modal-chatgpt-textarea {
+    width: 100%;
+    min-height: 250px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 15px;
+    color: white;
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: monospace;
+    resize: vertical;
+    margin: 15px 0;
+}
+
+.modal-chatgpt-textarea:focus {
+    outline: none;
+    border-color: #10a37f;
+}
+
+.modal-chatgpt-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.btn-modal-chatgpt {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-modal-chatgpt.analisar {
+    background: linear-gradient(135deg, #10a37f, #0e8a6c);
+    color: white;
+}
+
+.btn-modal-chatgpt.cancelar {
+    background: linear-gradient(135deg, #64748b, #475569);
+    color: white;
+}
+
+.fechar-modal-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.fechar-modal-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(90deg);
+}
+
+.mensagem-info {
+    background: rgba(16, 163, 127, 0.2);
+    border-left: 3px solid #10a37f;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    color: white;
+    font-size: 12px;
+}
+
+.mensagem-info i {
+    margin-right: 8px;
+}
+
+#anexoModalEmbutido {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.98);
+    backdrop-filter: blur(20px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.anexo-modal-container {
+    width: 100%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 20px;
+    position: relative;
+}
+
+.anexo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.anexo-header i {
+    font-size: 22px;
+    color: var(--accent);
+}
+
+.anexo-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.anexo-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.tab-btn[data-tab="texto"] {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.tab-btn[data-tab="chatgpt"] {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.tab-btn[data-tab="foto"] {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+}
+
+.tab-btn.active {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px -3px currentColor;
+}
+
+.anexo-panel {
+    display: none;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.anexo-panel.active {
+    display: block;
+}
+
+.anexo-textarea {
+    width: 100%;
+    min-height: 200px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px;
+    color: white;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.btn-ia {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-ia:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+}
+
+.foto-botoes {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.btn-foto {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-foto.camera {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+
+.btn-foto.galeria {
+    background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+}
+
+.btn-foto:hover {
+    transform: translateY(-2px);
+}
+
+.preview-foto {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 12px 0;
+}
+
+.cropper-controls {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    display: none;
+}
+
+.cropper-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.btn-cropper {
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.3s ease;
+}
+
+.btn-cropper:hover {
+    background: rgba(139, 92, 246, 0.3);
+}
+
+.btn-cropper.primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    width: 100%;
+}
+
+.anexo-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-footer {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-footer.salvar {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.btn-footer.cancelar {
+    background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.btn-footer:hover {
+    transform: translateY(-2px);
+}
+
+.input-hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .anexo-tabs { flex-direction: column; }
+    .foto-botoes { flex-direction: column; }
+    .anexo-footer { flex-direction: column; }
+    .cropper-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+<script>
+(function() {
+  var metaAd = document.createElement('meta');
+  metaAd.name = "google-adsense-account";
+  metaAd.content = "ca-pub-8468056906401026";
+  document.head.appendChild(metaAd);
+
+  var gaScript = document.createElement('script');
+  gaScript.async = true;
+  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-02K874D1P0";
+  document.head.appendChild(gaScript);
+
+  var gaInline = document.createElement('script');
+  gaInline.innerHTML = `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-02K874D1P0');
+  `;
+  document.head.appendChild(gaInline);
+})();
+</script>
+</head>
+<body>
+<div class="app-container">
+    <div id="formHeader" class="form-header">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+        </div>
+        <h1>GERADOR DE PLANO DE AULA</h1>
+        <p class="subtitle">GePAQ Stunner System • Ministério da Educação</p>
+    </div>
+
+    <div id="progressBar" class="progress-container">
+        <div class="progress-steps">
+            <div class="step active" id="step1-indicator"><span>1</span><span class="step-label">DADOS</span></div>
+            <div class="step" id="step2-indicator"><span>2</span><span class="step-label">AULA</span></div>
+            <div class="step" id="step3-indicator"><span>3</span><span class="step-label">OBJECTIVOS</span></div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <form name="planoForm" onsubmit="event.preventDefault()">
+            <div id="step1" class="form-step active">
+                <h3 class="card-title"><i class="fas fa-school"></i> INSTITUIÇÃO</h3>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-school"></i> Escola</label><input type="text" name="escola" class="form-input" placeholder="Nome da escola" required></div>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-user-tie"></i> Professor</label><input type="text" name="professor" class="form-input" placeholder="Nome completo" required></div>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-book"></i> Disciplina</label><input type="text" name="disciplina" class="form-input" placeholder="Ex: Matemática" required></div>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-graduation-cap"></i> Classe</label><select name="classe" class="form-select" required><option value="">Selecione</option><option value="1ª">1ª Classe</option><option value="2ª">2ª Classe</option><option value="3ª">3ª Classe</option><option value="4ª">4ª Classe</option><option value="5ª">5ª Classe</option><option value="6ª">6ª Classe</option><option value="7ª">7ª Classe</option><option value="8ª">8ª Classe</option><option value="9ª">9ª Classe</option><option value="10ª">10ª Classe</option><option value="11ª">11ª Classe</option><option value="12ª">12ª Classe</option></select></div>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-clock"></i> Período</label><select name="periodo" class="form-select" required><option value="">Selecione</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option><option value="Noite">Noite</option></select></div>
+                <div style="display:flex;gap:8px;margin-top:12px;"><button type="button" class="btn btn-primary" onclick="nextStep(1)">SEGUIR <i class="fas fa-arrow-right"></i></button></div>
+            </div>
+
+            <div id="step2" class="form-step">
+                <h3 class="card-title"><i class="fas fa-calendar-alt"></i> DETALHES DA AULA</h3>
+                <div class="form-row"><div class="form-group"><label class="form-label required"><i class="fas fa-tag"></i> Unidade Temática</label><input type="text" name="unidade" class="form-input" placeholder="Unidade" required></div><div class="form-group"><label class="form-label required"><i class="fas fa-tag"></i> Tema</label><input type="text" name="tema" class="form-input" placeholder="Tema da aula" maxlength="100" required></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label required"><i class="fas fa-users"></i> Turma</label><input type="text" name="turma" class="form-input" placeholder="Ex: A" required></div><div class="form-group"><label class="form-label"><i class="fas fa-hashtag"></i> Lição nº</label><input type="number" name="licao" class="form-input" min="1" placeholder="Opcional"></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label required"><i class="fas fa-clock"></i> Duração (min)</label><div class="duracao-group"><select name="duracao_select" class="form-select" style="width:80px;" onchange="toggleDuracaoCustom(this)"><option value="40">40</option><option value="45" selected>45</option><option value="90">90</option><option value="custom">Outro</option></select><input type="number" name="duracao" class="form-input" placeholder="Digite" min="1" style="display:none;" oninput="validarDuracao(this)"></div></div><div class="form-group"><label class="form-label"><i class="fas fa-calendar-day"></i> Data</label><input type="date" name="data" class="form-input"></div></div>
+                <div class="form-group"><label class="form-label required"><i class="fas fa-clipboard-list"></i> Tipo de Aula</label><input type="text" name="tipo" class="form-input" placeholder="Ex: Expositiva" required></div>
+                <div class="checkbox-group"><input type="checkbox" id="usarMateriais" onchange="alternarCampoMaterial()"><label for="usarMateriais"><i class="fas fa-boxes"></i> Possui Material Didáctico?</label></div>
+                <div id="adicionarMaterialDiv" style="display:none;" class="material-section"><div class="material-input-group"><input type="text" id="inputMaterial" placeholder="Ex: cartaz, marcador"><button type="button" onclick="adicionarMaterial()">ADICIONAR</button></div><ul id="listaMateriais"></ul></div>
+                <div class="checkbox-group"><input type="checkbox" id="usarTemas" onchange="alternarCampoTema()"><label for="usarTemas"><i class="fas fa-project-diagram"></i> Possui Tema Transversal?</label></div>
+                <div id="adicionarTemaDiv" style="display:none;" class="tema-section"><div class="tema-input-group"><input type="text" id="inputTema" placeholder="Ex: Educação Ambiental"><button type="button" onclick="adicionarTema()">ADICIONAR</button></div><ul id="listaTemas"></ul></div>
+                <div style="display:flex;gap:8px;margin-top:15px;"><button type="button" class="btn btn-outline" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> VOLTAR</button><button type="button" class="btn btn-primary" onclick="nextStep(2)">SEGUIR <i class="fas fa-arrow-right"></i></button></div>
+            </div>
+
+            <div id="step3" class="form-step">
+                <h3 class="card-title"><i class="fas fa-bullseye"></i> OBJECTIVOS ESPECÍFICOS</h3>
+                <div class="form-group"><textarea id="objetivosCampo" name="objetivos" class="form-textarea" placeholder="Os objectivos aparecerão aqui..." required></textarea></div>
+                <div class="objetivos-actions"><button type="button" class="btn-ia" onclick="gerarObjetivosStreaming()">AUTOMÁTICOS</button><button type="button" class="btn-write" onclick="habilitarEdicaoObjetivos()"><i class="fas fa-pen"></i> DIGITAR</button></div>
+                <div id="controlesEdicao" class="controles-edicao" style="display:none;"><div class="botoes-edicao"><button type="button" onclick="adicionarObjetivo()" class="botao-edicao botao-adicionar"><i class="fas fa-plus"></i> ADICIONAR</button><button type="button" onclick="limparObjetivos()" class="botao-edicao botao-limpar"><i class="fas fa-trash"></i> LIMPAR</button><button type="button" onclick="desabilitarEdicaoObjetivos()" class="botao-edicao botao-concluir"><i class="fas fa-check"></i> CONCLUIR</button></div><div class="instrucao-edicao"><i class="fas fa-info-circle"></i> Um objectivo por linha (máx. 3)</div></div>
+                <div class="geracao-container"><button type="button" class="btn-ia-inteligente" onclick="iniciarGeracaoPlano('inteligente')"><i class="fas fa-brain"></i> GERAR PLANO INTELIGENTE</button><button type="button" class="btn-ia-basico" onclick="iniciarGeracaoPlano('basico')"><i class="fas fa-file-alt"></i> GERAR PLANO BÁSICO</button></div>
+                <div style="display:flex;gap:8px;margin-top:10px;"><button type="button" class="btn btn-outline" onclick="prevStep(3)"><i class="fas fa-arrow-left"></i> VOLTAR</button></div>
+            </div>
+        </form>
+    </div>
+
+    <div class="alert" id="alert"><i class="fas fa-check-circle"></i><span id="alert-message">Mensagem</span></div>
+
+    <div id="loaderPlano" style="display:none;">
+        <div class="circle"><div class="circle-outer"></div><div class="circle-inner"><div class="percentage" id="percentText">0%</div></div></div>
+        <div class="loader-steps" id="loaderSteps">
+            <div class="loader-step-item" id="stepObjetivos"><div class="loader-step-icon pending" id="iconObjetivos"><i class="fas fa-bullseye"></i></div><div class="loader-step-text">Gerando objectivos...</div><div class="loader-step-status pending" id="statusObjetivos">pendente</div></div>
+            <div class="loader-step-item" id="stepConteudos"><div class="loader-step-icon pending" id="iconConteudos"><i class="fas fa-book-open"></i></div><div class="loader-step-text">Criando conteúdos da aula...</div><div class="loader-step-status pending" id="statusConteudos">pendente</div></div>
+            <div class="loader-step-item" id="stepExercicios"><div class="loader-step-icon pending" id="iconExercicios"><i class="fas fa-tasks"></i></div><div class="loader-step-text">Elaborando exercícios...</div><div class="loader-step-status pending" id="statusExercicios">pendente</div></div>
+            <div class="loader-step-item" id="stepMeios"><div class="loader-step-icon pending" id="iconMeios"><i class="fas fa-cubes"></i></div><div class="loader-step-text">Sugerindo meios de ensino...</div><div class="loader-step-status pending" id="statusMeios">pendente</div></div>
+            <div class="loader-step-item" id="stepFinal"><div class="loader-step-icon pending" id="iconFinal"><i class="fas fa-check-circle"></i></div><div class="loader-step-text">Finalizando plano...</div><div class="loader-step-status pending" id="statusFinal">pendente</div></div>
+        </div>
+        <div class="loader-message" id="loaderMessage">Iniciando geração inteligente...</div>
+        <button id="loaderVoltarBtn" onclick="cancelarLoader()"><i class="fas fa-times"></i> CANCELAR</button>
+    </div>
+
+    <button id="btnVoltarFormulario" onclick="voltarAoFormulario()" style="display:none;" class="btn btn-outline"><i class="fas fa-arrow-up"></i> VOLTAR AO FORMULÁRIO</button>
+
+    <div id="planoFinal" style="display:none;">
+        <div class="plano-header"><h3><i class="fas fa-file-alt"></i> PLANO DE AULA</h3><button class="btn btn-outline" onclick="voltarAoFormulario()"><i class="fas fa-arrow-left"></i> VOLTAR</button></div>
+        <div class="preliminares-card"><div class="preliminares-title"><i class="fas fa-info-circle"></i> DADOS PRELIMINARES</div><div class="preliminares-grid"><div id="dadosEsquerda"></div><div id="dadosDireita"></div></div></div>
+        <div class="objetivos-card"><div class="objetivos-title"><i class="fas fa-bullseye"></i> OBJECTIVOS ESPECÍFICOS</div><ul id="listaObjetivos"></ul><div style="font-size:11px;color:#4b5563;text-align:right;"><i class="fas fa-edit"></i> Clique nos objectivos para editar</div></div>
+        <div class="table-container"><table id="tabelaPlano"><thead><tr><th>TEMPO</th><th>FUNÇÕES<br>DIDÁCTICAS</th><th>CONTEÚDOS</th><th>ACTIVIDADES<br>DO PROFESSOR</th><th>ACTIVIDADES<br>DOS ALUNOS</th><th>MÉTODOS<br>DE ENSINO</th><th>MEIOS<br>DE ENSINO</th></tr></thead><tbody id="tabelaCorpo"></tbody></table></div>
+        <button id="btnAdicionarAnexo" type="button" onclick="abrirModalAnexo()"><i class="fas fa-paperclip"></i> ADICIONAR ANEXO / QUADRO MURAL</button>
+        <div id="anexoPreview" style="display:none;"></div>
+        <button id="btnExportarPDF" type="button" onclick="irParaPagamento()"><i class="fas fa-file-pdf"></i> EXPORTAR PLANO / BAIXAR PDF</button>
+    </div>
+
+    <footer class="footer"><p>© 2026 Sistema de Geração de Planos de Aula</p><p>GePAQ Stunner System</p></footer>
+</div>
+
+<div id="anexoModalEmbutido">
+    <div class="anexo-modal-container">
+        <button class="fechar-modal-btn" onclick="fecharModalAnexo()"><i class="fas fa-times"></i></button>
+        <div class="anexo-header"><i class="fas fa-paperclip"></i><h3>ADICIONAR ANEXO AO PLANO</h3></div>
+        <div class="anexo-tabs"><button class="tab-btn active" data-tab="texto" onclick="mudarAba('texto')"><i class="fas fa-file-alt"></i> DIGITAR TEXTO</button><button class="tab-btn" data-tab="chatgpt" onclick="mudarAba('chatgpt')"><i class="fas fa-robot"></i> CONTEÚDO AUTOMÁTICO</button><button class="tab-btn" data-tab="foto" onclick="mudarAba('foto')"><i class="fas fa-camera"></i> FOTO DO LIVRO</button></div>
+        <div id="painelTexto" class="anexo-panel active"><textarea id="textoManual" class="anexo-textarea" placeholder="📝 Digite aqui o texto do anexo..."></textarea></div>
+        <div id="painelChatGPT" class="anexo-panel"><div class="mensagem-info"><i class="fas fa-magic"></i> O GePAQ irá gerar conteúdos didácticos baseados no tema da aula</div><button class="btn-ia" onclick="gerarConteudoIA()"><i class="fas fa-bolt"></i> CONTEÚDOS AUTOMÁTICOS</button><div id="streamingContainer" class="streaming-container" style="display:none;"><div class="ia-badge"><i class="fas fa-robot"></i> Gerando...</div><div id="streamingTexto" class="streaming-text"></div><span class="streaming-cursor"></span></div><textarea id="textoIA" class="anexo-textarea" placeholder="✨ O conteúdo gerado aparecerá aqui..."></textarea></div>
+        <div id="painelFoto" class="anexo-panel"><div class="mensagem-info"><i class="fas fa-camera-retro"></i> Tire ou selecione uma foto do livro/material didático</div><div class="foto-botoes"><button class="btn-foto camera" onclick="abrirCamera()"><i class="fas fa-camera"></i> ABRIR CÂMERA</button><button class="btn-foto galeria" onclick="abrirGaleria()"><i class="fas fa-images"></i> SELECIONAR FOTO</button></div><input id="inputCamera" type="file" accept="image/*" capture="environment" class="input-hidden" onchange="carregarFoto(this)"><input id="inputGaleria" type="file" accept="image/*" class="input-hidden" onchange="carregarFoto(this)"><div id="previewFoto" class="preview-foto"><div><i class="fas fa-cloud-upload-alt" style="font-size:40px;margin-bottom:10px;"></i><p>Nenhuma imagem selecionada</p></div></div><div id="cropperControls" class="cropper-controls"><div class="cropper-grid"><button class="btn-cropper" onclick="rotacionarEsquerda()"><i class="fas fa-undo-alt"></i> -90°</button><button class="btn-cropper" onclick="rotacionarDireita()"><i class="fas fa-redo-alt"></i> +90°</button><button class="btn-cropper" onclick="zoomMais()"><i class="fas fa-search-plus"></i> +</button><button class="btn-cropper" onclick="zoomMenos()"><i class="fas fa-search-minus"></i> -</button><button class="btn-cropper" onclick="resetarCropper()"><i class="fas fa-sync-alt"></i> RESET</button></div><button class="btn-cropper primary" onclick="aplicarCorte()"><i class="fas fa-check"></i> APLICAR RECORTE</button></div></div>
+        <div class="anexo-footer"><button class="btn-footer salvar" onclick="salvarAnexoDoModal()"><i class="fas fa-save"></i> SALVAR ANEXO</button><button class="btn-footer cancelar" onclick="fecharModalAnexo()"><i class="fas fa-times"></i> CANCELAR</button></div>
+    </div>
+</div>
+
+<div id="modalChatGPT" class="modal-chatgpt">
+    <div class="modal-chatgpt-container">
+        <button class="fechar-modal-btn" onclick="fecharModalChatGPT()"><i class="fas fa-times"></i></button>
+        <div class="modal-chatgpt-header"><i class="fab fa-chatgpt"></i><h3>ADICIONAR CONTEÚDOS DO CHATGPT</h3></div>
+        <div class="mensagem-info"><i class="fas fa-info-circle"></i> 1. Clique no botão abaixo para abrir o ChatGPT com o prompt pré-preenchido<br>2. Copie a resposta gerada pelo ChatGPT<br>3. Cole no campo abaixo e clique em "ANALISAR E APLICAR AO PLANO"</div>
+        <button class="btn-chatgpt-conteudo" onclick="abrirChatGPTComPrompt()" style="width:100%;margin-bottom:20px;"><i class="fab fa-chatgpt"></i> ABRIR CHATGPT COM PROMPT</button>
+        <textarea id="conteudoChatGPT" class="modal-chatgpt-textarea" placeholder="Cole aqui o conteúdo gerado pelo ChatGPT..."></textarea>
+        <div class="modal-chatgpt-footer"><button class="btn-modal-chatgpt analisar" onclick="analisarEAplicarConteudoChatGPT()"><i class="fas fa-magic"></i> ANALISAR E APLICAR AO PLANO</button><button class="btn-modal-chatgpt cancelar" onclick="fecharModalChatGPT()"><i class="fas fa-times"></i> CANCELAR</button></div>
+    </div>
+</div>
+
+<div id="anexoContainerContent" style="display:none;"></div>
+
+<script>
+// =============================================
+// CONFIGURAÇÕES DA IA
+// =============================================
+const TOGETHER_API_KEY = 'tgp_v1_gc3gQAdtdFbrF7kFc0IV7C4kwzTiRJIqZEZUmj4KGsI';
+
+const IA_CONFIG = {
+    TOGETHER: { MODELO: 'mistralai/Mixtral-8x7B-Instruct-v0.1', API_KEY: TOGETHER_API_KEY },
+    OPENROUTER: { MODELO: 'deepseek/deepseek-chat-v3-0324:free' },
+    DEEPSEEK: { MODELO: 'deepseek-chat' },
+    GEMINI: { MODELO: 'gemini-2.5-flash-lite' },
+    TIMEOUT: 15000,
+    MAX_REQUISICOES_POR_MINUTO: 15,
+    stats: {
+        requisicoesHoje: 0,
+        errosHoje: 0,
+        fallbacksHoje: 0,
+        togetherRequisicoes: 0,
+        ultimoReset: new Date().toDateString(),
+        usouFallbackLocal: false
+    }
+};
+
+const GATEWAY_URL = 'https://gepaq.benjanuariosite.workers.dev';
+
+let currentStep = 1;
+let modoEdicao = false;
+let tipoGeracaoAtual = 'basico';
+let streamingInterval = null;
+let _planoLoaderInterval = null;
+let planoGerado = false;
+let dadosIAUltimaGeracao = null;
+
+let materiais = [];
+let temasTransversais = [];
+let cropper = null;
+let imagemAtual = null;
+let abaAtiva = 'texto';
+let streamingIntervalAnexo = null;
+let anexoSalvo = null;
+
+const metodosEnsino = [
+    "Elaboração conjunta", "Expositivo-Explicativo", "Trabalho Independente",
+    "Trabalho em Grupo", "Participativo / Interativo", "Demonstrativo / Prático",
+    "Resolução de Problemas"
+];
+
+const TAXONOMIA_BLOOM = {
+    cognitivo: {
+        basico: ['Identificar', 'Reconhecer', 'Nomear', 'Descrever', 'Listar', 'Definir'],
+        intermediario: ['Explicar', 'Comparar', 'Classificar', 'Analisar', 'Relacionar', 'Aplicar'],
+        avancado: ['Avaliar', 'Sintetizar', 'Criar', 'Formular', 'Propor', 'Criticar']
+    },
+    psicomotor: {
+        basico: ['Demonstrar', 'Executar', 'Utilizar', 'Reproduzir', 'Manipular'],
+        intermediario: ['Construir', 'Montar', 'Organizar', 'Calcular', 'Medir'],
+        avancado: ['Projetar', 'Desenvolver', 'Compor', 'Coordenar', 'Criar']
+    },
+    afetivo: {
+        basico: ['Valorizar', 'Respeitar', 'Aceitar', 'Participar', 'Cooperar'],
+        intermediario: ['Comprometer-se', 'Defender', 'Justificar', 'Compartilhar'],
+        avancado: ['Internalizar', 'Caracterizar', 'Liderar', 'Influenciar']
+    }
+};
+
+// =============================================
+// FUNÇÕES DE UTILIDADE
+// =============================================
+function mostrarAlerta(mensagem, tipo = 'info') {
+    const alert = document.getElementById('alert');
+    const alertMessage = document.getElementById('alert-message');
+    const icon = alert.querySelector('i');
+    
+    alertMessage.textContent = mensagem;
+    
+    if (tipo === 'success') {
+        alert.style.borderLeftColor = '#10b981';
+        icon.className = 'fas fa-check-circle';
+    } else if (tipo === 'warning') {
+        alert.style.borderLeftColor = '#f59e0b';
+        icon.className = 'fas fa-exclamation-triangle';
+    } else if (tipo === 'error') {
+        alert.style.borderLeftColor = '#ef4444';
+        icon.className = 'fas fa-times-circle';
+    }
+    
+    alert.classList.add('show');
+    setTimeout(() => alert.classList.remove('show'), 3000);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function criarSelectMetodo(selected) {
+    const id = 'metodo_' + Math.random().toString(36).substr(2, 9);
+    let s = `<select class="metodoSelect" id="${id}" onchange="mostrarMetodoEscolhido(this)">`;
+    s += `<option value="">-- Selecione --</option>`;
+    for (const m of metodosEnsino) {
+        s += `<option value="${m}" ${m === selected ? 'selected' : ''}>${m}</option>`;
+    }
+    s += `</select>`;
+    s += `<div class="metodoEscolhidoTexto" style="font-size:10px;color:#0a5f2a;margin-top:2px;">${selected || ""}</div>`;
+    return s;
+}
+
+function mostrarMetodoEscolhido(selectEl) {
+    const container = selectEl.nextElementSibling;
+    container.textContent = selectEl.value || "";
+}
+
+function getDuracao() {
+    const select = document.querySelector('select[name="duracao_select"]');
+    const input = document.querySelector('input[name="duracao"]');
+    if (select.value === 'custom') return parseInt(input.value) || 45;
+    return parseInt(select.value);
+}
+
+function validarDuracao(input) {
+    if (input.value < 1) input.value = 1;
+}
+
+function toggleDuracaoCustom(select) {
+    const customInput = document.querySelector('input[name="duracao"]');
+    if (select.value === 'custom') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+        customInput.value = '';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+        customInput.value = select.value;
+    }
+}
+
+function alternarCampoMaterial() {
+    document.getElementById('adicionarMaterialDiv').style.display = document.getElementById('usarMateriais').checked ? 'block' : 'none';
+}
+
+function adicionarMaterial() {
+    if (materiais.length >= 4) {
+        mostrarAlerta('Máximo de 4 materiais', 'warning');
+        return;
+    }
+    const input = document.getElementById('inputMaterial');
+    const valor = input.value.trim();
+    if (!valor) {
+        mostrarAlerta('Escreva o material', 'warning');
+        return;
+    }
+    materiais.push(valor);
+    const li = document.createElement('li');
+    li.innerHTML = `<i class="fas fa-cube"></i> ${valor}`;
+    document.getElementById('listaMateriais').appendChild(li);
+    input.value = '';
+    mostrarAlerta('Material adicionado', 'success');
+}
+
+function alternarCampoTema() {
+    document.getElementById('adicionarTemaDiv').style.display = document.getElementById('usarTemas').checked ? 'block' : 'none';
+}
+
+function adicionarTema() {
+    if (temasTransversais.length >= 3) {
+        mostrarAlerta('Máximo de 3 temas', 'warning');
+        return;
+    }
+    const input = document.getElementById('inputTema');
+    const valor = input.value.trim();
+    if (!valor) {
+        mostrarAlerta('Escreva o tema', 'warning');
+        return;
+    }
+    temasTransversais.push(valor);
+    const li = document.createElement('li');
+    li.innerHTML = `<i class="fas fa-project-diagram"></i> ${valor}`;
+    document.getElementById('listaTemas').appendChild(li);
+    input.value = '';
+    mostrarAlerta('Tema adicionado', 'success');
+}
+
+function showStep(step) {
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById(`step${step}`).classList.add('active');
+    
+    document.getElementById('step1-indicator').classList.remove('active', 'completed');
+    document.getElementById('step2-indicator').classList.remove('active', 'completed');
+    document.getElementById('step3-indicator').classList.remove('active', 'completed');
+    
+    if (step >= 1) document.getElementById('step1-indicator').classList.add(step > 1 ? 'completed' : 'active');
+    if (step >= 2) document.getElementById('step2-indicator').classList.add(step > 2 ? 'completed' : 'active');
+    if (step >= 3) document.getElementById('step3-indicator').classList.add('active');
+    currentStep = step;
+}
+
+function nextStep(current) {
+    const form = document.forms['planoForm'];
+    if (current === 1) {
+        if (!form.escola.value.trim() || !form.professor.value.trim() || !form.disciplina.value.trim() || !form.classe.value || !form.periodo.value) {
+            mostrarAlerta('Preencha todos os campos obrigatórios', 'warning');
+            return;
+        }
+        showStep(2);
+    } else if (current === 2) {
+        if (!form.unidade.value.trim() || !form.tema.value.trim() || !form.turma.value.trim() || !form.tipo.value.trim()) {
+            mostrarAlerta('Preencha todos os campos obrigatórios', 'warning');
+            return;
+        }
+        const duracaoSelect = document.querySelector('select[name="duracao_select"]');
+        const duracaoInput = document.querySelector('input[name="duracao"]');
+        if (duracaoSelect.value === 'custom') {
+            if (!duracaoInput.value || parseInt(duracaoInput.value) < 1) {
+                mostrarAlerta('Digite uma duração válida', 'warning');
+                return;
+            }
+        }
+        showStep(3);
+    }
+}
+
+function prevStep(current) {
+    if (current === 2) showStep(1);
+    else if (current === 3) showStep(2);
+}
+
+function cancelarLoader() {
+    if (_planoLoaderInterval) {
+        clearInterval(_planoLoaderInterval);
+        _planoLoaderInterval = null;
+    }
+    document.getElementById('loaderPlano').style.display = 'none';
+    document.forms['planoForm'].style.display = 'block';
+    document.getElementById('planoFinal').style.display = 'none';
+    document.getElementById('btnVoltarFormulario').style.display = 'none';
+    document.getElementById('formHeader').style.display = 'block';
+    document.getElementById('progressBar').style.display = 'block';
+    showStep(1);
+    planoGerado = false;
+}
+
+function voltarAoFormulario() {
+    document.forms['planoForm'].style.display = 'block';
+    document.getElementById('planoFinal').style.display = 'none';
+    document.getElementById('btnVoltarFormulario').style.display = 'none';
+    document.getElementById('formHeader').style.display = 'block';
+    document.getElementById('progressBar').style.display = 'block';
+    showStep(1);
+    planoGerado = false;
+}
+
+function irParaPagamento() {
+    const selects = document.querySelectorAll('#tabelaPlano select.metodoSelect');
+    selects.forEach(sel => {
+        const td = sel.parentElement;
+        td.innerHTML = sel.value || "—";
+    });
+    const form = document.forms['planoForm'];
+    const planoData = {
+        escola: form.escola.value,
+        professor: form.professor.value,
+        disciplina: form.disciplina.value,
+        unidade: form.unidade.value,
+        tema: form.tema.value,
+        tipo: form.tipo.value,
+        classe: form.classe.value,
+        turma: form.turma.value,
+        licao: form.licao.value,
+        duracao: getDuracao(),
+        periodo: form.periodo.value,
+        data: form.data.value,
+        materiais: materiais,
+        temas: temasTransversais,
+        objetivos: document.getElementById('objetivosCampo').value,
+        tabela: document.getElementById('tabelaPlano').outerHTML,
+        html: document.getElementById('planoFinal').innerHTML,
+        tipoGeracao: tipoGeracaoAtual
+    };
+    sessionStorage.setItem('planoData', JSON.stringify(planoData));
+    window.location.href = "gratisunluck.html";
+}
+
+function formatarConteudosMediacao(conteudo) {
+    if (!conteudo) return '';
+    let textoSemTags = conteudo.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    let frases = textoSemTags.split(/[.;]/).filter(f => f.trim().length > 0);
+    let resultado = '';
+    for (let frase of frases) {
+        if (frase.trim()) {
+            resultado += frase.trim() + '<br>';
+        }
+    }
+    return resultado;
+}
+
+function formatarExercicios(exercicios) {
+    if (!exercicios || !exercicios.length) return '';
+    let html = '<strong>EXERCÍCIOS DE APLICAÇÃO</strong><br><br>';
+    exercicios.forEach((ex, idx) => {
+        html += `<div class="exercicio-item">`;
+        html += `<div class="exercicio-pergunta">${idx+1}. ${ex.pergunta}</div>`;
+        html += `<div class="exercicio-resposta"><strong>R:</strong> ${ex.resposta}</div>`;
+        html += `</div>`;
+    });
+    return html;
+}
+
+function calcularTempos(duracaoTotal) {
+    const percentuais = [11.11, 44.44, 22.22, 22.22];
+    return percentuais.map(p => Math.round(duracaoTotal * p / 100) + ' min');
+}
+
+function atualizarStepLoader(step, status, mensagem) {
+    const stepMap = {
+        'objetivos': { icon: 'iconObjetivos', status: 'statusObjetivos' },
+        'conteudos': { icon: 'iconConteudos', status: 'statusConteudos' },
+        'exercicios': { icon: 'iconExercicios', status: 'statusExercicios' },
+        'meios': { icon: 'iconMeios', status: 'statusMeios' },
+        'final': { icon: 'iconFinal', status: 'statusFinal' }
+    };
+    if (!stepMap[step]) return;
+    const iconEl = document.getElementById(stepMap[step].icon);
+    const statusEl = document.getElementById(stepMap[step].status);
+    if (!iconEl || !statusEl) return;
+    iconEl.className = `loader-step-icon ${status}`;
+    statusEl.className = `loader-step-status ${status}`;
+    switch(status) {
+        case 'active': statusEl.textContent = 'em progresso'; break;
+        case 'completed': statusEl.textContent = 'concluído'; break;
+        default: statusEl.textContent = 'pendente';
+    }
+    if (mensagem) document.getElementById('loaderMessage').textContent = mensagem;
+}
+
+function mostrarLoader(tipo, callback) {
+    const loader = document.getElementById('loaderPlano');
+    const percentText = document.getElementById('percentText');
+    loader.style.display = 'block';
+    percentText.textContent = '0%';
+    const steps = ['objetivos', 'conteudos', 'exercicios', 'meios', 'final'];
+    steps.forEach(step => atualizarStepLoader(step, 'pending'));
+    let progress = 0;
+    let currentStep = 0;
+    const stepProgress = [20, 40, 60, 80, 100];
+    atualizarStepLoader('objetivos', 'active', 'Gerando objectivos...');
+    const interval = setInterval(() => {
+        progress++;
+        percentText.textContent = progress + '%';
+        if (currentStep < stepProgress.length && progress >= stepProgress[currentStep]) {
+            const stepNames = ['objetivos', 'conteudos', 'exercicios', 'meios', 'final'];
+            if (currentStep > 0) atualizarStepLoader(stepNames[currentStep-1], 'completed');
+            if (currentStep < stepNames.length) {
+                const nextStepName = stepNames[currentStep];
+                const messages = ['Gerando objectivos...', 'Criando conteúdos da aula...', 'Elaborando exercícios...', 'Sugerindo meios de ensino...', 'Finalizando plano...'];
+                atualizarStepLoader(nextStepName, 'active', messages[currentStep]);
+            }
+            currentStep++;
+        }
+        if (progress >= 100) {
+            clearInterval(interval);
+            _planoLoaderInterval = null;
+            steps.forEach(step => atualizarStepLoader(step, 'completed'));
+            atualizarStepLoader('final', 'completed', 'Plano gerado com sucesso!');
+            setTimeout(() => { loader.style.display = 'none'; if (callback) callback(); }, 800);
+        }
+    }, 60);
+    _planoLoaderInterval = interval;
+}
+
+// =============================================
+// CHAMADAS ÀS IAs
+// =============================================
+async function chamarTogetherAPI(prompt) {
+    const url = 'https://api.together.xyz/v1/chat/completions';
+    const messages = [
+        { role: 'system', content: 'Você é um especialista em educação em Moçambique. Responda sempre em português de Portugal.' },
+        { role: 'user', content: prompt }
+    ];
+    console.log('🔄 [TOGETHER] Enviando requisição...');
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${TOGETHER_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: IA_CONFIG.TOGETHER.MODELO,
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 1024
+        })
+    });
+    if (!response.ok) {
+        const erro = await response.text();
+        console.error('❌ [TOGETHER] Erro:', response.status, erro);
+        throw new Error(`Together falhou: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('✅ [TOGETHER] Sucesso!');
+    IA_CONFIG.stats.togetherRequisicoes++;
+    return data.choices[0].message.content;
+}
+
+async function chamarOpenRouter(prompt) {
+    const messages = [{ role: 'user', content: prompt }];
+    const response = await fetch(GATEWAY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider: 'openrouter',
+            messages: messages,
+            model: IA_CONFIG.OPENROUTER.MODELO,
+            temperature: 0.7,
+            max_tokens: 1024
+        })
+    });
+    if (!response.ok) throw new Error(`OpenRouter falhou: ${response.status}`);
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+async function chamarDeepSeek(prompt) {
+    const messages = [{ role: 'user', content: prompt }];
+    const response = await fetch(GATEWAY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider: 'deepseek',
+            messages: messages,
+            model: IA_CONFIG.DEEPSEEK.MODELO,
+            temperature: 0.7,
+            max_tokens: 1024
+        })
+    });
+    if (!response.ok) throw new Error(`DeepSeek falhou: ${response.status}`);
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+async function chamarGemini(prompt) {
+    const messages = [{ role: 'user', content: prompt }];
+    const response = await fetch(GATEWAY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider: 'gemini',
+            messages: messages,
+            model: IA_CONFIG.GEMINI.MODELO,
+            temperature: 0.7,
+            max_tokens: 1024
+        })
+    });
+    if (!response.ok) throw new Error(`Gemini falhou: ${response.status}`);
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+}
+
+async function chamarIAComFallback(prompt) {
+    const erros = [];
+    try {
+        console.log('🔄 Tentando Together (chave direta)...');
+        const resultado = await chamarTogetherAPI(prompt);
+        console.log('✅ Together funcionou!');
+        IA_CONFIG.stats.usouFallbackLocal = false;
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'none';
+        return resultado;
+    } catch (error) {
+        console.warn('⚠️ Together falhou:', error.message);
+        erros.push(`Together: ${error.message}`);
+    }
+    try {
+        console.log('🔄 Tentando OpenRouter...');
+        const resultado = await chamarOpenRouter(prompt);
+        IA_CONFIG.stats.usouFallbackLocal = false;
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'none';
+        return resultado;
+    } catch (error) {
+        erros.push(`OpenRouter: ${error.message}`);
+    }
+    try {
+        console.log('🔄 Tentando DeepSeek...');
+        const resultado = await chamarDeepSeek(prompt);
+        IA_CONFIG.stats.usouFallbackLocal = false;
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'none';
+        return resultado;
+    } catch (error) {
+        erros.push(`DeepSeek: ${error.message}`);
+    }
+    try {
+        console.log('🔄 Tentando Gemini...');
+        const resultado = await chamarGemini(prompt);
+        IA_CONFIG.stats.usouFallbackLocal = false;
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'none';
+        return resultado;
+    } catch (error) {
+        erros.push(`Gemini: ${error.message}`);
+    }
+    console.log('🔄 Todas falharam, usando fallback local');
+    IA_CONFIG.stats.usouFallbackLocal = true;
+    const containerBotao = document.getElementById('containerBotaoConteudo');
+    if (containerBotao) containerBotao.style.display = 'inline-flex';
+    throw new Error(`Todas falharam: ${erros.join(' | ')}`);
+}
+
+// =============================================
+// GERAÇÃO DE OBJECTIVOS
+// =============================================
+function gerarObjetivosStreaming() {
+    const tema = document.forms['planoForm'].tema.value.trim();
+    const disciplina = document.forms['planoForm'].disciplina.value.trim();
+    const classe = document.forms['planoForm'].classe.value;
+    if (!tema) {
+        mostrarAlerta('Preencha o tema da aula', 'warning');
+        return;
+    }
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO...';
+    btn.disabled = true;
+    if (streamingInterval) clearInterval(streamingInterval);
+    const objetivosCampo = document.getElementById('objetivosCampo');
+    objetivosCampo.value = '';
+    const streamingContainer = document.createElement('div');
+    streamingContainer.className = 'streaming-container';
+    streamingContainer.innerHTML = `<div class="ia-badge"><i class="fas fa-robot"></i> Estipulando objectivos específicos...</div><div id="streamingText" class="streaming-text"></div><span class="streaming-cursor"></span>`;
+    const parent = objetivosCampo.parentNode;
+    objetivosCampo.style.display = 'none';
+    parent.insertBefore(streamingContainer, objetivosCampo.nextSibling);
+    const prompt = `Crie 3 objectivos específicos para "${tema}" (${disciplina}, ${classe}) seguindo a Taxonomia de Bloom. Formato: • [cognitivo] ...; • [psicomotor] ...; • [afectivo] ...`;
+    chamarIAComFallback(prompt).then(texto => {
+        const primeiroBullet = texto.indexOf('•');
+        const textoLimpo = primeiroBullet > 0 ? texto.substring(primeiroBullet) : texto;
+        streamTextoParaCampo(textoLimpo, streamingContainer, objetivosCampo, btn, originalText);
+    }).catch(() => {
+        const textoLocal = `• Identificar os conceitos fundamentais de "${tema}";\n• Demonstrar aplicações práticas de "${tema}";\n• Valorizar a importância de "${tema}".`;
+        streamTextoParaCampo(textoLocal, streamingContainer, objetivosCampo, btn, originalText);
+    });
+}
+
+function streamTextoParaCampo(textoCompleto, streamingContainer, objetivosCampo, btn, originalText) {
+    const streamingTextEl = document.getElementById('streamingText');
+    if (!streamingTextEl) return;
+    let index = 0;
+    const textoLimpo = textoCompleto.trim();
+    streamingInterval = setInterval(() => {
+        if (index < textoLimpo.length) {
+            streamingTextEl.textContent += textoLimpo.charAt(index);
+            index++;
+        } else {
+            clearInterval(streamingInterval);
+            streamingInterval = null;
+            setTimeout(() => {
+                objetivosCampo.value = textoLimpo;
+                objetivosCampo.style.display = 'block';
+                streamingContainer.remove();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                mostrarAlerta('Objectivos gerados com sucesso!', 'success');
+            }, 500);
+        }
+    }, 30);
+}
+
+function habilitarEdicaoObjetivos() {
+    modoEdicao = true;
+    document.getElementById('controlesEdicao').style.display = 'block';
+    document.getElementById('objetivosCampo').focus();
+    mostrarAlerta('Modo de edição activo', 'info');
+}
+
+function desabilitarEdicaoObjetivos() {
+    modoEdicao = false;
+    document.getElementById('controlesEdicao').style.display = 'none';
+    const textarea = document.getElementById('objetivosCampo');
+    let texto = textarea.value.trim();
+    if (!texto) return;
+    const linhas = texto.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const formatados = linhas.map((linha, index) => {
+        let l = linha;
+        if (!l.startsWith('•')) l = '• ' + l;
+        l = l.replace(/[;.]$/, '');
+        return l + (index === linhas.length - 1 ? '.' : ';');
+    });
+    textarea.value = formatados.join('\n');
+    mostrarAlerta('Edição concluída', 'success');
+}
+
+function adicionarObjetivo() {
+    const textarea = document.getElementById('objetivosCampo');
+    const atual = textarea.value.trim();
+    const count = atual.split('\n').filter(l => l.trim()).length;
+    if (count >= 3) {
+        mostrarAlerta('Máximo de 3 objectivos', 'warning');
+        return;
+    }
+    textarea.value = atual ? atual + '\n• ' : '• ';
+    textarea.focus();
+}
+
+function limparObjetivos() {
+    if (confirm('Tem certeza?')) document.getElementById('objetivosCampo').value = '';
+}
+
+// =============================================
+// GERAÇÃO DO PLANO
+// =============================================
+async function gerarPlanoCompletoIA() {
+    const form = document.forms['planoForm'];
+    const prompt = `Crie um JSON para plano de aula:
+Tema: ${form.tema.value}
+Disciplina: ${form.disciplina.value}
+Classe: ${form.classe.value}
+Objectivos: ${form.objetivos.value}
+
+Formato:
+{"conteudos_mediacao":"conteúdos resumidos (max 3 linhas)","exercicios":[{"pergunta":"...","resposta":"..."}],"meios_sugeridos_mediacao":["meio1","meio2"]}`;
+    const texto = await chamarIAComFallback(prompt);
+    const jsonMatch = texto.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch ? jsonMatch[0] : texto);
+}
+
+function gerarPlanoBasico() {
+    const form = document.forms['planoForm'];
+    const duracaoTotal = getDuracao();
+    const tempos = calcularTempos(duracaoTotal);
+    const isClasseInicial = form.classe.value === '1ª' || form.classe.value === '2ª';
+    const meiosBase = isClasseInicial ? 'Livro do aluno' : 'Quadro, giz, livro';
+    document.getElementById('dadosEsquerda').innerHTML = `
+        <div class="preliminares-item"><div class="preliminares-label">ESCOLA</div><div class="preliminares-value">${escapeHtml(form.escola.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">PROFESSOR</div><div class="preliminares-value">${escapeHtml(form.professor.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">DISCIPLINA</div><div class="preliminares-value">${escapeHtml(form.disciplina.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">UNIDADE TEMÁTICA</div><div class="preliminares-value">${escapeHtml(form.unidade.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">TEMA</div><div class="preliminares-value">${escapeHtml(form.tema.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">TIPO DE AULA</div><div class="preliminares-value">${escapeHtml(form.tipo.value)}</div></div>`;
+    let dadosDireitaHTML = `
+        <div class="preliminares-item"><div class="preliminares-label">CLASSE</div><div class="preliminares-value">${escapeHtml(form.classe.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">TURMA</div><div class="preliminares-value">${escapeHtml(form.turma.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">LIÇÃO Nº</div><div class="preliminares-value">${escapeHtml(form.licao.value || '—')}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">DURAÇÃO</div><div class="preliminares-value">${duracaoTotal} minutos</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">PERÍODO</div><div class="preliminares-value">${escapeHtml(form.periodo.value)}</div></div>
+        <div class="preliminares-item"><div class="preliminares-label">DATA</div><div class="preliminares-value">${form.data.value ? new Date(form.data.value).toLocaleDateString('pt-PT') : '—'}</div></div>`;
+    if (materiais.length) dadosDireitaHTML += `<div class="preliminares-item"><div class="preliminares-label">MATERIAIS</div><div class="preliminares-value">${materiais.map(m => `• ${escapeHtml(m)}`).join('<br>')}</div></div>`;
+    if (temasTransversais.length) dadosDireitaHTML += `<div class="preliminares-item"><div class="preliminares-label">TEMAS TRANSVERSAIS</div><div class="preliminares-value">${temasTransversais.map(t => `• ${escapeHtml(t)}`).join('<br>')}</div></div>`;
+    document.getElementById('dadosDireita').innerHTML = dadosDireitaHTML;
+    const objetivosText = form.objetivos.value.trim();
+    const listaObjetivos = document.getElementById('listaObjetivos');
+    listaObjetivos.innerHTML = '';
+    if (objetivosText) {
+        objetivosText.split('\n').filter(l => l.trim()).forEach((linha, index) => {
+            const li = document.createElement('li');
+            li.setAttribute('contenteditable', 'true');
+            li.textContent = linha.trim();
+            li.addEventListener('blur', () => {
+                const objetivos = [];
+                document.querySelectorAll('#listaObjetivos li').forEach(li => {
+                    if (li.textContent.trim()) objetivos.push(li.textContent.trim());
+                });
+                document.getElementById('objetivosCampo').value = objetivos.join('\n');
+            });
+            listaObjetivos.appendChild(li);
+        });
+    }
+    const tabelaCorpo = document.getElementById('tabelaCorpo');
+    tabelaCorpo.innerHTML = `
+        <tr data-funcao="Introdução e Motivação"><td>${tempos[0]}</td><td><strong>Introdução e Motivação</strong></td><td contenteditable="true">• Saudação<br>• Marcação de presença<br>• Correção do TPC / Recapitulação<br>• Apresentação do tema ${escapeHtml(form.tema.value)}</td><td contenteditable="true">• Saúda os alunos<br>• Marca presenças<br>• Corrige o TPC<br>• Introduz o tema</td><td contenteditable="true">• Saúdam o professor<br>• Confirmam presença<br>• Participam na correção<br>• Anotam o tema</td><td>${criarSelectMetodo("Elaboração conjunta")}</td><td contenteditable="true">${meiosBase}</td></tr>
+        <tr data-funcao="Mediação e Assimilação"><td>${tempos[1]}</td><td>Mediação e Assimilação</td><td contenteditable="true" id="celulaConteudos"><div id="containerBotaoConteudo" style="display:none;"><button class="btn-chatgpt-conteudo" onclick="abrirModalChatGPT()"><i class="fab fa-chatgpt"></i> + Conteúdos</button></div><div id="conteudosTexto">• Exploração dos pressupostos dos alunos<br>• Explicação do tema "${escapeHtml(form.tema.value)}"<br>• Esclarecimento de dúvidas</div></td><td contenteditable="true">• Explora ideias dos alunos<br>• Explica o conteúdo<br>• Sana dúvidas<br>• Passa apontamento</td><td contenteditable="true">• Expõem ideias<br>• Prestam atenção<br>• Expõem dúvidas<br>• Transcrevem apontamento</td><td>${criarSelectMetodo("Elaboração conjunta")}</td><td contenteditable="true" id="celulaMeios">${meiosBase}</td></tr>
+        <tr data-funcao="Domínio e Consolidação"><td>${tempos[2]}</td><td>Domínio e Consolidação</td><td contenteditable="true" id="celulaExercicios">• Exercícios de aplicação<br>• Verificação da resolução</td><td contenteditable="true">• Passa exercícios<br>• Orienta resolução<br>• Verifica resolução</td><td contenteditable="true">• Transcrevem exercícios<br>• Resolvem individualmente</td><td>${criarSelectMetodo("Trabalho Independente")}</td><td contenteditable="true">${isClasseInicial ? meiosBase : 'Caderno, esferográfica, livro'}</td></tr>
+        <tr data-funcao="Controlo e Avaliação"><td>${tempos[3]}</td><td>Controlo e Avaliação</td><td contenteditable="true">• Correção dos exercícios<br>• Breve resumo da aula<br>• Marcação do TPC</td><td contenteditable="true">• Corrige exercícios<br>• Resume pontos principais<br>• Marca TPC</td><td contenteditable="true">• Apresentam correções<br>• Anotam resumo<br>• Anotam TPC</td><td>${criarSelectMetodo("Trabalho Independente")}</td><td contenteditable="true">${isClasseInicial ? meiosBase : 'Quadro, caderno, esferográfica'}</td></tr>`;
+    if (IA_CONFIG.stats.usouFallbackLocal || tipoGeracaoAtual === 'basico') {
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'inline-flex';
+    }
+    finalizarGeracao();
+}
+
+function gerarPlanoCompleto(dadosIA) {
+    gerarPlanoBasico();
+    if (dadosIA.conteudos_mediacao) {
+        const conteudosDiv = document.getElementById('conteudosTexto');
+        if (conteudosDiv) conteudosDiv.innerHTML = formatarConteudosMediacao(dadosIA.conteudos_mediacao);
+    }
+    if (dadosIA.exercicios) {
+        const exerciciosCell = document.getElementById('celulaExercicios');
+        if (exerciciosCell) exerciciosCell.innerHTML = formatarExercicios(dadosIA.exercicios);
+    }
+    if (dadosIA.meios_sugeridos_mediacao && dadosIA.meios_sugeridos_mediacao.length) {
+        const meiosCell = document.getElementById('celulaMeios');
+        if (meiosCell) meiosCell.innerHTML += ', ' + dadosIA.meios_sugeridos_mediacao.slice(0, 2).join(', ');
+    }
+    const containerBotao = document.getElementById('containerBotaoConteudo');
+    if (containerBotao) containerBotao.style.display = 'none';
+}
+
+function finalizarGeracao() {
+    document.getElementById('planoFinal').style.display = 'block';
+    document.getElementById('btnVoltarFormulario').style.display = 'inline-block';
+    document.forms['planoForm'].style.display = 'none';
+    planoGerado = true;
+}
+
+function iniciarGeracaoPlano(tipo) {
+    const form = document.forms['planoForm'];
+    if (!form.objetivos.value.trim()) {
+        mostrarAlerta('Preencha os objectivos', 'warning');
+        return;
+    }
+    tipoGeracaoAtual = tipo;
+    document.getElementById('formHeader').style.display = 'none';
+    document.getElementById('progressBar').style.display = 'none';
+    document.forms['planoForm'].style.display = 'none';
+    document.getElementById('planoFinal').style.display = 'none';
+    if (tipo === 'inteligente') {
+        mostrarLoader('inteligente', async () => {
+            try {
+                const dadosIA = await gerarPlanoCompletoIA();
+                gerarPlanoCompleto(dadosIA);
+                mostrarAlerta('Plano inteligente gerado!', 'success');
+            } catch (error) {
+                mostrarAlerta('IA indisponível. Gerando plano básico...', 'info');
+                gerarPlanoBasico();
+            }
+        });
+    } else {
+        mostrarLoader('basico', () => { gerarPlanoBasico(); });
+    }
+}
+
+// =============================================
+// MODAL CHATGPT
+// =============================================
+function abrirModalChatGPT() {
+    const modal = document.getElementById('modalChatGPT');
+    if (modal) modal.style.display = 'flex';
+    document.getElementById('conteudoChatGPT').value = '';
+}
+
+function fecharModalChatGPT() {
+    document.getElementById('modalChatGPT').style.display = 'none';
+}
+
+function abrirChatGPTComPrompt() {
+    const form = document.forms['planoForm'];
+    const prompt = `Crie um JSON para plano de aula:
+Tema: ${form.tema.value}
+Disciplina: ${form.disciplina.value}
+Classe: ${form.classe.value}
+Objectivos: ${form.objetivos.value}
+
+Formato:
+{"conteudos_mediacao":"conteúdos resumidos (max 3 linhas)","exercicios":[{"pergunta":"...","resposta":"..."}],"meios_sugeridos_mediacao":["meio1","meio2"]}`;
+    window.open(`https://chat.openai.com/?q=${encodeURIComponent(prompt)}`, '_blank');
+    mostrarAlerta('ChatGPT aberto! Cole a resposta.', 'info');
+}
+
+function analisarEAplicarConteudoChatGPT() {
+    const conteudo = document.getElementById('conteudoChatGPT').value.trim();
+    if (!conteudo) { mostrarAlerta('Cole o conteúdo!', 'warning'); return; }
+    try {
+        let dados;
+        const jsonMatch = conteudo.match(/\{[\s\S]*\}/);
+        if (jsonMatch) dados = JSON.parse(jsonMatch[0]);
+        else dados = JSON.parse(conteudo);
+        const conteudosDiv = document.getElementById('conteudosTexto');
+        if (conteudosDiv && dados.conteudos_mediacao) {
+            conteudosDiv.innerHTML = formatarConteudosMediacao(dados.conteudos_mediacao);
+        }
+        const exerciciosCell = document.getElementById('celulaExercicios');
+        if (exerciciosCell && dados.exercicios) {
+            exerciciosCell.innerHTML = formatarExercicios(dados.exercicios);
+        }
+        const meiosCell = document.getElementById('celulaMeios');
+        if (meiosCell && dados.meios_sugeridos_mediacao && dados.meios_sugeridos_mediacao.length) {
+            const meiosAtuais = meiosCell.innerHTML;
+            if (!meiosAtuais.includes(dados.meios_sugeridos_mediacao[0])) {
+                meiosCell.innerHTML = meiosAtuais + ', ' + dados.meios_sugeridos_mediacao.slice(0, 2).join(', ');
+            }
+        }
+        const containerBotao = document.getElementById('containerBotaoConteudo');
+        if (containerBotao) containerBotao.style.display = 'none';
+        fecharModalChatGPT();
+        mostrarAlerta('Conteúdo aplicado com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarAlerta('Erro ao analisar o conteúdo. Verifique o formato JSON.', 'error');
+    }
+}
+
+// =============================================
+// MODAL ANEXO
+// =============================================
+function abrirModalAnexo() {
+    const modal = document.getElementById('anexoModalEmbutido');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => modal.style.opacity = '1', 10);
+    }
+    mudarAba('texto');
+    limparCamposAnexo();
+}
+
+function fecharModalAnexo() {
+    const modal = document.getElementById('anexoModalEmbutido');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
+}
+
+function mudarAba(aba) {
+    abaAtiva = aba;
+    document.querySelectorAll('#anexoModalEmbutido .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#anexoModalEmbutido .anexo-panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelector(`#anexoModalEmbutido .tab-btn[data-tab="${aba}"]`).classList.add('active');
+    document.getElementById(`painel${aba.charAt(0).toUpperCase() + aba.slice(1)}`).classList.add('active');
+}
+
+function gerarConteudoIA() {
+    mostrarAlerta('Gerando conteúdo...', 'info');
+    setTimeout(() => {
+        document.getElementById('textoIA').value = 'Conteúdo gerado automaticamente baseado no tema da aula.';
+        mostrarAlerta('Conteúdo gerado!', 'success');
+    }, 1000);
+}
+
+function abrirCamera() { document.getElementById('inputCamera').click(); }
+function abrirGaleria() { document.getElementById('inputGaleria').click(); }
+
+function carregarFoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const preview = document.getElementById('previewFoto');
+        preview.innerHTML = `<img src="${e.target.result}" id="imgCrop" style="max-width:100%; max-height:200px; border-radius:8px;">`;
+        imagemAtual = e.target.result;
+        document.getElementById('cropperControls').style.display = 'block';
+        setTimeout(() => {
+            if (cropper) cropper.destroy();
+            const img = document.getElementById('imgCrop');
+            if (img && typeof Cropper !== 'undefined') {
+                cropper = new Cropper(img, { viewMode: 1, dragMode: 'crop', aspectRatio: NaN, autoCropArea: 0.8 });
+            }
+        }, 100);
+    };
+    reader.readAsDataURL(file);
+}
+
+function rotacionarEsquerda() { if (cropper) cropper.rotate(-90); }
+function rotacionarDireita() { if (cropper) cropper.rotate(90); }
+function zoomMais() { if (cropper) cropper.zoom(0.1); }
+function zoomMenos() { if (cropper) cropper.zoom(-0.1); }
+function resetarCropper() { if (cropper) cropper.reset(); }
+
+function aplicarCorte() {
+    if (!cropper) return;
+    const canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800 });
+    if (!canvas) return;
+    imagemAtual = canvas.toDataURL('image/jpeg', 0.9);
+    const preview = document.getElementById('previewFoto');
+    preview.innerHTML = `<img src="${imagemAtual}" style="max-width:100%; max-height:200px; border-radius:8px;">`;
+    if (cropper) { cropper.destroy(); cropper = null; }
+    document.getElementById('cropperControls').style.display = 'none';
+}
+
+function salvarAnexoDoModal() {
+    let conteudo = '';
+    if (abaAtiva === 'texto') conteudo = document.getElementById('textoManual').value;
+    else if (abaAtiva === 'chatgpt') conteudo = document.getElementById('textoIA').value;
+    else if (abaAtiva === 'foto' && imagemAtual) conteudo = `<img src="${imagemAtual}" style="max-width:100%; border-radius:8px;">`;
+    if (!conteudo) { mostrarAlerta('Nenhum conteúdo para salvar!', 'warning'); return; }
+    const preview = document.getElementById('anexoPreview');
+    preview.innerHTML = `<div style="background:white; border-radius:12px; padding:15px; margin-top:15px; border:2px solid var(--primary);"><h4 style="color:var(--primary);"><i class="fas fa-paperclip"></i> ANEXO</h4><div>${conteudo}</div><button onclick="removerAnexo()" style="background:#dc2626; color:white; border:none; padding:6px 12px; border-radius:6px; margin-top:8px;"><i class="fas fa-trash"></i> Remover</button></div>`;
+    preview.style.display = 'block';
+    fecharModalAnexo();
+    mostrarAlerta('Anexo salvo!', 'success');
+}
+
+function removerAnexo() {
+    document.getElementById('anexoPreview').innerHTML = '';
+    document.getElementById('anexoPreview').style.display = 'none';
+    mostrarAlerta('Anexo removido', 'info');
+}
+
+function limparCamposAnexo() {
+    document.getElementById('textoManual').value = '';
+    document.getElementById('textoIA').value = '';
+    document.getElementById('previewFoto').innerHTML = '<div><i class="fas fa-cloud-upload-alt" style="font-size:40px;"></i><p>Nenhuma imagem</p></div>';
+    document.getElementById('cropperControls').style.display = 'none';
+    imagemAtual = null;
+    if (cropper) { cropper.destroy(); cropper = null; }
+}
+
+function sanitizarTexto(t) { return t; }
+
+// =============================================
+// EXPORTS GLOBAIS
+// =============================================
+window.showStep = showStep;
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.toggleDuracaoCustom = toggleDuracaoCustom;
+window.validarDuracao = validarDuracao;
+window.alternarCampoMaterial = alternarCampoMaterial;
+window.adicionarMaterial = adicionarMaterial;
+window.alternarCampoTema = alternarCampoTema;
+window.adicionarTema = adicionarTema;
+window.gerarObjetivosStreaming = gerarObjetivosStreaming;
+window.habilitarEdicaoObjetivos = habilitarEdicaoObjetivos;
+window.adicionarObjetivo = adicionarObjetivo;
+window.limparObjetivos = limparObjetivos;
+window.desabilitarEdicaoObjetivos = desabilitarEdicaoObjetivos;
+window.iniciarGeracaoPlano = iniciarGeracaoPlano;
+window.cancelarLoader = cancelarLoader;
+window.voltarAoFormulario = voltarAoFormulario;
+window.irParaPagamento = irParaPagamento;
+window.criarSelectMetodo = criarSelectMetodo;
+window.mostrarMetodoEscolhido = mostrarMetodoEscolhido;
+window.abrirModalAnexo = abrirModalAnexo;
+window.fecharModalAnexo = fecharModalAnexo;
+window.mudarAba = mudarAba;
+window.gerarConteudoIA = gerarConteudoIA;
+window.abrirCamera = abrirCamera;
+window.abrirGaleria = abrirGaleria;
+window.carregarFoto = carregarFoto;
+window.rotacionarEsquerda = rotacionarEsquerda;
+window.rotacionarDireita = rotacionarDireita;
+window.zoomMais = zoomMais;
+window.zoomMenos = zoomMenos;
+window.resetarCropper = resetarCropper;
+window.aplicarCorte = aplicarCorte;
+window.salvarAnexoDoModal = salvarAnexoDoModal;
+window.removerAnexo = removerAnexo;
+window.sanitizarTexto = sanitizarTexto;
+window.abrirModalChatGPT = abrirModalChatGPT;
+window.fecharModalChatGPT = fecharModalChatGPT;
+window.abrirChatGPTComPrompt = abrirChatGPTComPrompt;
+window.analisarEAplicarConteudoChatGPT = analisarEAplicarConteudoChatGPT;
+
+console.log('✅ GePAQ carregado! Together com chave direta é prioridade máxima.');
+console.log('📊 Estatísticas iniciais:', IA_CONFIG.stats);
+</script>
+</body>
+</html>
