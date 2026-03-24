@@ -2205,7 +2205,7 @@ async function chamarTogetherAPI(prompt) {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${TOGETHER_API_KEY}`,
+            'Authorization': `Bearer ${tgp_v1_gc3gQAdtdFbrF7kFc0IV7C4kwzTiRJIqZEZUmj4KGsI}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -2361,7 +2361,7 @@ function gerarObjetivosStreaming() {
         const textoLimpo = primeiroBullet > 0 ? texto.substring(primeiroBullet) : texto;
         streamTextoParaCampo(textoLimpo, streamingContainer, objetivosCampo, btn, originalText);
     }).catch(() => {
-        const textoLocal = `• Identificar os conceitos fundamentais de "${tema}";\n• Demonstrar aplicações práticas de "${tema}";\n• Valorizar a importância de "${tema}".`;
+        const textoLocal = `• Identificar os conceitos fundamentais de ${tema};\n• Demonstrar aplicações práticas de ${tema};\n• Valorizar a importância de ${tema}.`;
         streamTextoParaCampo(textoLocal, streamingContainer, objetivosCampo, btn, originalText);
     });
 }
@@ -2442,7 +2442,7 @@ Classe: ${form.classe.value}
 Objectivos: ${form.objetivos.value}
 
 Formato:
-{"conteudos_mediacao":"conteúdos resumidos (max 3 linhas)","exercicios":[{"pergunta":"...","resposta":"..."}],"meios_sugeridos_mediacao":["meio1","meio2"]}`;
+{"conteudos_mediacao":"conteúdos resumidos (max 3 linhas)","exercicios":[{"pergunta":"...","resposta":"..."}],"meios_sugeridos_mediacao":["meio1","meio2"]} nota: No máximo dois exercícios`;
     const texto = await chamarIAComFallback(prompt);
     const jsonMatch = texto.match(/\{[\s\S]*\}/);
     return JSON.parse(jsonMatch ? jsonMatch[0] : texto);
@@ -2545,7 +2545,7 @@ function iniciarGeracaoPlano(tipo) {
                 gerarPlanoCompleto(dadosIA);
                 mostrarAlerta('Plano inteligente gerado!', 'success');
             } catch (error) {
-                mostrarAlerta('IA indisponível. Gerando plano básico...', 'info');
+                mostrarAlerta('GePAQ Stunner indisponível. Gerando plano básico...', 'info');
                 gerarPlanoBasico();
             }
         });
