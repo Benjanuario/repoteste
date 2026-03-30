@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin - Livraria GePAQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #0a0e1a 100%);
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  .admin-container {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    background: rgba(10, 14, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(196, 113, 245, 0.2);
+    padding: 32px 20px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(196, 113, 245, 0.2);
+  }
+
+  .logo i {
+    font-size: 28px;
+    color: #c471f5;
+  }
+
+  .logo h2 {
+    font-size: 18px;
+    background: linear-gradient(135deg, #fff, #c471f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .nav-item:hover {
+    background: rgba(196, 113, 245, 0.1);
+    color: #fff;
+  }
+
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(196, 113, 245, 0.2), rgba(139, 92, 246, 0.1));
+    border-left: 3px solid #c471f5;
+    color: #fff;
+  }
+
+  .nav-item i {
+    width: 24px;
+    font-size: 18px;
+  }
+
+  .nav-divider {
+    height: 1px;
+    background: rgba(196, 113, 245, 0.2);
+    margin: 20px 0;
+  }
+
+  .nav-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    margin-top: 16px;
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 32px 40px;
+  }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    transition: transform 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    border-color: #c471f5;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+    color: #c471f5;
+    margin-bottom: 12px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Forms */
+  .form-section {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title i {
+    color: #c471f5;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .required {
+    color: #c471f5;
+  }
+
+  input, select, textarea {
+    background: rgba(10, 14, 26, 0.8);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #c471f5;
+    box-shadow: 0 0 0 3px rgba(196, 113, 245, 0.1);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .checkbox-group input {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Preview da capa */
+  .cover-preview {
+    margin-top: 10px;
+    display: none;
+  }
+
+  .cover-preview.show {
+    display: block;
+  }
+
+  .cover-preview img {
+    max-width: 120px;
+    border-radius: 8px;
+    border: 1px solid rgba(196, 113, 245, 0.3);
+    background: rgba(10, 14, 26, 0.8);
+    padding: 4px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(196, 113, 245, 0.2);
+  }
+
+  .btn {
+    padding: 10px 24px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #c471f5, #8b5cf6);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(196, 113, 245, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(196, 113, 245, 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(196, 113, 245, 0.2);
+  }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.3);
+  }
+
+  /* Search and filters */
+  .search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    background: rgba(10, 14, 26, 0.8);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  .filter-select {
+    background: rgba(10, 14, 26, 0.8);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  /* Table */
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    padding: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c471f5;
+    border-bottom: 1px solid rgba(196, 113, 245, 0.2);
+  }
+
+  td {
+    padding: 16px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  tr:hover {
+    background: rgba(196, 113, 245, 0.05);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .action-btn.edit {
+    background: rgba(196, 113, 245, 0.2);
+    color: #c471f5;
+  }
+
+  .action-btn.edit:hover {
+    background: rgba(196, 113, 245, 0.4);
+  }
+
+  .action-btn.delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+  }
+
+  .action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.4);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-alunos { background: rgba(196, 113, 245, 0.2); color: #c471f5; }
+  .badge-programas { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+  .badge-ifp { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+  .badge-active { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+  .badge-inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+  .cover-thumb {
+    width: 40px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: rgba(10, 14, 26, 0.8);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(196, 113, 245, 0.3);
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* Modal confirm */
+  .confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .confirm-overlay.active {
+    display: flex;
+  }
+
+  .confirm-box {
+    background: linear-gradient(135deg, #0f172a, #0a0e1a);
+    border: 1px solid rgba(196, 113, 245, 0.3);
+    border-radius: 24px;
+    padding: 32px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  }
+
+  .confirm-box i {
+    font-size: 48px;
+    color: #ef4444;
+    margin-bottom: 16px;
+  }
+
+  .confirm-box h3 {
+    margin-bottom: 12px;
+  }
+
+  .confirm-box p {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 24px;
+  }
+
+  /* Quick actions */
+  .quick-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .quick-btn {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(196, 113, 245, 0.2);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+  }
+
+  .quick-btn:hover {
+    border-color: #c471f5;
+    background: rgba(196, 113, 245, 0.1);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 80px;
+      padding: 20px 12px;
+    }
+    .sidebar .logo h2, .sidebar .nav-item span, .sidebar .nav-label {
+      display: none;
+    }
+    .sidebar .nav-item {
+      justify-content: center;
+    }
+    .main-content {
+      margin-left: 80px;
+      padding: 20px;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+<div class="admin-container">
+  <div class="sidebar">
+    <div class="logo">
+      <i class="fas fa-book-open"></i>
+      <h2>Livraria GePAQ</h2>
+    </div>
+    
+    <div class="nav-label">GESTÃO</div>
+    <div class="nav-item active" onclick="showPanel('add')">
+      <i class="fas fa-plus-circle"></i>
+      <span>Adicionar Livro</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('list')">
+      <i class="fas fa-list"></i>
+      <span>Lista de Livros</span>
+    </div>
+    
+    <div class="nav-divider"></div>
+    
+    <div class="nav-label">FERRAMENTAS</div>
+    <div class="nav-item" onclick="exportData()">
+      <i class="fas fa-download"></i>
+      <span>Exportar Dados</span>
+    </div>
+    <div class="nav-item" onclick="clearAllBooks()">
+      <i class="fas fa-trash-alt"></i>
+      <span>Limpar Tudo</span>
+    </div>
+    
+    <div class="nav-divider"></div>
+    
+    <div class="nav-item" onclick="window.location.href='biblioteca.html'">
+      <i class="fas fa-arrow-left"></i>
+      <span>Voltar à Biblioteca</span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-book"></i></div>
+        <div class="stat-value" id="total-books">0</div>
+        <div class="stat-label">Total de Livros</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="stat-value" id="alunos-count">0</div>
+        <div class="stat-label">Livros de Alunos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div>
+        <div class="stat-value" id="programas-count">0</div>
+        <div class="stat-label">Programas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-landmark"></i></div>
+        <div class="stat-value" id="ifp-count">0</div>
+        <div class="stat-label">Manuais IFP</div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Panel -->
+    <div id="add-panel" class="form-section">
+      <div class="section-title">
+        <i class="fas fa-plus-circle"></i>
+        <span id="form-title">Adicionar Novo Livro</span>
+      </div>
+      <form id="book-form" onsubmit="submitBook(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Título <span class="required">*</span></label>
+            <input type="text" id="titulo" required placeholder="Ex: Matemática 6ª Classe"/>
+          </div>
+          <div class="form-group">
+            <label>Autor</label>
+            <input type="text" id="autor" placeholder="Ex: INIDE"/>
+          </div>
+          <div class="form-group">
+            <label>Editora</label>
+            <input type="text" id="editora" placeholder="Ex: INIDE"/>
+          </div>
+          <div class="form-group">
+            <label>Ano</label>
+            <input type="number" id="ano" placeholder="2024"/>
+          </div>
+          <div class="form-group">
+            <label>Categoria <span class="required">*</span></label>
+            <select id="categoria" required onchange="handleCategoryChange()">
+              <option value="">Selecione</option>
+              <option value="alunos">Livros de Alunos</option>
+              <option value="programas">Programas de Ensino</option>
+              <option value="ifp">Manuais IFP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Disciplina</label>
+            <input type="text" id="disciplina" placeholder="Ex: Matemática"/>
+          </div>
+          <div class="form-group" id="classe-group" style="display:none">
+            <label>Classe</label>
+            <select id="classe">
+              <option value="">Selecione</option>
+              <option value="1">1ª Classe</option><option value="2">2ª Classe</option>
+              <option value="3">3ª Classe</option><option value="4">4ª Classe</option>
+              <option value="5">5ª Classe</option><option value="6">6ª Classe</option>
+              <option value="7">7ª Classe</option><option value="8">8ª Classe</option>
+              <option value="9">9ª Classe</option><option value="10">10ª Classe</option>
+              <option value="11">11ª Classe</option><option value="12">12ª Classe</option>
+            </select>
+          </div>
+          
+          <!-- Link da Capa -->
+          <div class="form-group full-width">
+            <label>Link da Capa (Google Drive) <span class="required">*</span></label>
+            <input type="url" id="link_capa" required placeholder="https://drive.google.com/file/d/..." oninput="previewCover()"/>
+            <small style="color: rgba(255,255,255,0.4); font-size: 11px;">Cole o link da imagem da capa (JPG ou PNG)</small>
+            <div id="cover-preview" class="cover-preview">
+              <img id="preview-img" src="" alt="Prévia da capa"/>
+            </div>
+          </div>
+          
+          <!-- Link Download -->
+          <div class="form-group full-width">
+            <label>Link de Download (Google Drive) <span class="required">*</span></label>
+            <input type="url" id="link_download" required placeholder="https://drive.google.com/file/d/..."/>
+            <small style="color: rgba(255,255,255,0.4); font-size: 11px;">Cole o link do PDF do livro</small>
+          </div>
+          
+          <div class="form-group full-width checkbox-group">
+            <input type="checkbox" id="disponivel" checked/>
+            <label>Disponível para download</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="clearForm()">Limpar</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Adicionar Livro</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- List Panel -->
+    <div id="list-panel" class="form-section hidden">
+      <div class="section-title">
+        <i class="fas fa-list"></i>
+        <span>Lista de Livros</span>
+      </div>
+      
+      <!-- Search and filters -->
+      <div class="search-bar">
+        <input type="text" class="search-input" id="search-input" placeholder="Buscar por título, autor ou disciplina..." oninput="filterBooks()"/>
+        <select class="filter-select" id="filter-category" onchange="filterBooks()">
+          <option value="">Todas categorias</option>
+          <option value="alunos">Livros de Alunos</option>
+          <option value="programas">Programas de Ensino</option>
+          <option value="ifp">Manuais IFP</option>
+        </select>
+        <select class="filter-select" id="filter-status" onchange="filterBooks()">
+          <option value="">Todos os status</option>
+          <option value="active">Disponíveis</option>
+          <option value="inactive">Indisponíveis</option>
+        </select>
+      </div>
+      
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="filterBooks()"><i class="fas fa-sync-alt"></i> Atualizar</button>
+        <button class="quick-btn" onclick="selectAllBooks()"><i class="fas fa-check-double"></i> Selecionar Todos</button>
+        <button class="quick-btn" onclick="deleteSelected()" style="border-color: #ef4444;"><i class="fas fa-trash"></i> Eliminar Selecionados</button>
+      </div>
+      
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll()"></th>
+              <th>Capa</th>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>Categoria</th>
+              <th>Classe</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="books-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="confirm-overlay">
+  <div class="confirm-box">
+    <i class="fas fa-trash-alt"></i>
+    <h3>Eliminar Livro(s)</h3>
+    <p id="confirm-message">Tem certeza que deseja eliminar este livro? Esta ação não pode ser desfeita.</p>
+    <div class="form-actions" style="justify-content: center; border: none;">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmDelete()" style="background: #ef4444;">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCuL9jz1yb54jI8C99OZgbZaNc4GH4p6j0",
+    authDomain: "gepaq-booksbd.firebaseapp.com",
+    projectId: "gepaq-booksbd",
+    storageBucket: "gepaq-booksbd.firebasestorage.app",
+    messagingSenderId: "582325660451",
+    appId: "1:582325660451:web:4cb0e196b48d8ba2967a96"
+  };
+
+  let db;
+  let books = [];
+  let editMode = false;
+  let editId = null;
+  let deleteTarget = null;
+  let deleteMultiple = false;
+  let selectedBooks = [];
+
+  // Helper: Extract Drive ID
+  function extractDriveId(url) {
+    if (!url) return null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  }
+
+  // Get thumbnail URL
+  function getThumbnailUrl(driveUrl) {
+    if (!driveUrl) return null;
+    const id = extractDriveId(driveUrl);
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w100` : null;
+  }
+
+  // Preview cover
+  window.previewCover = function() {
+    const url = document.getElementById('link_capa').value;
+    const previewDiv = document.getElementById('cover-preview');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (url && extractDriveId(url)) {
+      const thumbUrl = getThumbnailUrl(url);
+      previewImg.src = thumbUrl;
+      previewDiv.classList.add('show');
+    } else {
+      previewDiv.classList.remove('show');
+    }
+  };
+
+  async function init() {
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      await loadBooks();
+    } catch(e) {
+      console.warn('Firebase error:', e);
+      loadDemoData();
+    }
+  }
+
+  async function loadBooks() {
+    const snapshot = await getDocs(collection(db, 'livros'));
+    books = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    updateStats();
+    renderTable();
+  }
+
+  function loadDemoData() {
+    books = [
+      { id: '1', titulo: 'Matemática 1ª Classe', autor: 'INIDE', categoria: 'alunos', classe: '1', disponivel: true, link_capa: '', link_download: '' },
+      { id: '2', titulo: 'Programa de Matemática', autor: 'INIDE', categoria: 'programas', disponivel: true, link_capa: '', link_download: '' },
+      { id: '3', titulo: 'Manual IFP - Didática', autor: 'ISCED', categoria: 'ifp', disponivel: true, link_capa: '', link_download: '' },
+    ];
+    updateStats();
+    renderTable();
+  }
+
+  function updateStats() {
+    document.getElementById('total-books').textContent = books.length;
+    document.getElementById('alunos-count').textContent = books.filter(b => b.categoria === 'alunos').length;
+    document.getElementById('programas-count').textContent = books.filter(b => b.categoria === 'programas').length;
+    document.getElementById('ifp-count').textContent = books.filter(b => b.categoria === 'ifp').length;
+  }
+
+  function filterBooks() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const categoryFilter = document.getElementById('filter-category').value;
+    const statusFilter = document.getElementById('filter-status').value;
+    
+    let filtered = books.filter(book => {
+      if (categoryFilter && book.categoria !== categoryFilter) return false;
+      if (statusFilter === 'active' && book.disponivel !== true) return false;
+      if (statusFilter === 'inactive' && book.disponivel !== false) return false;
+      if (searchTerm && !book.titulo?.toLowerCase().includes(searchTerm) && 
+          !book.autor?.toLowerCase().includes(searchTerm) &&
+          !book.disciplina?.toLowerCase().includes(searchTerm)) return false;
+      return true;
+    });
+    
+    renderTable(filtered);
+  }
+
+  function renderTable(booksToRender = books) {
+    const tbody = document.getElementById('books-table-body');
+    const categoryLabels = { alunos: 'Alunos', programas: 'Programas', ifp: 'IFP' };
+    const categoryClasses = { alunos: 'badge-alunos', programas: 'badge-programas', ifp: 'badge-ifp' };
+
+    tbody.innerHTML = booksToRender.map(book => {
+      const thumb = book.link_capa ? getThumbnailUrl(book.link_capa) : null;
+      return `
+      <tr>
+        <td><input type="checkbox" class="book-checkbox" value="${book.id}" onchange="updateSelectedCount()"></td>
+        <td>
+          ${thumb ? 
+            `<img src="${thumb}" class="cover-thumb" alt="capa" onerror="this.style.display='none'">` : 
+            '<i class="fas fa-book" style="opacity:0.3; font-size:20px"></i>'
+          }
+        </td>
+        <td><strong>${book.titulo || '-'}</strong></td>
+        <td>${book.autor || '-'}</td>
+        <td><span class="badge ${categoryClasses[book.categoria]}">${categoryLabels[book.categoria]}</span></td>
+        <td>${book.classe ? book.classe + 'ª' : '-'}</td>
+        <td><span class="badge ${book.disponivel !== false ? 'badge-active' : 'badge-inactive'}">${book.disponivel !== false ? 'Disponível' : 'Indisponível'}</span></td>
+        <td class="action-buttons">
+          <button class="action-btn edit" onclick="editBook('${book.id}')"><i class="fas fa-edit"></i> Editar</button>
+          <button class="action-btn delete" onclick="askDelete('${book.id}')"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `}).join('');
+  }
+
+  window.toggleSelectAll = function() {
+    const selectAll = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.book-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateSelectedCount();
+  };
+
+  window.updateSelectedCount = function() {
+    const checkboxes = document.querySelectorAll('.book-checkbox:checked');
+    selectedBooks = Array.from(checkboxes).map(cb => cb.value);
+  };
+
+  window.selectAllBooks = function() {
+    const checkboxes = document.querySelectorAll('.book-checkbox');
+    checkboxes.forEach(cb => cb.checked = true);
+    updateSelectedCount();
+    showToast(`${checkboxes.length} livros selecionados`, 'info');
+  };
+
+  window.deleteSelected = function() {
+    if (selectedBooks.length === 0) {
+      showToast('Nenhum livro selecionado', 'error');
+      return;
+    }
+    deleteMultiple = true;
+    deleteTarget = selectedBooks;
+    document.getElementById('confirm-message').innerHTML = `Tem certeza que deseja eliminar ${selectedBooks.length} livro(s)? Esta ação não pode ser desfeita.`;
+    document.getElementById('confirm-modal').classList.add('active');
+  };
+
+  window.handleCategoryChange = function() {
+    const cat = document.getElementById('categoria').value;
+    const classeGroup = document.getElementById('classe-group');
+    classeGroup.style.display = cat === 'alunos' ? 'flex' : 'none';
+  };
+
+  window.submitBook = async function(e) {
+    e.preventDefault();
+    
+    const data = {
+      titulo: document.getElementById('titulo').value,
+      autor: document.getElementById('autor').value,
+      editora: document.getElementById('editora').value,
+      ano: document.getElementById('ano').value,
+      categoria: document.getElementById('categoria').value,
+      disciplina: document.getElementById('disciplina').value,
+      classe: document.getElementById('classe').value || null,
+      link_capa: document.getElementById('link_capa').value,
+      link_download: document.getElementById('link_download').value,
+      disponivel: document.getElementById('disponivel').checked,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Validação
+    if (!data.titulo) {
+      showToast('O título é obrigatório', 'error');
+      return;
+    }
+    if (!data.categoria) {
+      showToast('A categoria é obrigatória', 'error');
+      return;
+    }
+    if (!data.link_download) {
+      showToast('O link de download é obrigatório', 'error');
+      return;
+    }
+    if (!data.link_capa) {
+      showToast('O link da capa é obrigatório', 'error');
+      return;
+    }
+
+    try {
+      if (editMode && editId) {
+        await updateDoc(doc(db, 'livros', editId), data);
+        const index = books.findIndex(b => b.id === editId);
+        books[index] = { ...books[index], ...data };
+        showToast('Livro atualizado com sucesso!', 'success');
+      } else {
+        const ref = await addDoc(collection(db, 'livros'), data);
+        books.push({ id: ref.id, ...data });
+        showToast('Livro adicionado com sucesso!', 'success');
+      }
+      updateStats();
+      filterBooks();
+      clearForm();
+    } catch(e) {
+      console.error('Erro:', e);
+      showToast('Erro: ' + e.message, 'error');
+    }
+  };
+
+  window.editBook = function(id) {
+    const book = books.find(b => b.id === id);
+    if (!book) return;
+    
+    editMode = true;
+    editId = id;
+    document.getElementById('form-title').innerHTML = 'Editar Livro';
+    document.getElementById('submit-btn').innerHTML = 'Atualizar Livro';
+    
+    document.getElementById('titulo').value = book.titulo || '';
+    document.getElementById('autor').value = book.autor || '';
+    document.getElementById('editora').value = book.editora || '';
+    document.getElementById('ano').value = book.ano || '';
+    document.getElementById('categoria').value = book.categoria || '';
+    document.getElementById('disciplina').value = book.disciplina || '';
+    document.getElementById('classe').value = book.classe || '';
+    document.getElementById('link_capa').value = book.link_capa || '';
+    document.getElementById('link_download').value = book.link_download || '';
+    document.getElementById('disponivel').checked = book.disponivel !== false;
+    
+    handleCategoryChange();
+    previewCover();
+    showPanel('add');
+  };
+
+  window.askDelete = function(id) {
+    deleteMultiple = false;
+    deleteTarget = id;
+    document.getElementById('confirm-message').innerHTML = 'Tem certeza que deseja eliminar este livro? Esta ação não pode ser desfeita.';
+    document.getElementById('confirm-modal').classList.add('active');
+  };
+
+  window.confirmDelete = async function() {
+    try {
+      if (deleteMultiple && Array.isArray(deleteTarget)) {
+        for (const id of deleteTarget) {
+          await deleteDoc(doc(db, 'livros', id));
+          books = books.filter(b => b.id !== id);
+        }
+        showToast(`${deleteTarget.length} livro(s) eliminado(s) com sucesso!`, 'success');
+      } else if (deleteTarget) {
+        await deleteDoc(doc(db, 'livros', deleteTarget));
+        books = books.filter(b => b.id !== deleteTarget);
+        showToast('Livro eliminado com sucesso!', 'success');
+      }
+      updateStats();
+      filterBooks();
+    } catch(e) {
+      showToast('Erro ao eliminar', 'error');
+    }
+    closeConfirmModal();
+  };
+
+  window.closeConfirmModal = function() {
+    document.getElementById('confirm-modal').classList.remove('active');
+    deleteTarget = null;
+    deleteMultiple = false;
+    selectedBooks = [];
+  };
+
+  window.clearForm = function() {
+    document.getElementById('book-form').reset();
+    document.getElementById('cover-preview').classList.remove('show');
+    editMode = false;
+    editId = null;
+    document.getElementById('form-title').innerHTML = 'Adicionar Novo Livro';
+    document.getElementById('submit-btn').innerHTML = 'Adicionar Livro';
+    document.getElementById('classe-group').style.display = 'none';
+  };
+
+  window.showPanel = function(panel) {
+    document.getElementById('add-panel').classList.toggle('hidden', panel !== 'add');
+    document.getElementById('list-panel').classList.toggle('hidden', panel !== 'list');
+    document.querySelectorAll('.nav-item').forEach((item, i) => {
+      item.classList.toggle('active', (panel === 'add' && i === 0) || (panel === 'list' && i === 1));
+    });
+    if (panel === 'list') filterBooks();
+  };
+
+  window.exportData = function() {
+    const dataStr = JSON.stringify(books, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gepaq_books_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Dados exportados com sucesso!', 'success');
+  };
+
+  window.clearAllBooks = async function() {
+    if (confirm('ATENÇÃO: Isso irá eliminar TODOS os livros. Tem certeza?')) {
+      try {
+        for (const book of books) {
+          await deleteDoc(doc(db, 'livros', book.id));
+        }
+        books = [];
+        updateStats();
+        filterBooks();
+        showToast('Todos os livros foram eliminados', 'success');
+      } catch(e) {
+        showToast('Erro ao limpar dados', 'error');
+      }
+    }
+  };
+
+  function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  // Make functions global
+  window.filterBooks = filterBooks;
+  window.updateSelectedCount = updateSelectedCount;
+
+  init();
+</script>
+</body>
+</html>
